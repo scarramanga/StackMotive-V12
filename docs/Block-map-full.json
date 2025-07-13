@@ -1,0 +1,602 @@
+{
+  "Block 1": {
+    "title": "Portfolio Loader",
+    "path": "src/features/portfolio/PortfolioLoader.tsx"
+  },
+  "Block 2": {
+    "title": "Strategy Assignment Engine",
+    "path": "src/strategies/assignment/StrategyEngine.ts"
+  },
+  "Block 3": {
+    "title": "Allocation Visualiser",
+    "path": "src/ui/components/AllocationVisualiser.tsx"
+  },
+  "Block 4": {
+    "title": "AI Rebalance Suggestions",
+    "path": "src/ai/rebalancer/RebalanceSuggestions.ts"
+  },
+  "Block 5": {
+    "title": "Strategy Editor Interface",
+    "path": "src/ui/overlays/StrategyEditor.tsx"
+  },
+  "Block 6": {
+    "title": "Asset Sync Settings",
+    "path": "src/features/settings/AssetSyncPanel.tsx"
+  },
+  "Block 7": {
+    "title": "Holdings Review Panel",
+    "path": "src/features/portfolio/HoldingsReview.tsx"
+  },
+  "Block 8": {
+    "title": "Macro Monitor Agent",
+    "path": "src/agents/macro/MacroMonitor.ts"
+  },
+  "Block 9": {
+    "title": "Rebalance Scheduler",
+    "path": "src/features/schedule/RebalanceScheduler.ts"
+  },
+  "Block 10": {
+    "title": "DCA & Stop-Loss Assistant",
+    "path": "src/features/trading/DCAStopLossAssistant.ts"
+  },
+  "Block 11": {
+    "title": "Snapshot Exporter",
+    "path": "src/features/export/SnapshotExporter.ts"
+  },
+  "Block 12": {
+    "title": "Manual Trade Journal",
+    "path": "src/features/trading/ManualTradeJournal.tsx"
+  },
+  "Block 13": {
+    "title": "Tax Reporting Uploader",
+    "path": "src/features/reporting/TaxUploader.ts"
+  },
+  "Block 14": {
+    "title": "Sentiment Tracker (Lite)",
+    "path": "src/features/sentiment/SentimentLitePanel.tsx"
+  },
+  "Block 15": {
+    "title": "Onboarding Flow",
+    "path": "src/features/onboarding/OnboardingFlow.tsx"
+  },
+  "Block 16": {
+    "title": "User Preferences Panel",
+    "path": "src/features/settings/UserPreferences.tsx"
+  },
+  "Block 17": {
+    "title": "Performance Analytics Panel",
+    "path": "src/features/analytics/PerformancePanel.tsx"
+  },
+  "Block 18": {
+    "title": "Tier Status Banner",
+    "path": "src/features/access/TierStatusBanner.tsx"
+  },
+  "Block 19": {
+    "title": "Trade Summary Exporter",
+    "path": "src/features/export/TradeSummaryExporter.ts"
+  },
+  "Block 20": {
+    "title": "UI Alert Scheduler",
+    "path": "src/features/notifications/UIAlertScheduler.ts"
+  },
+  "Block 21": {
+    "title": "Block 21 Title Placeholder",
+    "path": "src/blocks/block_021.ts"
+  },
+  "Block 22": {
+    "title": "Block 22 Title Placeholder",
+    "path": "src/blocks/block_022.ts"
+  },
+  "Block 23": {
+    "title": "Block 23 Title Placeholder",
+    "path": "src/blocks/block_023.ts"
+  },
+  "Block 24": {
+    "title": "Block 24 Title Placeholder",
+    "path": "src/blocks/block_024.ts"
+  },
+  "Block 25": {
+    "title": "Block 25 Title Placeholder",
+    "path": "src/blocks/block_025.ts"
+  },
+  "Block 26": {
+    "title": "Block 26 Title Placeholder",
+    "path": "src/blocks/block_026.ts"
+  },
+  "Block 27": {
+    "title": "Block 27 Title Placeholder",
+    "path": "src/blocks/block_027.ts"
+  },
+  "Block 28": {
+    "title": "Block 28 Title Placeholder",
+    "path": "src/blocks/block_028.ts"
+  },
+  "Block 29": {
+    "title": "Block 29 Title Placeholder",
+    "path": "src/blocks/block_029.ts"
+  },
+  "Block 30": {
+    "title": "Block 30 Title Placeholder",
+    "path": "src/blocks/block_030.ts"
+  },
+  "Block 31": {
+    "title": "Block 31 Title Placeholder",
+    "path": "src/blocks/block_031.ts"
+  },
+  "Block 32": {
+    "title": "Block 32 Title Placeholder",
+    "path": "src/blocks/block_032.ts"
+  },
+  "Block 33": {
+    "title": "Block 33 Title Placeholder",
+    "path": "src/blocks/block_033.ts"
+  },
+  "Block 34": {
+    "title": "Block 34 Title Placeholder",
+    "path": "src/blocks/block_034.ts"
+  },
+  "Block 35": {
+    "title": "Block 35 Title Placeholder",
+    "path": "src/blocks/block_035.ts"
+  },
+  "Block 36": {
+    "title": "Block 36 Title Placeholder",
+    "path": "src/blocks/block_036.ts"
+  },
+  "Block 37": {
+    "title": "Block 37 Title Placeholder",
+    "path": "src/blocks/block_037.ts"
+  },
+  "Block 38": {
+    "title": "Block 38 Title Placeholder",
+    "path": "src/blocks/block_038.ts"
+  },
+  "Block 39": {
+    "title": "Block 39 Title Placeholder",
+    "path": "src/blocks/block_039.ts"
+  },
+  "Block 40": {
+    "title": "Block 40 Title Placeholder",
+    "path": "src/blocks/block_040.ts"
+  },
+  "Block 41": {
+    "title": "Block 41 Title Placeholder",
+    "path": "src/blocks/block_041.ts"
+  },
+  "Block 42": {
+    "title": "Block 42 Title Placeholder",
+    "path": "src/blocks/block_042.ts"
+  },
+  "Block 43": {
+    "title": "Block 43 Title Placeholder",
+    "path": "src/blocks/block_043.ts"
+  },
+  "Block 44": {
+    "title": "Block 44 Title Placeholder",
+    "path": "src/blocks/block_044.ts"
+  },
+  "Block 45": {
+    "title": "Block 45 Title Placeholder",
+    "path": "src/blocks/block_045.ts"
+  },
+  "Block 46": {
+    "title": "Block 46 Title Placeholder",
+    "path": "src/blocks/block_046.ts"
+  },
+  "Block 47": {
+    "title": "Block 47 Title Placeholder",
+    "path": "src/blocks/block_047.ts"
+  },
+  "Block 48": {
+    "title": "Block 48 Title Placeholder",
+    "path": "src/blocks/block_048.ts"
+  },
+  "Block 49": {
+    "title": "Block 49 Title Placeholder",
+    "path": "src/blocks/block_049.ts"
+  },
+  "Block 50": {
+    "title": "Block 50 Title Placeholder",
+    "path": "src/blocks/block_050.ts"
+  },
+  "Block 51": {
+    "title": "Block 51 Title Placeholder",
+    "path": "src/blocks/block_051.ts"
+  },
+  "Block 52": {
+    "title": "Block 52 Title Placeholder",
+    "path": "src/blocks/block_052.ts"
+  },
+  "Block 53": {
+    "title": "Block 53 Title Placeholder",
+    "path": "src/blocks/block_053.ts"
+  },
+  "Block 54": {
+    "title": "Block 54 Title Placeholder",
+    "path": "src/blocks/block_054.ts"
+  },
+  "Block 55": {
+    "title": "Block 55 Title Placeholder",
+    "path": "src/blocks/block_055.ts"
+  },
+  "Block 56": {
+    "title": "Block 56 Title Placeholder",
+    "path": "src/blocks/block_056.ts"
+  },
+  "Block 57": {
+    "title": "Block 57 Title Placeholder",
+    "path": "src/blocks/block_057.ts"
+  },
+  "Block 58": {
+    "title": "Block 58 Title Placeholder",
+    "path": "src/blocks/block_058.ts"
+  },
+  "Block 59": {
+    "title": "Block 59 Title Placeholder",
+    "path": "src/blocks/block_059.ts"
+  },
+  "Block 60": {
+    "title": "Block 60 Title Placeholder",
+    "path": "src/blocks/block_060.ts"
+  },
+  "Block 61": {
+    "title": "Block 61 Title Placeholder",
+    "path": "src/blocks/block_061.ts"
+  },
+  "Block 62": {
+    "title": "Block 62 Title Placeholder",
+    "path": "src/blocks/block_062.ts"
+  },
+  "Block 63": {
+    "title": "Block 63 Title Placeholder",
+    "path": "src/blocks/block_063.ts"
+  },
+  "Block 64": {
+    "title": "Block 64 Title Placeholder",
+    "path": "src/blocks/block_064.ts"
+  },
+  "Block 65": {
+    "title": "Block 65 Title Placeholder",
+    "path": "src/blocks/block_065.ts"
+  },
+  "Block 66": {
+    "title": "Block 66 Title Placeholder",
+    "path": "src/blocks/block_066.ts"
+  },
+  "Block 67": {
+    "title": "Block 67 Title Placeholder",
+    "path": "src/blocks/block_067.ts"
+  },
+  "Block 68": {
+    "title": "Block 68 Title Placeholder",
+    "path": "src/blocks/block_068.ts"
+  },
+  "Block 69": {
+    "title": "Block 69 Title Placeholder",
+    "path": "src/blocks/block_069.ts"
+  },
+  "Block 70": {
+    "title": "Block 70 Title Placeholder",
+    "path": "src/blocks/block_070.ts"
+  },
+  "Block 71": {
+    "title": "Block 71 Title Placeholder",
+    "path": "src/blocks/block_071.ts"
+  },
+  "Block 72": {
+    "title": "Block 72 Title Placeholder",
+    "path": "src/blocks/block_072.ts"
+  },
+  "Block 73": {
+    "title": "Block 73 Title Placeholder",
+    "path": "src/blocks/block_073.ts"
+  },
+  "Block 74": {
+    "title": "Block 74 Title Placeholder",
+    "path": "src/blocks/block_074.ts"
+  },
+  "Block 75": {
+    "title": "Block 75 Title Placeholder",
+    "path": "src/blocks/block_075.ts"
+  },
+  "Block 76": {
+    "title": "Block 76 Title Placeholder",
+    "path": "src/blocks/block_076.ts"
+  },
+  "Block 77": {
+    "title": "Block 77 Title Placeholder",
+    "path": "src/blocks/block_077.ts"
+  },
+  "Block 78": {
+    "title": "Block 78 Title Placeholder",
+    "path": "src/blocks/block_078.ts"
+  },
+  "Block 79": {
+    "title": "Block 79 Title Placeholder",
+    "path": "src/blocks/block_079.ts"
+  },
+  "Block 80": {
+    "title": "Block 80 Title Placeholder",
+    "path": "src/blocks/block_080.ts"
+  },
+  "Block 81": {
+    "title": "Block 81 Title Placeholder",
+    "path": "src/blocks/block_081.ts"
+  },
+  "Block 82": {
+    "title": "Block 82 Title Placeholder",
+    "path": "src/blocks/block_082.ts"
+  },
+  "Block 83": {
+    "title": "Block 83 Title Placeholder",
+    "path": "src/blocks/block_083.ts"
+  },
+  "Block 84": {
+    "title": "Block 84 Title Placeholder",
+    "path": "src/blocks/block_084.ts"
+  },
+  "Block 85": {
+    "title": "Block 85 Title Placeholder",
+    "path": "src/blocks/block_085.ts"
+  },
+  "Block 86": {
+    "title": "Block 86 Title Placeholder",
+    "path": "src/blocks/block_086.ts"
+  },
+  "Block 87": {
+    "title": "Block 87 Title Placeholder",
+    "path": "src/blocks/block_087.ts"
+  },
+  "Block 88": {
+    "title": "Block 88 Title Placeholder",
+    "path": "src/blocks/block_088.ts"
+  },
+  "Block 89": {
+    "title": "Block 89 Title Placeholder",
+    "path": "src/blocks/block_089.ts"
+  },
+  "Block 90": {
+    "title": "Block 90 Title Placeholder",
+    "path": "src/blocks/block_090.ts"
+  },
+  "Block 91": {
+    "title": "Block 91 Title Placeholder",
+    "path": "src/blocks/block_091.ts"
+  },
+  "Block 92": {
+    "title": "Block 92 Title Placeholder",
+    "path": "src/blocks/block_092.ts"
+  },
+  "Block 93": {
+    "title": "Block 93 Title Placeholder",
+    "path": "src/blocks/block_093.ts"
+  },
+  "Block 94": {
+    "title": "Block 94 Title Placeholder",
+    "path": "src/blocks/block_094.ts"
+  },
+  "Block 95": {
+    "title": "Block 95 Title Placeholder",
+    "path": "src/blocks/block_095.ts"
+  },
+  "Block 96": {
+    "title": "Block 96 Title Placeholder",
+    "path": "src/blocks/block_096.ts"
+  },
+  "Block 97": {
+    "title": "Block 97 Title Placeholder",
+    "path": "src/blocks/block_097.ts"
+  },
+  "Block 98": {
+    "title": "Block 98 Title Placeholder",
+    "path": "src/blocks/block_098.ts"
+  },
+  "Block 99": {
+    "title": "Block 99 Title Placeholder",
+    "path": "src/blocks/block_099.ts"
+  },
+  "Block 100": {
+    "title": "Block 100 Title Placeholder",
+    "path": "src/blocks/block_100.ts"
+  },
+  "Block 101": {
+    "title": "Block 101 Title Placeholder",
+    "path": "src/blocks/block_101.ts"
+  },
+  "Block 102": {
+    "title": "Block 102 Title Placeholder",
+    "path": "src/blocks/block_102.ts"
+  },
+  "Block 103": {
+    "title": "Block 103 Title Placeholder",
+    "path": "src/blocks/block_103.ts"
+  },
+  "Block 104": {
+    "title": "Block 104 Title Placeholder",
+    "path": "src/blocks/block_104.ts"
+  },
+  "Block 105": {
+    "title": "Block 105 Title Placeholder",
+    "path": "src/blocks/block_105.ts"
+  },
+  "Block 106": {
+    "title": "Block 106 Title Placeholder",
+    "path": "src/blocks/block_106.ts"
+  },
+  "Block 107": {
+    "title": "Block 107 Title Placeholder",
+    "path": "src/blocks/block_107.ts"
+  },
+  "Block 108": {
+    "title": "Block 108 Title Placeholder",
+    "path": "src/blocks/block_108.ts"
+  },
+  "Block 109": {
+    "title": "Block 109 Title Placeholder",
+    "path": "src/blocks/block_109.ts"
+  },
+  "Block 110": {
+    "title": "Block 110 Title Placeholder",
+    "path": "src/blocks/block_110.ts"
+  },
+  "Block 111": {
+    "title": "Block 111 Title Placeholder",
+    "path": "src/blocks/block_111.ts"
+  },
+  "Block 112": {
+    "title": "Block 112 Title Placeholder",
+    "path": "src/blocks/block_112.ts"
+  },
+  "Block 113": {
+    "title": "Block 113 Title Placeholder",
+    "path": "src/blocks/block_113.ts"
+  },
+  "Block 114": {
+    "title": "Block 114 Title Placeholder",
+    "path": "src/blocks/block_114.ts"
+  },
+  "Block 115": {
+    "title": "Block 115 Title Placeholder",
+    "path": "src/blocks/block_115.ts"
+  },
+  "Block 116": {
+    "title": "Block 116 Title Placeholder",
+    "path": "src/blocks/block_116.ts"
+  },
+  "Block 117": {
+    "title": "Block 117 Title Placeholder",
+    "path": "src/blocks/block_117.ts"
+  },
+  "Block 118": {
+    "title": "Block 118 Title Placeholder",
+    "path": "src/blocks/block_118.ts"
+  },
+  "Block 119": {
+    "title": "Block 119 Title Placeholder",
+    "path": "src/blocks/block_119.ts"
+  },
+  "Block 120": {
+    "title": "Block 120 Title Placeholder",
+    "path": "src/blocks/block_120.ts"
+  },
+  "Block 121": {
+    "title": "Block 121 Title Placeholder",
+    "path": "src/blocks/block_121.ts"
+  },
+  "Block 122": {
+    "title": "Block 122 Title Placeholder",
+    "path": "src/blocks/block_122.ts"
+  },
+  "Block 123": {
+    "title": "Block 123 Title Placeholder",
+    "path": "src/blocks/block_123.ts"
+  },
+  "Block 124": {
+    "title": "Block 124 Title Placeholder",
+    "path": "src/blocks/block_124.ts"
+  },
+  "Block 125": {
+    "title": "Block 125 Title Placeholder",
+    "path": "src/blocks/block_125.ts"
+  },
+  "Block 126": {
+    "title": "Block 126 Title Placeholder",
+    "path": "src/blocks/block_126.ts"
+  },
+  "Block 127": {
+    "title": "Block 127 Title Placeholder",
+    "path": "src/blocks/block_127.ts"
+  },
+  "Block 128": {
+    "title": "Block 128 Title Placeholder",
+    "path": "src/blocks/block_128.ts"
+  },
+  "Block 129": {
+    "title": "Block 129 Title Placeholder",
+    "path": "src/blocks/block_129.ts"
+  },
+  "Block 130": {
+    "title": "Block 130 Title Placeholder",
+    "path": "src/blocks/block_130.ts"
+  },
+  "Block 131": {
+    "title": "Block 131 Title Placeholder",
+    "path": "src/blocks/block_131.ts"
+  },
+  "Block 132": {
+    "title": "Block 132 Title Placeholder",
+    "path": "src/blocks/block_132.ts"
+  },
+  "Block 133": {
+    "title": "Block 133 Title Placeholder",
+    "path": "src/blocks/block_133.ts"
+  },
+  "Block 134": {
+    "title": "Block 134 Title Placeholder",
+    "path": "src/blocks/block_134.ts"
+  },
+  "Block 135": {
+    "title": "Block 135 Title Placeholder",
+    "path": "src/blocks/block_135.ts"
+  },
+  "Block 136": {
+    "title": "Block 136 Title Placeholder",
+    "path": "src/blocks/block_136.ts"
+  },
+  "Block 137": {
+    "title": "Block 137 Title Placeholder",
+    "path": "src/blocks/block_137.ts"
+  },
+  "Block 138": {
+    "title": "Block 138 Title Placeholder",
+    "path": "src/blocks/block_138.ts"
+  },
+  "Block 139": {
+    "title": "Block 139 Title Placeholder",
+    "path": "src/blocks/block_139.ts"
+  },
+  "Block 140": {
+    "title": "Block 140 Title Placeholder",
+    "path": "src/blocks/block_140.ts"
+  },
+  "Block 141": {
+    "title": "Block 141 Title Placeholder",
+    "path": "src/blocks/block_141.ts"
+  },
+  "Block 142": {
+    "title": "Block 142 Title Placeholder",
+    "path": "src/blocks/block_142.ts"
+  },
+  "Block 143": {
+    "title": "Block 143 Title Placeholder",
+    "path": "src/blocks/block_143.ts"
+  },
+  "Block 144": {
+    "title": "Block 144 Title Placeholder",
+    "path": "src/blocks/block_144.ts"
+  },
+  "Block 145": {
+    "title": "Block 145 Title Placeholder",
+    "path": "src/blocks/block_145.ts"
+  },
+  "Block 146": {
+    "title": "Block 146 Title Placeholder",
+    "path": "src/blocks/block_146.ts"
+  },
+  "Block 147": {
+    "title": "Block 147 Title Placeholder",
+    "path": "src/blocks/block_147.ts"
+  },
+  "Block 148": {
+    "title": "Block 148 Title Placeholder",
+    "path": "src/blocks/block_148.ts"
+  },
+  "Block 149": {
+    "title": "Block 149 Title Placeholder",
+    "path": "src/blocks/block_149.ts"
+  },
+  "Block 150": {
+    "title": "Block 150 Title Placeholder",
+    "path": "src/blocks/block_150.ts"
+  }
+}

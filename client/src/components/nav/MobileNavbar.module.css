@@ -1,0 +1,46 @@
+.mobileNavbar {
+  display: flex;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  height: 4rem;
+  background: var(--background, #fff);
+  border-top: 1px solid var(--border, #e5e7eb);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+  transition: background 0.2s, color 0.2s;
+}
+
+@media (min-width: 768px) {
+  .mobileNavbar {
+    display: none !important;
+  }
+}
+
+.navButton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  transition: color 0.15s, background 0.15s, transform 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.navButton:active {
+  background: var(--active-overlay, rgba(0,0,0,0.04));
+  transform: scale(0.96);
+}
+
+.active {
+  color: var(--primary, #2563eb);
+  font-weight: bold;
+  background: var(--primary, #2563eb)10;
+  transform: scale(1.08);
+} 

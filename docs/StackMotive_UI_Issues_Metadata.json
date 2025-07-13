@@ -1,0 +1,82 @@
+[
+  {
+    "title": "Refactor: Merge Strategy & Signals Component Variants",
+    "labels": ["Refactor", "UI", "Dashboard"],
+    "milestone": "Phase 1: Foundation Refactors",
+    "file_references": [
+      "client/src/pages/dashboard.tsx",
+      "client/src/pages/paper-trading/dashboard.tsx",
+      "client/src/components/StrategySignals.tsx"
+    ],
+    "dependencies": []
+  },
+  {
+    "title": "Refactor: Standardize Dashboard Layouts",
+    "labels": ["Refactor", "UI", "Dashboard"],
+    "milestone": "Phase 1: Foundation Refactors",
+    "file_references": [
+      "client/src/pages/dashboard.tsx",
+      "client/src/pages/paper-trading/dashboard.tsx"
+    ],
+    "dependencies": []
+  },
+  {
+    "title": "Refactor: Remove Dead or Duplicated Files",
+    "labels": ["Refactor", "Cleanup"],
+    "milestone": "Phase 1: Foundation Refactors",
+    "file_references": [
+      "cleanup_test_users.py"
+    ],
+    "dependencies": []
+  },
+  {
+    "title": "Feature: Enhance Dashboard Personalization",
+    "labels": ["Feature", "Personalization", "Dashboard"],
+    "milestone": "Phase 2: Personalization",
+    "file_references": [
+      "client/src/pages/dashboard.tsx",
+      "client/src/pages/paper-trading/dashboard.tsx"
+    ],
+    "dependencies": []
+  },
+  {
+    "title": "Feature: Onboarding Progress Tracking",
+    "labels": ["Feature", "Onboarding", "UI"],
+    "milestone": "Phase 2: Personalization",
+    "file_references": [
+      "client/src/pages/onboarding/onboarding-flow.tsx",
+      "client/src/pages/dashboard.tsx"
+    ],
+    "dependencies": []
+  },
+  {
+    "title": "Bug: Fix Mobile Layout Gaps on Dashboard",
+    "labels": ["Bug", "Mobile", "UI"],
+    "milestone": "Phase 3: Mobile Polish",
+    "file_references": [
+      "client/src/pages/dashboard.tsx",
+      "client/src/pages/paper-trading/dashboard.tsx"
+    ],
+    "dependencies": []
+  },
+  {
+    "title": "Feature: Mobile-Optimized Trading Form",
+    "labels": ["Feature", "Mobile", "Trading"],
+    "milestone": "Phase 3: Mobile Polish",
+    "file_references": [
+      "client/src/components/trading/order-entry-form.tsx"
+    ],
+    "dependencies": []
+  },
+  {
+    "title": "Bug: Inconsistent Tab Navigation on Mobile",
+    "labels": ["Bug", "Mobile", "UI"],
+    "milestone": "Phase 3: Mobile Polish",
+    "file_references": [
+      "client/src/pages/dashboard.tsx",
+      "client/src/pages/paper-trading/dashboard.tsx",
+      "client/src/components/StrategySignals.tsx"
+    ],
+    "dependencies": []
+  }
+] 

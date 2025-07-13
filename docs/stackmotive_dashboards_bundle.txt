@@ -1,0 +1,1014 @@
+import React from 'react';
+import AppShell from '../components/layout/AppShell';
+import { usePortfolio } from '../contexts/PortfolioContext';
+import { VaultStatusStrip } from '../components/ui/VaultStatusStrip';
+import { AssetSignalGrid, AssetSignalGridSignal } from '../components/tiles/AssetSignalGrid';
+import { useSignalPanel } from '../hooks/useSignalPanel';
+import { PanelAnimator } from '../components/animation/PanelAnimator';
+import { SignalGPTPanel } from '../components/panels/SignalGPTPanel';
+import { SignalDetailsPanel } from '../components/panels/SignalDetailsPanel';
+import WatchlistWeightPanel from '../components/panels/WatchlistWeightPanel';
+import OverlayHistoryPanel from '../components/panels/OverlayHistoryPanel';
+import VaultAllocator from '../components/panels/VaultAllocator';
+import ReportArchive from '../components/panels/ReportArchive';
+import { MarketClockIndicator } from '@/components/MarketClockIndicator';
+import StrategyPresetMarketplace from '../components/strategy/StrategyPresetMarketplace';
+import SyncHealthMonitor from '../components/dashboard/SyncHealthMonitor';
+import { usePortfolioSync } from '../hooks/usePortfolioSync';
+import { AssetAllocationChart } from '../components/portfolio/asset-allocation-chart';
+import RiskExposureMeter from '../components/analytics/RiskExposureMeter';
+import { usePortfolioHealthStore } from '../store/portfolioHealth';
+
+const ASSETS = [
+  'BTC/USD',
+  'ETH/USD',
+  'S&P 500',
+  'AAPL',
+  'TSLA',
+  'DOGE',
+  'EUR/USD',
+];
+
+const SIGNALS: Record<string, AssetSignalGridSignal> = {
+  'BTC/USD': {
+    type: 'technical',
+    title: 'MACD',
+    value: 'Bullish',
+    confidence: 0.82,
+    rationale: 'MACD crossover detected. Upward momentum likely.',
+    sparkline: [0.5, 0.6, 0.7, 0.8, 0.82, 0.81, 0.83],
+    asset: 'BTC/USD',
+  },
+  'ETH/USD': {
+    type: 'technical',
+    title: 'RSI',
+    value: 'Neutral',
+    confidence: 0.55,
+    rationale: 'RSI in mid-range. No strong signal.',
+    sparkline: [0.5, 0.52, 0.54, 0.55, 0.56, 0.55, 0.55],
+    asset: 'ETH/USD',
+  },
+  'S&P 500': {
+    type: 'macro',
+    title: 'VIX',
+    value: 'Low',
+    confidence: 0.73,
+    rationale: 'Volatility index is low. Market stable.',
+    sparkline: [0.7, 0.72, 0.71, 0.7, 0.69, 0.7, 0.73],
+    asset: 'S&P 500',
+  },
+  'AAPL': {
+    type: 'news',
+    title: 'News Sentiment',
+    value: 'Positive',
+    confidence: 0.68,
+    rationale: 'Recent news coverage is positive.',
+    sparkline: [0.6, 0.65, 0.67, 0.68, 0.7, 0.69, 0.68],
+    asset: 'AAPL',
+  },
+  'TSLA': {
+    type: 'earnings',
+    title: 'Earnings',
+    value: 'Beat',
+    confidence: 0.91,
+    rationale: 'Earnings beat expectations.',
+    sparkline: [0.8, 0.85, 0.9, 0.91, 0.92, 0.91, 0.9],
+    asset: 'TSLA',
+  },
+  'DOGE': {
+    type: 'social',
+    title: 'Social Sentiment',
+    value: 'Hyped',
+    confidence: 0.77,
+    rationale: 'Social media mentions surging.',
+    sparkline: [0.6, 0.65, 0.7, 0.75, 0.77, 0.76, 0.77],
+    asset: 'DOGE',
+  },
+  'EUR/USD': {
+    type: 'macro',
+    title: 'Geopolitical Risk',
+    value: 'Elevated',
+    confidence: 0.61,
+    rationale: 'Geopolitical tensions impacting currency.',
+    sparkline: [0.5, 0.55, 0.6, 0.61, 0.62, 0.61, 0.6],
+    asset: 'EUR/USD',
+  },
+};
+
+const DashboardPage: React.FC = () => {
+  const { activeVaultId } = usePortfolio();
+  const { selectedSignal, panelType, openPanel, closePanel, followedSignals, toggleFollow } = useSignalPanel();
+  const { syncJob, handleCSVUpload } = usePortfolioSync();
+  const { breakdown } = usePortfolioHealthStore();
+  const riskScore = Math.round((1 - breakdown.risk) * 100);
+  const riskExplanation = `Risk is calculated from portfolio volatility, beta, and overlay parameters. Lower is safer. Current normalized risk: ${(breakdown.risk * 100).toFixed(1)}%.`;
+
+  if (!activeVaultId) {
+    return (
+      <AppShell title="Dashboard">
+        <div className="flex flex-col items-center justify-center min-h-[40vh]">
+          <span className="text-lg font-semibold text-destructive">Vault not selected</span>
+        </div>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell title="Dashboard">
+      <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 md:px-0">
+        <div className="flex justify-end mb-4">
+          <SyncHealthMonitor syncJob={syncJob} onForceResync={() => {/* TODO: Implement real resync */}} />
+        </div>
+        <div className="flex justify-end mb-4">
+          <MarketClockIndicator market="NYSE" timezone="America/New_York" openTime="09:30" closeTime="16:00" />
+        </div>
+        <VaultStatusStrip className="mb-4" />
+        <AssetSignalGrid
+          assets={ASSETS}
+          signals={SIGNALS}
+          onTileAction={(asset, action) => {
+            if (action === 'openGPT') openPanel(asset, 'gpt');
+            if (action === 'showDetails') openPanel(asset, 'details');
+            if (action === 'follow') toggleFollow(asset);
+          }}
+        />
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-2">Watchlist Weighting</h3>
+          <WatchlistWeightPanel />
+        </div>
+        <div className="mt-8">
+          <details className="group">
+            <summary className="text-lg font-semibold cursor-pointer select-none mb-2 group-open:mb-4">Overlay History</summary>
+            <OverlayHistoryPanel />
+          </details>
+        </div>
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-2">Vault Category Allocator</h3>
+          <VaultAllocator />
+        </div>
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-2">Reporting Archive</h3>
+          <ReportArchive />
+        </div>
+        <div className="mt-8">
+          <StrategyPresetMarketplace />
+        </div>
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-2">Asset Class Allocation</h3>
+          <AssetAllocationChart />
+        </div>
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-2">Risk Exposure Meter</h3>
+          <RiskExposureMeter riskScore={riskScore} explanation={riskExplanation} />
+        </div>
+        {panelType === 'gpt' && selectedSignal && (
+          <PanelAnimator isVisible onClose={closePanel}>
+            <SignalGPTPanel asset={selectedSignal} onClose={closePanel} />
+          </PanelAnimator>
+        )}
+        {panelType === 'details' && selectedSignal && (
+          <PanelAnimator isVisible onClose={closePanel}>
+            <SignalDetailsPanel asset={selectedSignal} onClose={closePanel} />
+          </PanelAnimator>
+        )}
+      </div>
+    </AppShell>
+  );
+};
+
+export default DashboardPage; // BLOCK 4 IMPLEMENTATION: Refactored to use SummaryCard, TabSection, and WidgetContainer for unified dashboard structure.
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowDown, ArrowUp, DollarSign, Percent, PieChart, Wallet, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { Link, useLocation } from "wouter";
+import SummaryCard from '@/components/ui/SummaryCard';
+import TabSection from '@/components/ui/TabSection';
+import WidgetContainer from '@/components/ui/WidgetContainer';
+import StrategySignals from '@/components/ui/StrategySignals';
+import AssetViewTabs from '@/components/ui/AssetViewTabs';
+import { usePortfolio } from '@/contexts/PortfolioContext';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Vault } from '@/hooks/useVaultAPI';
+
+interface PortfolioSummary {
+  totalValue: number;
+  changePercent: number;
+  changeValue: number;
+  netWorth: number;
+  assetCount: number;
+}
+
+const PortfolioDashboard = () => {
+  const { user, isAuthenticated } = useAuth();
+  const [location, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState('allocation');
+  const { vaultList, activeVaultId, setActiveVaultId } = usePortfolio() as { vaultList: Vault[]; activeVaultId: string | null; setActiveVaultId: (id: string | null) => void; };
+  const safeVaultList: Vault[] = Array.isArray(vaultList) ? vaultList : [];
+
+  // Get portfolio summary data with real-time data from broker connections
+  const { data: portfolioSummary, isLoading: isLoadingSummary } = useQuery<PortfolioSummary>({
+    queryKey: ['/api/portfolio/summary', activeVaultId],
+    queryFn: async () => {
+      const url = activeVaultId ? `/api/portfolio/summary?vaultId=${activeVaultId}` : '/api/portfolio/summary';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch portfolio summary');
+      return res.json();
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  // Get holdings data from all connected brokers and exchanges
+  const { data: holdings, isLoading: isLoadingHoldings } = useQuery({
+    queryKey: ['/api/portfolio/holdings', activeVaultId],
+    queryFn: async () => {
+      const url = activeVaultId ? `/api/portfolio/holdings?vaultId=${activeVaultId}` : '/api/portfolio/holdings';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch holdings');
+      return res.json();
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  // Example strategies and signals (replace with real data as needed)
+  const strategies = [
+    { name: 'Aggressive', label: 'Aggressive', color: 'bg-purple-500', description: 'High risk, high reward' },
+    { name: 'Balanced', label: 'Balanced', color: 'bg-blue-500', description: 'Moderate risk, diversified' },
+    { name: 'Defensive', label: 'Defensive', color: 'bg-green-500', description: 'Low risk, capital preservation' },
+  ];
+  const signals = [
+    { type: 'MACD Buy', symbol: 'ARKK', action: 'BUY', confidence: 'high' },
+    { type: 'Whale Activity', symbol: 'BTC', action: 'BUY', confidence: 'medium' },
+    { type: 'RSI Overbought', symbol: 'TSLA', action: 'SELL', confidence: 'high' },
+  ];
+  const [activeStrategy, setActiveStrategy] = useState('Aggressive');
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] p-4">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold mb-2">Sign in to view your portfolio</h2>
+          <p className="text-muted-foreground">
+            Track your investments across multiple exchanges and analyze your portfolio performance.
+          </p>
+        </div>
+        <Button onClick={() => setLocation("/login")}>Sign In</Button>
+      </div>
+    );
+  }
+
+  // Summary card data
+  const summaryCards = [
+    {
+      title: 'Total Portfolio Value',
+      value: isLoadingSummary ? <Skeleton className="h-8 w-36" /> : formatCurrency(portfolioSummary?.totalValue || 0),
+      icon: <DollarSign className="h-4 w-4 text-muted-foreground" />,
+      children: isLoadingSummary ? null : (
+        <div className="flex items-center space-x-2">
+          {portfolioSummary?.changePercent !== undefined ? (
+            <Badge variant={portfolioSummary.changePercent >= 0 ? "default" : "destructive"}>
+              {portfolioSummary.changePercent >= 0 ? (
+                <ArrowUp className="mr-1 h-3 w-3" />
+              ) : (
+                <ArrowDown className="mr-1 h-3 w-3" />
+              )}
+              {Math.abs(portfolioSummary.changePercent).toFixed(2)}%
+            </Badge>
+          ) : null}
+          <p className="text-xs text-muted-foreground">vs previous period</p>
+        </div>
+      )
+    },
+    {
+      title: 'Net Worth',
+      value: isLoadingSummary ? <Skeleton className="h-8 w-36" /> : formatCurrency(portfolioSummary?.netWorth || 0),
+      icon: <Wallet className="h-4 w-4 text-muted-foreground" />,
+      footer: 'Includes all assets and cash'
+    },
+    {
+      title: 'Total Change',
+      value: isLoadingSummary ? <Skeleton className="h-8 w-36" /> : formatCurrency(portfolioSummary?.changeValue || 0),
+      icon: <Percent className="h-4 w-4 text-muted-foreground" />,
+      footer: 'Since inception'
+    },
+    {
+      title: 'Assets',
+      value: isLoadingSummary ? <Skeleton className="h-8 w-36" /> : (portfolioSummary?.assetCount || 0),
+      icon: <PieChart className="h-4 w-4 text-muted-foreground" />,
+      footer: 'Across all exchanges'
+    }
+  ];
+
+  return (
+    <div className="container mx-auto py-6 space-y-8">
+      {/* Portfolio Selector Dropdown */}
+      {(safeVaultList.length > 1) && (
+        <div className="mb-4 flex items-center gap-2">
+          <span className="font-medium">Portfolio:</span>
+          <Select value={activeVaultId || undefined} onValueChange={setActiveVaultId}>
+            <SelectTrigger className="w-56">
+              <SelectValue placeholder="Select portfolio" />
+            </SelectTrigger>
+            <SelectContent>
+              {safeVaultList.map((vault, idx) => (
+                <SelectItem key={vault.vault_id} value={vault.vault_id}>{`Portfolio ${idx + 1}`}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Portfolio Dashboard</h1>
+          <p className="text-muted-foreground">
+            Analyze your investments across multiple assets and exchanges
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/broker-setup">
+              <Plus className="mr-2 h-4 w-4" /> Add Broker
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/manual-entry">
+              <Plus className="mr-2 h-4 w-4" /> Manual Entry
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Portfolio Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {summaryCards.map((card, i) => (
+          <SummaryCard key={i} {...card} />
+        ))}
+      </div>
+
+      {/* Strategy & Signals Section */}
+      <StrategySignals
+        strategies={strategies}
+        signals={signals}
+        contextLabel="Live"
+        activeStrategy={activeStrategy}
+        onStrategyChange={setActiveStrategy}
+      />
+
+      {/* Unified AssetViewTabs */}
+      <AssetViewTabs
+        showPerformanceTab={true}
+        preferenceKey="portfolioAssetTab"
+        renderHoldings={() => (
+          <WidgetContainer title="Holdings">
+            {isLoadingHoldings ? (
+              <div className="space-y-3">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : Array.isArray(holdings) && holdings.length ? (
+              <div className="rounded-md border">
+                <div className="relative w-full overflow-auto">
+                  <table className="w-full caption-bottom text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="h-12 px-4 text-left font-medium">Symbol</th>
+                        <th className="h-12 px-4 text-left font-medium">Name</th>
+                        <th className="h-12 px-4 text-right font-medium">Quantity</th>
+                        <th className="h-12 px-4 text-right font-medium">Price</th>
+                        <th className="h-12 px-4 text-right font-medium">Value</th>
+                        <th className="h-12 px-4 text-right font-medium">Change</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(Array.isArray(holdings) ? holdings : []).map((holding: any) => (
+                        <tr key={holding.symbol} className="border-b">
+                          <td className="p-4 align-middle font-medium">{holding.symbol}</td>
+                          <td className="p-4 align-middle">{holding.name}</td>
+                          <td className="p-4 align-middle text-right">{parseFloat(holding.quantity).toFixed(holding.assetType === 'CRYPTO' ? 6 : 2)}</td>
+                          <td className="p-4 align-middle text-right">{formatCurrency(holding.currentPrice)}</td>
+                          <td className="p-4 align-middle text-right">{formatCurrency(holding.value)}</td>
+                          <td className="p-4 align-middle text-right">
+                            <div className="flex items-center justify-end">
+                              <Badge variant={holding.percentChange >= 0 ? "default" : "destructive"}>
+                                {holding.percentChange >= 0 ? (
+                                  <ArrowUp className="mr-1 h-3 w-3" />
+                                ) : (
+                                  <ArrowDown className="mr-1 h-3 w-3" />
+                                )}
+                                {Math.abs(holding.percentChange).toFixed(2)}%
+                              </Badge>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <PieChart className="h-10 w-10 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No holdings found</h3>
+                <p className="text-muted-foreground mb-4">Add manual entries or connect your brokers to track your portfolio</p>
+                <div className="flex gap-2">
+                  <Button asChild>
+                    <Link href="/broker-setup">
+                      <Plus className="mr-2 h-4 w-4" /> Add Broker
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link href="/manual-entry">
+                      <Plus className="mr-2 h-4 w-4" /> Manual Entry
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </WidgetContainer>
+        )}
+        renderAllocation={() => (
+          <WidgetContainer title="Allocation">
+            {/* <AssetAllocationChart /> */}
+            <></>
+          </WidgetContainer>
+        )}
+        renderPerformance={() => (
+          <WidgetContainer title="Performance">
+            <div className="h-[400px] flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-muted-foreground">Performance tracking charts coming soon</p>
+              </div>
+            </div>
+            <></>
+          </WidgetContainer>
+        )}
+      />
+    </div>
+  );
+};
+
+export default PortfolioDashboard; import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
+import { useSessionStore } from '../../store/session';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import { ArrowUp, ArrowDown, TrendingUp, Zap, Eye, BarChart3, Wallet, Plus, ArrowRight, DollarSign, TrendingDown, RefreshCw } from 'lucide-react';
+import { useTrialStatus } from '@/hooks/use-trial-status';
+import { useDashboardData, useRefreshDashboard } from '@/hooks/use-dashboard-data';
+import { useOnboardingProgress } from '@/hooks/use-onboarding-progress';
+import { cn } from '@/lib/utils';
+import RecentTrades from '@/components/dashboard/recent-trades';
+import { apiRequest } from '@/lib/queryClient';
+import { StrategyPerformanceChart } from '@/components/charts/StrategyPerformanceChart';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import StrategySignals from '@/components/ui/StrategySignals';
+import SummaryCard from '@/components/ui/SummaryCard';
+import TabSection from '@/components/ui/TabSection';
+import WidgetContainer from '@/components/ui/WidgetContainer';
+import AssetViewTabs from '@/components/ui/AssetViewTabs';
+
+/**
+ * Unified Paper Trading Dashboard - Uses backend endpoint for all data
+ */
+export default function DashboardPage() {
+
+  const user = useSessionStore(s => s.user);
+  const [location, navigate] = useLocation();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // 🛡️ Triple-guard shielding flags
+  const useTourMode = false; // Set to true for tour mode
+  const showMockDistributionView = false; // Set to true to show mock distribution cards
+  const { data: trialStatus, isLoading: isLoadingTrial } = useTrialStatus();
+  
+  // 🚀 NEW: Use unified dashboard data endpoint
+  const { data: dashboardData, isLoading: isLoadingDashboard, error: dashboardError } = useDashboardData();
+  const refreshDashboard = useRefreshDashboard();
+  
+  // 🔍 Debug logging to track data flow
+  React.useEffect(() => {
+
+  }, [dashboardData]);
+  
+  // Format currency
+  const formatCurrency = (value: string | number) => {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(numValue);
+  };
+  
+  // Fetch trading accounts
+  const { data: tradingAccounts, isLoading: isLoadingAccounts } = useQuery({
+    queryKey: ['/api/trading-accounts'],
+    enabled: !!user,
+    staleTime: 60000
+  });
+  
+  // Fetch watchlist items
+  const { data: watchlistItems } = useQuery({
+    queryKey: ['/api/watchlist'],
+    enabled: !!user,
+    staleTime: 60000
+  });
+  
+  // Fetch strategies
+  const { data: strategies } = useQuery({
+    queryKey: ['/api/strategies'],
+    enabled: !!user,
+    staleTime: 60000
+  });
+  
+  // Fetch whale activities
+  const { data: whaleActivities } = useQuery({
+    queryKey: ['/api/whale-activities'],
+    enabled: !!user,
+    staleTime: 60000,
+    select: (data) => {
+      if (!Array.isArray(data)) return [];
+      return data.slice(0, 3);
+    }
+  });
+  
+  // Fetch market events
+  const { data: marketEvents } = useQuery({
+    queryKey: ['/api/market-events'],
+    staleTime: 60000,
+    select: (data) => {
+      if (!Array.isArray(data)) return [];
+      return data.slice(0, 3);
+    }
+  });
+
+  // 🚀 SIMPLIFIED: Portfolio data directly from backend
+  const portfolioData = React.useMemo(() => {
+    if (!dashboardData) {
+      return {
+        totalValue: 0,
+        cashBalance: 0,
+        holdingsValue: 0,
+        totalPnL: 0,
+        totalPnLPercent: 0,
+        isPositive: false,
+        accountValue: 0,
+        totalChangeValue: 0,
+        totalChangePercent: 0,
+        totalChangeIsPositive: false,
+        assetPerformanceValue: 0,
+        assetPerformancePercent: 0,
+        assetPerformanceIsPositive: false,
+        hasTradeHistory: false,
+        initialBalance: 0
+      };
+    }
+
+
+    
+    // Calculate total change since start
+    const totalAccountValue = dashboardData.totalPortfolioValue;
+    const totalChangeValue = totalAccountValue - dashboardData.initialBalance;
+    const totalChangePercent = (dashboardData.initialBalance > 0) ? 
+      (totalChangeValue / dashboardData.initialBalance) * 100 : 0;
+
+    return {
+      // Legacy fields (for backward compatibility)
+      totalValue: dashboardData.totalPortfolioValue,
+      totalPnL: dashboardData.totalProfitLoss,
+      totalPnLPercent: dashboardData.totalProfitLossPercent,
+      isPositive: dashboardData.totalProfitLoss >= 0,
+      // Core data from backend
+      cashBalance: dashboardData.cashBalance,
+      holdingsValue: dashboardData.totalHoldingsValue,
+      initialBalance: dashboardData.initialBalance,
+      // Calculated total change
+      accountValue: totalAccountValue,
+      totalChangeValue: totalChangeValue,
+      totalChangePercent: totalChangePercent,
+      totalChangeIsPositive: totalChangeValue >= 0,
+      // Asset performance from backend
+      assetPerformanceValue: dashboardData.assetPerformance.assetPerformanceValue,
+      assetPerformancePercent: dashboardData.assetPerformance.assetPerformancePercent,
+      assetPerformanceIsPositive: dashboardData.assetPerformance.assetPerformanceIsPositive,
+      hasTradeHistory: dashboardData.assetPerformance.hasTradeHistory
+    };
+  }, [dashboardData]);
+
+  // Transform holdings for display table
+  const holdingsTableData = React.useMemo(() => {
+    if (!dashboardData?.holdings) return [];
+    
+    return dashboardData.holdings.map(holding => ({
+      symbol: holding.symbol,
+      currentPrice: formatCurrency(holding.currentPrice),
+      change: (holding.profitLoss / holding.costBasis * 100).toFixed(2) || '0.00',
+      changePercent: holding.profitLossPercent.toFixed(2) || '0.00',
+      holdings: holding.quantity.toString() || '0',
+      value: formatCurrency(holding.totalValue || 0),
+      allocation: holding.allocation || 0,
+      type: holding.type || 'equity',
+    }));
+  }, [dashboardData?.holdings]);
+  
+  // Asset type allocation data (should come from backend in future)
+  const assetTypeAllocationData = React.useMemo(() => {
+    // TODO: Replace with backend-provided allocation data
+    if (!dashboardData?.holdings || dashboardData.holdings.length === 0) return [];
+    
+    // For now, use a simple allocation based on holdings presence
+    const hasEquities = dashboardData.holdings.some(h => h.type === 'equity');
+    const hasCrypto = dashboardData.holdings.some(h => h.type === 'crypto');
+    
+    const data = [];
+    if (hasEquities) data.push({ name: 'Equities', value: 70, color: '#3b82f6', amount: 0 });
+    if (hasCrypto) data.push({ name: 'Crypto', value: 30, color: '#10b981', amount: 0 });
+    
+    return data;
+  }, [dashboardData?.holdings]);
+  
+  // Strategy allocation data for pie chart
+  const strategyAllocationData = [
+    { name: 'Stocks', value: 39.4, color: '#3b82f6' },
+    { name: 'Cash', value: 20.6, color: '#06b6d4' },
+    { name: 'High Growth', value: 16.7, color: '#ec4899' },
+    { name: 'P/E Funds', value: 23.3, color: '#a855f7' },
+  ];
+  
+  // Get class for change percent
+  const getChangeClass = (change: string) => {
+    const numChange = parseFloat(change);
+    return numChange > 0 
+      ? 'text-green-600' 
+      : numChange < 0 
+        ? 'text-red-600'
+        : 'text-gray-600';
+  };
+  
+  // Get icon for change percent
+  const getChangeIcon = (change: string) => {
+    const numChange = parseFloat(change);
+    return numChange > 0 
+      ? <ArrowUp className="h-3 w-3 text-green-600" />
+      : numChange < 0 
+        ? <ArrowDown className="h-3 w-3 text-red-600" />
+        : null;
+  };
+  
+  const handleStrategyChange = (value: string) => {
+    setActiveStrategy(value);
+  };
+
+  // Portfolio Performance Chart Data (Placeholder/Mock Data)
+  const portfolioPerformanceData = React.useMemo(() => {
+    if (!dashboardData) return [];
+    
+    // TODO: Replace with real backend time series data from /api/user/paper-trading-account/{id}/performance-history
+    // For now, generate realistic mock data based on current portfolio value
+    const currentValue = dashboardData.totalPortfolioValue;
+    const data = [];
+    const today = new Date();
+    
+    // Generate 30 days of mock portfolio performance data
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      
+      // Create realistic portfolio value progression
+      // Start from initial balance and gradually move toward current value with some volatility
+      const dayProgress = (29 - i) / 29; // 0 to 1
+      const baseValue = dashboardData.initialBalance + (currentValue - dashboardData.initialBalance) * dayProgress;
+      
+      // Add some realistic daily volatility (±2% random movement)
+      const volatility = 0.02;
+      const randomFactor = 1 + (Math.random() - 0.5) * volatility * 2;
+      const portfolioValue = Math.max(baseValue * randomFactor, dashboardData.initialBalance * 0.8); // Don't go below 80% of initial
+      
+      data.push({
+        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        portfolioValue: Math.round(portfolioValue)
+      });
+    }
+    
+    return data;
+  }, [dashboardData]);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  // Combined loading state
+  const isLoading = isLoadingTrial || isLoadingDashboard || isLoadingAccounts;
+
+  // Map trades to RecentTrades shape
+  const recentTradesData = React.useMemo(() => {
+    if (!dashboardData?.recentTrades || !Array.isArray(dashboardData.recentTrades)) {
+      return [];
+    }
+    
+    return dashboardData.recentTrades.slice(0, 3).map((trade) => ({
+      id: String(trade.id),
+      symbol: trade.symbol || '',
+      name: trade.symbol || '',
+      type: (trade.tradeType || '').toUpperCase() === 'BUY' ? 'BUY' as const : 'SELL' as const,
+      entryPrice: `$${trade.price.toFixed(2)}`,
+      exitPrice: null,
+      profitLoss: '',
+      status: 'executed' as const,
+    }));
+  }, [dashboardData?.recentTrades]);
+
+  // 🔄 Manual refresh function
+  const handleManualRefresh = async () => {
+
+    refreshDashboard();
+    
+    setTimeout(() => {
+      toast({
+        title: "Dashboard Refreshed",
+        description: "All portfolio data has been updated with the latest information.",
+      });
+    }, 500);
+  };
+
+  // Main portfolio summary metrics
+  const portfolioMetrics = [
+    {
+      title: 'Account Value',
+      value: formatCurrency(portfolioData.accountValue),
+      subtitle: 'Total Portfolio + Cash',
+      icon: Wallet,
+      color: 'blue'
+    },
+    {
+      title: 'Holdings Value',
+      value: formatCurrency(portfolioData.holdingsValue),
+      subtitle: 'Asset Holdings Only',
+      icon: BarChart3,
+      color: 'green'
+    },
+    {
+      title: 'Cash Balance',
+      value: formatCurrency(portfolioData.cashBalance),
+      subtitle: 'Available Cash',
+      icon: DollarSign,
+      color: 'purple'
+    },
+    {
+      title: 'Total Change Since Start',
+      value: formatCurrency(portfolioData.totalChangeValue),
+      subtitle: `${portfolioData.totalChangePercent.toFixed(2)}% vs Initial`,
+      icon: portfolioData.totalChangeIsPositive ? TrendingUp : TrendingDown,
+      color: portfolioData.totalChangeIsPositive ? 'green' : 'red'
+    },
+    {
+      title: 'Performance (Assets Only)',
+      value: portfolioData.hasTradeHistory ? formatCurrency(portfolioData.assetPerformanceValue) : '–',
+      subtitle: portfolioData.hasTradeHistory ? `${portfolioData.assetPerformancePercent.toFixed(2)}% vs Cost Basis` : 'No trades yet',
+      icon: portfolioData.assetPerformanceIsPositive ? TrendingUp : TrendingDown,
+      color: portfolioData.assetPerformanceIsPositive ? 'green' : 'red'
+    }
+  ];
+
+  // Example summary metrics (replace with real data as needed)
+  const summaryCards = [
+    {
+      title: 'Account Value',
+      value: formatCurrency(portfolioData.accountValue),
+      icon: <Wallet className="h-4 w-4 text-muted-foreground" />,
+      variant: 'default' as const,
+      footer: 'Total Portfolio + Cash',
+    },
+    {
+      title: 'Holdings Value',
+      value: formatCurrency(portfolioData.holdingsValue),
+      icon: <BarChart3 className="h-4 w-4 text-muted-foreground" />,
+      variant: 'default' as const,
+      footer: 'Asset Holdings Only',
+    },
+    {
+      title: 'Cash Balance',
+      value: formatCurrency(portfolioData.cashBalance),
+      icon: <DollarSign className="h-4 w-4 text-muted-foreground" />,
+      variant: 'default' as const,
+      footer: 'Available Cash',
+    },
+    {
+      title: 'Total Change Since Start',
+      value: formatCurrency(portfolioData.totalChangeValue),
+      icon: <TrendingUp className="h-4 w-4 text-green-600" />,
+      variant: 'success' as const,
+      footer: `${portfolioData.totalChangePercent.toFixed(2)}% vs Initial`,
+    },
+    {
+      title: 'Performance (Assets Only)',
+      value: portfolioData.hasTradeHistory ? formatCurrency(portfolioData.assetPerformanceValue) : '–',
+      icon: <TrendingUp className="h-4 w-4 text-green-600" />,
+      variant: 'success' as const,
+      footer: portfolioData.hasTradeHistory ? `${portfolioData.assetPerformancePercent.toFixed(2)}% vs Cost Basis` : 'No trades yet',
+    },
+  ];
+
+  // Example strategies and signals (replace with real data as needed)
+  const [activeStrategy, setActiveStrategy] = useState('Aggressive');
+
+  // Provide a local mock for signals
+  const signals = [
+    { type: 'MACD Buy', symbol: 'ARKK', action: 'BUY', confidence: 'high' },
+    { type: 'Whale Activity', symbol: 'BTC', action: 'BUY', confidence: 'medium' },
+    { type: 'RSI Overbought', symbol: 'TSLA', action: 'SELL', confidence: 'high' },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex justify-between items-center">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+
+          {/* Portfolio Metrics Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Card key={i} className="rounded-2xl p-4 mb-4 shadow-md">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-6 w-16" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Holdings Table Skeleton */}
+          <Card className="rounded-2xl p-4 mb-4 shadow-md">
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-12" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Chart Skeleton */}
+          <Card className="rounded-2xl p-4 mb-4 shadow-md">
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-56" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-80 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (dashboardError) {
+    return (
+      <div className="p-4">
+        <div className="flex flex-col justify-center items-center h-96">
+          <div className="text-lg text-red-600">Error loading dashboard</div>
+          <Button onClick={handleManualRefresh} className="mt-4">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-semibold">Paper Trading Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Track your portfolio performance and recent trading activity.</p>
+          </div>
+          <Button onClick={handleManualRefresh} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh Data
+          </Button>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {summaryCards.map((card, i) => (
+            <SummaryCard key={i} {...card} />
+          ))}
+        </div>
+
+        {/* Strategy & Signals Section */}
+        <StrategySignals
+          strategies={Array.isArray(strategies) ? strategies : []}
+          signals={signals}
+          contextLabel="Paper"
+          activeStrategy={activeStrategy}
+          onStrategyChange={setActiveStrategy}
+        />
+
+        {/* Unified AssetViewTabs */}
+        <AssetViewTabs
+          showPerformanceTab={true}
+          preferenceKey="paperAssetTab"
+          renderHoldings={() => (
+            <WidgetContainer title="Holdings">
+              {/* Place holdings widgets here */}
+              <div className="h-40 flex items-center justify-center text-muted-foreground">Holdings widgets go here</div>
+            </WidgetContainer>
+          )}
+          renderAllocation={() => (
+            <WidgetContainer title="Allocation">
+              {/* Place allocation widgets here */}
+              <div className="h-40 flex items-center justify-center text-muted-foreground">Allocation widgets go here</div>
+            </WidgetContainer>
+          )}
+          renderPerformance={() => (
+            <WidgetContainer title="Performance">
+              {/* Place performance widgets here */}
+              <div className="h-40 flex items-center justify-center text-muted-foreground">Performance widgets go here</div>
+            </WidgetContainer>
+          )}
+        />
+
+        {/* Strategy Performance Chart */}
+        <StrategyPerformanceChart strategyName={activeStrategy} />
+
+        {/* Recent Trades */}
+        <Card className="rounded-2xl p-4 mb-4 shadow-md">
+          <CardHeader>
+            <CardTitle>Recent Trades</CardTitle>
+            <CardDescription>Your latest trading activity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecentTrades trades={recentTradesData} />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+} 

@@ -1,0 +1,41 @@
+# StackMotive Database Migrations Log
+# Format: [TIMESTAMP] [MIGRATION_ID] [PURPOSE] [STATUS]
+
+# === BASELINE MIGRATIONS ===
+[2025-05-29 17:00:00] 8fb547391494 - Add strategy column to trades table - ✅ APPLIED
+  - Purpose: Support strategy tracking in paper trading
+  - Added: trades.strategy (VARCHAR, nullable)
+  - Migration file: 8fb547391494_add_strategy_column_to_trades_table.py
+  - Down revision: None (initial)
+  - Status: STABLE - Currently applied to production database
+
+# === MIGRATION RULES ===
+# 1. ALL migrations must be documented here BEFORE applying
+# 2. Include timestamp, purpose, and rollback plan
+# 3. NEVER duplicate migration IDs
+# 4. Test upgrade AND downgrade before production
+# 5. NO automatic migrations in production
+
+# === SCHEMA VERSION TRACKING ===
+# Current Schema Version: v1.1
+# Last Migration: 8fb547391494
+# Database Engine: SQLite (development), PostgreSQL (production)
+# Alembic Version: Latest stable
+
+# === FUTURE MIGRATIONS (PLANNED) ===
+# - None currently planned
+# - Any schema changes require explicit approval
+# - Must follow migration policy in MIGRATION_POLICY.md
+
+# === EMERGENCY ROLLBACK PROCEDURES ===
+# 1. Stop application server
+# 2. Run: alembic downgrade [previous_revision]
+# 3. Verify data integrity
+# 4. Restart application
+# 5. Document incident
+
+# === CRITICAL NOTES ===
+# - NEVER run migrations on live production without backup
+# - ALWAYS test migrations on staging environment first
+# - Keep this log updated for audit purposes
+# - Strategy column fix was causing duplicates - resolved as of 2025-05-29 

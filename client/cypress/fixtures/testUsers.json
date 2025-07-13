@@ -1,0 +1,14 @@
+{
+  "validUser": {
+    "email": "testuser+cypress@stackmotive.com",
+    "password": "Testpass123"
+  },
+  "existingUser": {
+    "email": "test@stackmotive.com",
+    "password": "testpass123"
+  },
+  "invalidUser": {
+    "email": "invalid-email",
+    "password": "123"
+  }
+} 

@@ -1,0 +1,1 @@
+# Logic package for trading algorithms and signal processing 

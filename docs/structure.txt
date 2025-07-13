@@ -1,0 +1,369 @@
+.
+├── attached_assets
+│   ├── ChatGPT Image Apr 29, 2025, 11_52_10 AM.png
+│   ├── ChatGPT Image Apr 29, 2025, 11_56_42 AM.png
+│   ├── ChatGPT Image Apr 29, 2025, 12_08_41 PM.png
+│   ├── ChatGPT Image Apr 29, 2025, 12_10_13 PM.png
+│   ├── ChatGPT Image Apr 29, 2025, 12_13_05 PM.png
+│   ├── ChatGPT Image Apr 29, 2025, 12_15_01 PM.png
+│   ├── ChatGPT Image Apr 29, 2025, 12_18_04 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_27_38 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_29_50 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_33_17 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_35_22 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_37_02 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_41_32 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_44_31 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_47_16 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_49_13 PM.png
+│   ├── ChatGPT Image Apr 30, 2025, 03_51_16 PM.png
+│   ├── Pasted-ibkr-env-andy-MEMEBOT-tradingsystem-StackMotive-Beta-V6-UI-Upgrade-stackmotive-mvp-cat-combined--1747346476398.txt
+│   ├── Screenshot 2025-05-16 at 1.34.40 PM.png
+│   ├── Screenshot 2025-05-16 at 1.48.44 PM.png
+│   ├── Screenshot 2025-05-16 at 1.48.53 PM.png
+│   ├── Screenshot 2025-05-16 at 1.50.12 PM.png
+│   ├── Screenshot 2025-05-16 at 1.54.29 PM.png
+│   ├── Screenshot 2025-05-16 at 10.07.11 AM.png
+│   ├── Screenshot 2025-05-16 at 11.11.05 AM.png
+│   ├── Screenshot 2025-05-16 at 11.12.32 AM.png
+│   ├── Screenshot 2025-05-16 at 11.16.06 AM.png
+│   ├── Screenshot 2025-05-16 at 11.31.59 AM.png
+│   ├── Screenshot 2025-05-16 at 11.32.10 AM.png
+│   ├── Screenshot 2025-05-16 at 11.32.20 AM.png
+│   ├── Screenshot 2025-05-16 at 12.35.33 PM.png
+│   ├── Screenshot 2025-05-16 at 12.44.34 PM.png
+│   ├── Screenshot 2025-05-16 at 12.49.56 PM.png
+│   ├── Screenshot 2025-05-16 at 12.52.03 PM.png
+│   ├── Screenshot 2025-05-16 at 12.54.56 PM.png
+│   ├── Screenshot 2025-05-16 at 12.59.17 PM.png
+│   ├── Screenshot 2025-05-16 at 2.05.02 PM.png
+│   ├── Screenshot 2025-05-16 at 2.05.16 PM.png
+│   ├── Screenshot 2025-05-16 at 2.05.37 PM.png
+│   ├── Screenshot 2025-05-16 at 2.05.49 PM.png
+│   ├── Screenshot 2025-05-16 at 2.06.00 PM.png
+│   ├── Screenshot 2025-05-16 at 4.25.30 AM.png
+│   ├── Screenshot 2025-05-16 at 4.42.42 AM.png
+│   ├── Screenshot 2025-05-16 at 5.33.04 AM.png
+│   ├── Screenshot 2025-05-16 at 5.59.20 AM.png
+│   ├── Screenshot 2025-05-16 at 6.15.48 AM.png
+│   ├── Screenshot 2025-05-16 at 6.16.00 AM.png
+│   ├── Screenshot 2025-05-16 at 6.16.11 AM.png
+│   ├── Screenshot 2025-05-16 at 7.19.12 AM.png
+│   ├── Screenshot 2025-05-16 at 7.23.02 AM.png
+│   ├── Screenshot 2025-05-16 at 7.26.07 AM.png
+│   ├── Screenshot 2025-05-16 at 7.28.29 AM.png
+│   ├── Screenshot 2025-05-16 at 7.49.56 AM.png
+│   ├── Screenshot 2025-05-16 at 8.09.31 AM.png
+│   ├── stackmotive_logo_blackwhite.jpeg
+│   └── stackmotive_logo_blugreen.png
+├── BACKUPS
+│   ├── POST_LOCKDOWN_STABLE_20250530_094835
+│   └── POST_LOCKDOWN_STABLE_20250530_094839
+│       ├── alembic.ini
+│       ├── API_RESPONSE_CONTRACT.md
+│       ├── config
+│       │   ├── environment.ts
+│       │   └── settings.py
+│       ├── database_schema.sql
+│       ├── database_snapshot.db
+│       ├── EMERGENCY_RECOVERY.sh
+│       ├── LOCKDOWN_PROTECTION.md
+│       ├── main.py
+│       ├── MIGRATION_POLICY.md
+│       ├── migrations
+│       │   ├── env.py
+│       │   ├── README
+│       │   ├── script.py.mako
+│       │   └── versions
+│       ├── requirements_BACKUP_POST_LOCKDOWN_STABLE.txt
+│       ├── RESPONSE_VALIDATION.md
+│       ├── SYSTEM_LOCKDOWN_REPORT.md
+│       └── SYSTEM_STATE_SNAPSHOT.md
+├── BASELINE_PROTECTION.md
+├── CHECKPOINT_6_SUMMARY.md
+├── client
+│   ├── cypress
+│   │   ├── e2e
+│   │   │   └── registration.cy.ts
+│   │   ├── fixtures
+│   │   │   └── testUsers.json
+│   │   ├── screenshots
+│   │   │   └── registration.cy.ts
+│   │   └── support
+│   │       ├── commands.ts
+│   │       └── e2e.ts
+│   ├── index.html
+│   └── src
+│       ├── App.tsx
+│       ├── components
+│       │   ├── analytics
+│       │   ├── dashboard
+│       │   ├── layout
+│       │   ├── logo.tsx
+│       │   ├── news
+│       │   ├── onboarding
+│       │   ├── strategies
+│       │   ├── strategy
+│       │   ├── tax
+│       │   ├── trading
+│       │   ├── ui
+│       │   └── whale-tracking
+│       ├── context
+│       │   └── auth-context.tsx
+│       ├── hooks
+│       │   ├── use-backtest-sessions.ts
+│       │   ├── use-holdings.ts
+│       │   ├── use-mobile.tsx
+│       │   ├── use-onboarding-progress.ts
+│       │   ├── use-onboarding-redirect.ts
+│       │   ├── use-paper-trading.ts
+│       │   ├── use-strategies.ts
+│       │   ├── use-tax-settings.ts
+│       │   ├── use-toast.ts
+│       │   ├── use-trades.ts
+│       │   ├── use-trial-status.ts
+│       │   ├── use-websocket.ts
+│       │   └── useAuth.ts
+│       ├── index.css
+│       ├── lib
+│       │   ├── auth.ts
+│       │   ├── queryClient.ts
+│       │   └── utils.ts
+│       ├── main.tsx
+│       ├── pages
+│       │   ├── account-management.tsx
+│       │   ├── admin-testers.tsx
+│       │   ├── advanced-analytics.tsx
+│       │   ├── analytics.tsx
+│       │   ├── backtests.tsx
+│       │   ├── combined-portfolio.tsx
+│       │   ├── dashboard.tsx
+│       │   ├── education.tsx
+│       │   ├── holdings.tsx
+│       │   ├── login.tsx
+│       │   ├── market-sentiment.tsx
+│       │   ├── news.tsx
+│       │   ├── not-found.tsx
+│       │   ├── onboarding.tsx
+│       │   ├── paper-trading
+│       │   ├── register.tsx
+│       │   ├── reports
+│       │   ├── scheduled-trades.tsx
+│       │   ├── settings.tsx
+│       │   ├── strategies.tsx
+│       │   ├── tax-calculator.tsx
+│       │   ├── tax-settings.tsx
+│       │   ├── technical-analysis.tsx
+│       │   ├── trading
+│       │   ├── trading.tsx
+│       │   ├── UserProfile.tsx
+│       │   └── whale-tracking.tsx
+│       └── types
+│           ├── holdings.ts
+│           ├── strategy.ts
+│           ├── trade.ts
+│           └── user.ts
+├── client.zip
+├── components.json
+├── cookies.txt
+├── cypress
+│   └── downloads
+├── CYPRESS_TESTING_GUIDE.md
+├── cypress.config.js
+├── debug_registration.py
+├── FINAL_TEST_READINESS_REPORT.md
+├── final_test_verification.py
+├── FLOWCHART_IMPLEMENTATION_GUIDE.md
+├── generated-icon.png
+├── jest.config.js
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── prisma
+│   ├── dev.db
+│   ├── migrations
+│   │   ├── 20250526232303_add_session_model
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   ├── schema.prisma
+│   └── seed.js
+├── REGISTRATION_ONBOARDING_FIXES_SUMMARY.md
+├── ROUTE_DATA_EXPORT.json
+├── scripts
+│   └── test-e2e.sh
+├── server
+│   ├── ai
+│   │   ├── openai-strategy.ts
+│   │   ├── sentiment-analysis-engine.ts
+│   │   └── technical-analysis-engine.ts
+│   ├── alembic.ini
+│   ├── API_RESPONSE_CONTRACT.md
+│   ├── app.db
+│   ├── auth.py
+│   ├── brokers
+│   │   ├── broker-interface.ts
+│   │   ├── broker-manager.ts
+│   │   └── connectors
+│   │       ├── ibkr-connector.ts
+│   │       ├── kraken-connector.ts
+│   │       ├── kucoin-connector.ts
+│   │       └── tiger-connector.ts
+│   ├── cleanup_users.py
+│   ├── config
+│   │   ├── __init__.py
+│   │   ├── environment.ts
+│   │   └── settings.py
+│   ├── cookies.txt
+│   ├── create_tables.py
+│   ├── database-storage.ts
+│   ├── database.py
+│   ├── db_migrations_log.txt
+│   ├── dev.db
+│   ├── init_db.py
+│   ├── lib
+│   │   └── prisma.ts
+│   ├── logic
+│   │   ├── __init__.py
+│   │   └── signal_engine.py
+│   ├── main.py
+│   ├── middleware
+│   │   ├── auth.ts
+│   │   └── validate.ts
+│   ├── migrate_strategy_fields.py
+│   ├── MIGRATION_POLICY.md
+│   ├── migrations
+│   │   ├── env.py
+│   │   ├── README
+│   │   ├── script.py.mako
+│   │   └── versions
+│   │       └── 8fb547391494_add_strategy_column_to_trades_table.py
+│   ├── models
+│   │   ├── paper_trading.py
+│   │   ├── tax.py
+│   │   └── user.py
+│   ├── requirements_BACKUP_POST_LOCKDOWN_STABLE.txt
+│   ├── requirements.txt
+│   ├── RESPONSE_VALIDATION.md
+│   ├── routes
+│   │   ├── api.ts
+│   │   ├── market_data.py
+│   │   ├── paper_trading.py
+│   │   ├── strategy.py
+│   │   ├── tax.py
+│   │   ├── tax.ts
+│   │   └── user.py
+│   ├── services
+│   │   └── session.ts
+│   ├── setup.sh
+│   ├── stackmotive.db
+│   ├── strategies
+│   │   └── engine
+│   │       ├── index.ts
+│   │       ├── indicator-calculator.ts
+│   │       ├── strategy-evaluator.ts
+│   │       └── strategy-manager.ts
+│   ├── SYSTEM_LOCKDOWN_REPORT.md
+│   ├── tax
+│   │   ├── nz-tax-service.ts
+│   │   └── tax-calculation-service.ts
+│   ├── test_auth_flow.py
+│   ├── test_auth.py
+│   ├── test_registration_onboarding_flow.py
+│   ├── TEST_USERS_REFERENCE.md
+│   ├── trading_app.db
+│   ├── validation
+│   │   ├── backtest.schema.ts
+│   │   ├── paper-trading.schema.ts
+│   │   ├── rebalance.schema.ts
+│   │   ├── strategy.schema.ts
+│   │   ├── tax-settings.schema.ts
+│   │   └── trade.schema.ts
+│   └── venv
+│       ├── bin
+│       │   ├── activate
+│       │   ├── activate.csh
+│       │   ├── activate.fish
+│       │   ├── Activate.ps1
+│       │   ├── alembic
+│       │   ├── dotenv
+│       │   ├── email_validator
+│       │   ├── httpx
+│       │   ├── mako-render
+│       │   ├── normalizer
+│       │   ├── pip
+│       │   ├── pip3
+│       │   ├── pip3.11
+│       │   ├── pyrsa-decrypt
+│       │   ├── pyrsa-encrypt
+│       │   ├── pyrsa-keygen
+│       │   ├── pyrsa-priv2pub
+│       │   ├── pyrsa-sign
+│       │   ├── pyrsa-verify
+│       │   ├── python -> python3.11
+│       │   ├── python3 -> python3.11
+│       │   ├── python3.11 -> /opt/homebrew/Cellar/python@3.11/3.11.12_1/Frameworks/Python.framework/Versions/3.11/bin/python3.11
+│       │   ├── uvicorn
+│       │   ├── watchfiles
+│       │   └── websockets
+│       ├── include
+│       │   └── python3.11
+│       ├── lib
+│       │   └── python3.11
+│       └── pyvenv.cfg
+├── server.zip
+├── shared
+│   └── schema.ts
+├── shared.zip
+├── StackMotive
+│   ├── FLOWCHART_IMPLEMENTATION_GUIDE.md
+│   ├── STACKMOTIVE_FIELD_AUDIT.md
+│   ├── STACKMOTIVE_SITEMAP.md
+│   ├── USER_FLOWS_DETAILED.md
+│   └── Welcome.md
+├── STACKMOTIVE_FIELD_AUDIT.md
+├── STACKMOTIVE_SITEMAP.md
+├── STACKMOTIVE_VISUAL_USER_JOURNEY.md
+├── stackmotive-landing-page
+├── structure.txt
+├── tailwind.config.ts
+├── tests
+│   ├── baseline-smoke.test.js
+│   └── setup.ts
+├── tsconfig.json
+├── USER_FLOWS_DETAILED.md
+├── venv
+│   ├── bin
+│   │   ├── activate
+│   │   ├── activate.csh
+│   │   ├── activate.fish
+│   │   ├── Activate.ps1
+│   │   ├── alembic
+│   │   ├── dotenv
+│   │   ├── email_validator
+│   │   ├── httpx
+│   │   ├── mako-render
+│   │   ├── pip
+│   │   ├── pip3
+│   │   ├── pip3.11
+│   │   ├── pyrsa-decrypt
+│   │   ├── pyrsa-encrypt
+│   │   ├── pyrsa-keygen
+│   │   ├── pyrsa-priv2pub
+│   │   ├── pyrsa-sign
+│   │   ├── pyrsa-verify
+│   │   ├── python -> python3.11
+│   │   ├── python3 -> python3.11
+│   │   ├── python3.11 -> /opt/homebrew/opt/python@3.11/bin/python3.11
+│   │   ├── uvicorn
+│   │   ├── watchfiles
+│   │   └── websockets
+│   ├── include
+│   │   └── python3.11
+│   ├── lib
+│   │   └── python3.11
+│   │       └── site-packages
+│   └── pyvenv.cfg
+├── venv.zip
+└── vite.config.ts
+
+75 directories, 292 files

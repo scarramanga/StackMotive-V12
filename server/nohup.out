@@ -1,0 +1,233 @@
+INFO:     Will watch for changes in these directories: ['/Users/andrewboss/Downloads/StackMotive_Clean']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [83078] using WatchFiles
+INFO:     Started server process [83082]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:54838 - "OPTIONS /api/login HTTP/1.1" 200 OK
+2025-06-06 13:31:42,636 - server.routes.user - INFO - Login successful for email: louiss@stackmotiveapp.com
+INFO:     127.0.0.1:54840 - "POST /api/login HTTP/1.1" 200 OK
+2025-06-06 13:31:42,647 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:31:42,647 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:31:42,647 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108010fd0>
+INFO:     127.0.0.1:54840 - "GET /api/user/me HTTP/1.1" 200 OK
+2025-06-06 13:31:42,667 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:31:42,667 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:31:42,669 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108011850>
+🧪 Fetching paper account for user_id = 84
+🔍 Found account for user 84: ID 82, Name: My Paper Trading Account
+🔍 Portfolio calculation result for account 82:
+   - cashBalance: $100,000.00
+   - totalHoldingsValue: $0.00
+   - totalPortfolioValue: $100,000.00
+   - totalProfitLoss: $0.00
+   - totalProfitLossPercent: $0.00
+INFO:     127.0.0.1:54840 - "GET /api/user/paper-trading-account HTTP/1.1" 200 OK
+2025-06-06 13:31:42,691 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:31:42,691 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:31:42,692 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802b3d0>
+INFO:     127.0.0.1:54840 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:32:01,783 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:32:01,784 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:32:01,786 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802b7d0>
+🔍 Creating paper trading account for user 84 (louiss@stackmotiveapp.com)
+🔍 Account data: {'name': 'Test 2nd Portfolio', 'currency': <SupportedCurrency.USD: 'USD'>, 'initialBalance': 250000.0}
+🔍 Found existing account for user 84: ID 82, Name: My Paper Trading Account
+🔍 Returning existing account for user 84
+🔍 Portfolio data calculated for existing account: {'cashBalance': 100000.0, 'totalHoldingsValue': 0.0, 'totalPortfolioValue': 100000.0, 'totalProfitLoss': 0.0, 'totalProfitLossPercent': 0.0}
+INFO:     127.0.0.1:54926 - "POST /api/user/paper-trading-account HTTP/1.1" 200 OK
+2025-06-06 13:32:01,795 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:32:01,795 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:32:01,796 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802d310>
+2025-06-06 13:32:01,798 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:32:01,798 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:32:01,800 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802e0d0>
+🧪 Fetching paper account for user_id = 84
+🔍 Found account for user 84: ID 82, Name: My Paper Trading Account
+🔍 Portfolio calculation result for account 82:
+   - cashBalance: $100,000.00
+   - totalHoldingsValue: $0.00
+   - totalPortfolioValue: $100,000.00
+   - totalProfitLoss: $0.00
+   - totalProfitLossPercent: $0.00
+INFO:     127.0.0.1:54926 - "GET /api/user/paper-trading-account HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54928 - "GET /api/user/me HTTP/1.1" 200 OK
+2025-06-06 13:33:01,913 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:33:01,913 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:33:01,914 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802e050>
+INFO:     127.0.0.1:55207 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:34:01,919 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:34:01,920 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:34:01,921 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802c290>
+INFO:     127.0.0.1:55460 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:35:01,929 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:35:01,929 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:35:01,931 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802c1d0>
+INFO:     127.0.0.1:55712 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:36:01,943 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:36:01,943 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:36:01,945 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802ca10>
+INFO:     127.0.0.1:55972 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:37:01,959 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:37:01,960 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:37:01,961 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802c050>
+INFO:     127.0.0.1:56228 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:38:01,973 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:38:01,974 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:38:01,975 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802c910>
+INFO:     127.0.0.1:56478 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:39:01,986 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:39:01,987 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:39:01,988 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10802c350>
+INFO:     127.0.0.1:56759 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'server/routes/paper_trading.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83082]
+INFO:     Started server process [83511]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+2025-06-06 13:40:02,004 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:40:02,010 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:40:02,024 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108cf5690>
+INFO:     127.0.0.1:57019 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57277 - "OPTIONS /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:41:02,031 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:41:02,031 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:41:02,033 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108cf73d0>
+INFO:     127.0.0.1:57279 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:42:02,041 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:42:02,042 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:42:02,043 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108cf7710>
+INFO:     127.0.0.1:57530 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:43:02,048 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:43:02,049 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:43:02,050 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108cf7d10>
+INFO:     127.0.0.1:57792 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:44:02,058 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:44:02,059 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:44:02,060 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108cf8390>
+INFO:     127.0.0.1:58044 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:45:02,068 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:45:02,068 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:45:02,069 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108cf84d0>
+INFO:     127.0.0.1:58297 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:46:02,075 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:46:02,075 - server.auth - DEBUG - 🔍 Decoded email from token: louiss@stackmotiveapp.com
+2025-06-06 13:46:02,077 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x108cf86d0>
+INFO:     127.0.0.1:58559 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58710 - "OPTIONS /api/check-email HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58712 - "POST /api/check-email HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58753 - "OPTIONS /api/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58755 - "POST /api/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58753 - "OPTIONS /api/login HTTP/1.1" 200 OK
+2025-06-06 13:46:45,528 - server.routes.user - INFO - Login successful for email: testandy@stackmotiveapp.com
+INFO:     127.0.0.1:58755 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58753 - "OPTIONS /api/user/me HTTP/1.1" 200 OK
+2025-06-06 13:46:45,533 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:46:45,533 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:46:45,534 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae265d0>
+INFO:     127.0.0.1:58755 - "GET /api/user/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58753 - "OPTIONS /api/user/paper-trading-account HTTP/1.1" 200 OK
+2025-06-06 13:46:45,549 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:46:45,549 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:46:45,550 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae26e90>
+🧪 Fetching paper account for user_id = 85
+🔍 Found account for user 85: ID 83, Name: My Paper Trading Account
+🔍 Portfolio calculation result for account 83:
+   - cashBalance: $100,000.00
+   - totalHoldingsValue: $0.00
+   - totalPortfolioValue: $100,000.00
+   - totalProfitLoss: $0.00
+   - totalProfitLossPercent: $0.00
+INFO:     127.0.0.1:58755 - "GET /api/user/paper-trading-account HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58778 - "OPTIONS /api/user/onboarding/progress HTTP/1.1" 200 OK
+2025-06-06 13:46:50,613 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:46:50,614 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:46:50,615 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae3b2d0>
+INFO:     127.0.0.1:58780 - "POST /api/user/onboarding/progress HTTP/1.1" 200 OK
+2025-06-06 13:46:57,181 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:46:57,181 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:46:57,183 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae443d0>
+INFO:     127.0.0.1:58812 - "POST /api/user/onboarding/progress HTTP/1.1" 200 OK
+2025-06-06 13:47:04,467 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:04,467 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:04,468 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae44950>
+INFO:     127.0.0.1:58844 - "POST /api/user/onboarding/progress HTTP/1.1" 200 OK
+2025-06-06 13:47:10,772 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:10,772 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:10,773 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae442d0>
+INFO:     127.0.0.1:58871 - "POST /api/user/onboarding/progress HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58881 - "OPTIONS /api/user/preferences HTTP/1.1" 200 OK
+2025-06-06 13:47:12,859 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:12,860 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:12,862 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae45590>
+INFO:     127.0.0.1:58871 - "POST /api/user/preferences HTTP/1.1" 200 OK
+2025-06-06 13:47:12,871 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:12,871 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:12,872 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae449d0>
+INFO:     127.0.0.1:58871 - "GET /api/user/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58881 - "OPTIONS /api/user/onboarding-complete HTTP/1.1" 200 OK
+2025-06-06 13:47:12,878 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:12,878 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:12,879 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae45cd0>
+INFO:     127.0.0.1:58871 - "POST /api/user/onboarding-complete HTTP/1.1" 200 OK
+2025-06-06 13:47:12,886 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:12,886 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:12,887 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae454d0>
+INFO:     127.0.0.1:58871 - "GET /api/user/me HTTP/1.1" 200 OK
+2025-06-06 13:47:12,891 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:12,891 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:12,892 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae46490>
+INFO:     127.0.0.1:58871 - "GET /api/user/me HTTP/1.1" 200 OK
+2025-06-06 13:47:12,893 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:12,893 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:12,894 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae46fd0>
+🧪 Fetching paper account for user_id = 85
+🔍 Found account for user 85: ID 83, Name: My Paper Trading Account
+🔍 Portfolio calculation result for account 83:
+   - cashBalance: $100,000.00
+   - totalHoldingsValue: $0.00
+   - totalPortfolioValue: $100,000.00
+   - totalProfitLoss: $0.00
+   - totalProfitLossPercent: $0.00
+INFO:     127.0.0.1:58883 - "GET /api/user/paper-trading-account HTTP/1.1" 200 OK
+2025-06-06 13:47:12,915 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:12,915 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:12,917 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae465d0>
+INFO:     127.0.0.1:58883 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+2025-06-06 13:47:48,979 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:48,980 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:48,980 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae46250>
+🔍 Creating paper trading account for user 85 (testandy@stackmotiveapp.com)
+🔍 Account data: {'name': 'Test Andy Portfolio', 'currency': <SupportedCurrency.NZD: 'NZD'>, 'initialBalance': 250000.0}
+🔍 Found existing account for user 85: ID 83, Name: My Paper Trading Account
+🔍 Returning existing account for user 85
+🔍 Portfolio data calculated for existing account: {'cashBalance': 100000.0, 'totalHoldingsValue': 0.0, 'totalPortfolioValue': 100000.0, 'totalProfitLoss': 0.0, 'totalProfitLossPercent': 0.0}
+INFO:     127.0.0.1:59039 - "POST /api/user/paper-trading-account HTTP/1.1" 200 OK
+2025-06-06 13:47:48,985 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:48,986 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:48,987 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae47950>
+2025-06-06 13:47:48,988 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:48,988 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:48,989 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae48490>
+🧪 Fetching paper account for user_id = 85
+🔍 Found account for user 85: ID 83, Name: My Paper Trading Account
+🔍 Portfolio calculation result for account 83:
+   - cashBalance: $100,000.00
+   - totalHoldingsValue: $0.00
+   - totalPortfolioValue: $100,000.00
+   - totalProfitLoss: $0.00
+   - totalProfitLossPercent: $0.00
+INFO:     127.0.0.1:59039 - "GET /api/user/paper-trading-account HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59041 - "GET /api/user/me HTTP/1.1" 200 OK
+2025-06-06 13:47:49,107 - server.auth - DEBUG - 🔑 Validating token: eyJhbGciOi...
+2025-06-06 13:47:49,108 - server.auth - DEBUG - 🔍 Decoded email from token: testandy@stackmotiveapp.com
+2025-06-06 13:47:49,108 - server.auth - DEBUG - ✅ DB user found: <server.models.user.User object at 0x10ae47c10>
+INFO:     127.0.0.1:59041 - "GET /api/user/trial-status HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83511]
+INFO:     Stopping reloader process [83078]

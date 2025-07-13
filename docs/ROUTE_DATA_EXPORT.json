@@ -1,0 +1,443 @@
+{
+  "application": {
+    "name": "StackMotive",
+    "version": "1.0",
+    "description": "Trading and Portfolio Management Platform"
+  },
+  "userStates": [
+    {
+      "id": "guest",
+      "name": "Guest User",
+      "description": "Unauthenticated user",
+      "accessLevel": 0,
+      "allowedRoutes": ["/login", "/register"]
+    },
+    {
+      "id": "newUser",
+      "name": "New User", 
+      "description": "Authenticated but incomplete onboarding",
+      "accessLevel": 1,
+      "allowedRoutes": ["/onboarding", "/settings", "/logout"]
+    },
+    {
+      "id": "activeUser",
+      "name": "Active User",
+      "description": "Authenticated with completed onboarding",
+      "accessLevel": 2,
+      "allowedRoutes": ["*"]
+    },
+    {
+      "id": "admin",
+      "name": "Admin User",
+      "description": "Active user with admin privileges",
+      "accessLevel": 3,
+      "allowedRoutes": ["*", "/admin-testers"]
+    }
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "name": "Home",
+      "component": "Dashboard",
+      "redirect": "/dashboard",
+      "category": "core",
+      "accessLevel": 2,
+      "description": "Default route redirects to dashboard"
+    },
+    {
+      "path": "/login",
+      "name": "Login",
+      "component": "Login",
+      "category": "auth",
+      "accessLevel": 0,
+      "description": "User authentication page"
+    },
+    {
+      "path": "/register", 
+      "name": "Register",
+      "component": "Register",
+      "category": "auth",
+      "accessLevel": 0,
+      "description": "New user registration page"
+    },
+    {
+      "path": "/onboarding",
+      "name": "Onboarding",
+      "component": "OnboardingPage",
+      "category": "onboarding",
+      "accessLevel": 1,
+      "description": "Multi-step user onboarding flow",
+      "steps": [
+        {"id": 1, "name": "Welcome", "component": "StepWelcome"},
+        {"id": 2, "name": "Portfolio", "component": "StepPortfolio"},
+        {"id": 3, "name": "Personal Info", "component": "StepPersonalInfo"},
+        {"id": 4, "name": "Tax Info", "component": "StepTaxInfo"},
+        {"id": 5, "name": "Summary", "component": "StepSummary"}
+      ]
+    },
+    {
+      "path": "/dashboard",
+      "name": "Dashboard",
+      "component": "Dashboard", 
+      "category": "core",
+      "accessLevel": 2,
+      "description": "Main application dashboard"
+    },
+    {
+      "path": "/trading",
+      "name": "Trading Overview",
+      "component": "Trading",
+      "category": "trading",
+      "accessLevel": 2,
+      "description": "Trading section overview"
+    },
+    {
+      "path": "/trading/trade",
+      "name": "Trade View",
+      "component": "TradeView",
+      "category": "trading",
+      "accessLevel": 2,
+      "description": "Execute trades interface"
+    },
+    {
+      "path": "/trading/strategies",
+      "name": "Trading Strategies",
+      "component": "StrategiesPage",
+      "category": "trading",
+      "accessLevel": 2,
+      "description": "Manage trading strategies"
+    },
+    {
+      "path": "/trading/ai-strategy-builder",
+      "name": "AI Strategy Builder",
+      "component": "AIStrategyBuilder",
+      "category": "trading",
+      "accessLevel": 2,
+      "description": "Build AI-powered trading strategies"
+    },
+    {
+      "path": "/paper-trading/new",
+      "name": "New Paper Trading Account",
+      "component": "NewPaperTradingAccount",
+      "category": "paperTrading",
+      "accessLevel": 2,
+      "description": "Create new paper trading account"
+    },
+    {
+      "path": "/paper-trading/dashboard",
+      "name": "Paper Trading Dashboard",
+      "component": "PaperTradingDashboard",
+      "category": "paperTrading",
+      "accessLevel": 2,
+      "description": "Paper trading management dashboard"
+    },
+    {
+      "path": "/paper-trading/strategy",
+      "name": "Strategy Selector",
+      "component": "StrategySelector",
+      "category": "paperTrading",
+      "accessLevel": 2,
+      "description": "Select strategies for paper trading"
+    },
+    {
+      "path": "/analytics",
+      "name": "Analytics Overview",
+      "component": "Analytics",
+      "category": "analytics",
+      "accessLevel": 2,
+      "description": "Portfolio analytics overview"
+    },
+    {
+      "path": "/advanced-analytics",
+      "name": "Advanced Analytics",
+      "component": "AdvancedAnalyticsPage",
+      "category": "analytics",
+      "accessLevel": 2,
+      "description": "Advanced analytics and insights"
+    },
+    {
+      "path": "/analysis/technical",
+      "name": "Technical Analysis",
+      "component": "TechnicalAnalysisPage",
+      "category": "analytics",
+      "accessLevel": 2,
+      "description": "Technical market analysis tools"
+    },
+    {
+      "path": "/analysis/sentiment",
+      "name": "Market Sentiment",
+      "component": "MarketSentimentPage",
+      "category": "analytics",
+      "accessLevel": 2,
+      "description": "Market sentiment analysis"
+    },
+    {
+      "path": "/analysis/portfolio",
+      "name": "Portfolio Analysis",
+      "component": "Analytics",
+      "category": "analytics",
+      "accessLevel": 2,
+      "description": "Portfolio-specific analysis"
+    },
+    {
+      "path": "/combined-portfolio",
+      "name": "Combined Portfolio",
+      "component": "CombinedPortfolioPage",
+      "category": "analytics",
+      "accessLevel": 2,
+      "description": "Combined portfolio view"
+    },
+    {
+      "path": "/reports",
+      "name": "Reports Index",
+      "component": "ReportsPage",
+      "category": "reports",
+      "accessLevel": 2,
+      "description": "Reports overview and management"
+    },
+    {
+      "path": "/reports/custom",
+      "name": "Custom Reports",
+      "component": "CustomReportPage",
+      "category": "reports",
+      "accessLevel": 2,
+      "description": "Build custom reports"
+    },
+    {
+      "path": "/reports/tax",
+      "name": "Tax Reports",
+      "component": "TaxReportsPage",
+      "category": "reports",
+      "accessLevel": 2,
+      "description": "Tax-related reporting"
+    },
+    {
+      "path": "/news",
+      "name": "News & Market Updates",
+      "component": "NewsPage",
+      "category": "tools",
+      "accessLevel": 2,
+      "description": "Market news and updates"
+    },
+    {
+      "path": "/whale-tracking",
+      "name": "Whale Tracking",
+      "component": "WhaleTrackingPage",
+      "category": "tools",
+      "accessLevel": 2,
+      "description": "Track large market movements"
+    },
+    {
+      "path": "/education",
+      "name": "Education",
+      "component": "Education",
+      "category": "tools",
+      "accessLevel": 2,
+      "description": "Educational resources"
+    },
+    {
+      "path": "/tax-calculator",
+      "name": "Tax Calculator",
+      "component": "TaxCalculatorPage",
+      "category": "tools",
+      "accessLevel": 2,
+      "description": "Calculate tax obligations"
+    },
+    {
+      "path": "/scheduled-trades",
+      "name": "Scheduled Trades",
+      "component": "ScheduledTradesPage",
+      "category": "tools",
+      "accessLevel": 2,
+      "description": "Manage scheduled trading orders"
+    },
+    {
+      "path": "/settings",
+      "name": "Settings",
+      "component": "SettingsPage",
+      "category": "management",
+      "accessLevel": 1,
+      "description": "Application settings and preferences"
+    },
+    {
+      "path": "/account-management",
+      "name": "Account Management",
+      "component": "AccountManagementPage",
+      "category": "management",
+      "accessLevel": 2,
+      "description": "Manage account details and security"
+    },
+    {
+      "path": "/profile",
+      "name": "User Profile",
+      "component": "UserProfile",
+      "category": "management",
+      "accessLevel": 2,
+      "description": "User profile information"
+    },
+    {
+      "path": "/strategies",
+      "name": "Strategies (Legacy)",
+      "component": "Strategies",
+      "category": "legacy",
+      "accessLevel": 2,
+      "description": "Legacy strategies page"
+    },
+    {
+      "path": "/admin-testers",
+      "name": "Admin Testers",
+      "component": "AdminTestersPage",
+      "category": "admin",
+      "accessLevel": 3,
+      "description": "Admin-only tester management"
+    },
+    {
+      "path": "/404",
+      "name": "Not Found",
+      "component": "NotFound",
+      "category": "error",
+      "accessLevel": 0,
+      "description": "404 error page"
+    }
+  ],
+  "navigationFlow": {
+    "entryPoints": [
+      {
+        "userState": "guest",
+        "routes": ["/login", "/register"],
+        "defaultRedirect": "/login"
+      },
+      {
+        "userState": "newUser",
+        "routes": ["/onboarding"],
+        "defaultRedirect": "/onboarding"
+      },
+      {
+        "userState": "activeUser",
+        "routes": ["/dashboard"],
+        "defaultRedirect": "/dashboard"
+      }
+    ],
+    "redirectRules": [
+      {
+        "from": "/",
+        "to": "/dashboard",
+        "condition": "authenticated && onboarded"
+      },
+      {
+        "from": "/",
+        "to": "/onboarding", 
+        "condition": "authenticated && !onboarded"
+      },
+      {
+        "from": "/",
+        "to": "/login",
+        "condition": "!authenticated"
+      },
+      {
+        "from": "/onboarding",
+        "to": "/dashboard",
+        "condition": "onboarded"
+      },
+      {
+        "from": "*",
+        "to": "/onboarding",
+        "condition": "authenticated && !onboarded && !allowedRoute"
+      },
+      {
+        "from": "*",
+        "to": "/login",
+        "condition": "!authenticated && !publicRoute"
+      }
+    ]
+  },
+  "categories": {
+    "auth": {
+      "name": "Authentication",
+      "color": "#FF6B6B",
+      "icon": "🔐"
+    },
+    "onboarding": {
+      "name": "Onboarding",
+      "color": "#4ECDC4",
+      "icon": "🎯"
+    },
+    "core": {
+      "name": "Core Application",
+      "color": "#45B7D1",
+      "icon": "📊"
+    },
+    "trading": {
+      "name": "Trading",
+      "color": "#96CEB4",
+      "icon": "💹"
+    },
+    "paperTrading": {
+      "name": "Paper Trading",
+      "color": "#FFEAA7",
+      "icon": "📄"
+    },
+    "analytics": {
+      "name": "Analytics",
+      "color": "#DDA0DD",
+      "icon": "📈"
+    },
+    "reports": {
+      "name": "Reports",
+      "color": "#98D8C8",
+      "icon": "📋"
+    },
+    "tools": {
+      "name": "Tools & Utilities",
+      "color": "#F7DC6F",
+      "icon": "🛠️"
+    },
+    "management": {
+      "name": "Account Management",
+      "color": "#BB8FCE",
+      "icon": "⚙️"
+    },
+    "admin": {
+      "name": "Administration",
+      "color": "#F1948A",
+      "icon": "👑"
+    },
+    "legacy": {
+      "name": "Legacy Pages",
+      "color": "#D5DBDB",
+      "icon": "📦"
+    },
+    "error": {
+      "name": "Error Pages",
+      "color": "#EC7063",
+      "icon": "🚫"
+    }
+  },
+  "keyUserJourneys": [
+    {
+      "name": "New User Registration",
+      "steps": ["/register", "/onboarding", "/dashboard"],
+      "description": "Complete new user journey from registration to first use"
+    },
+    {
+      "name": "Daily Trading Session",
+      "steps": ["/login", "/dashboard", "/trading", "/analytics"],
+      "description": "Typical daily trading workflow"
+    },
+    {
+      "name": "Paper Trading Setup",
+      "steps": ["/dashboard", "/paper-trading/new", "/paper-trading/strategy", "/paper-trading/dashboard"],
+      "description": "Setting up paper trading account"
+    },
+    {
+      "name": "Analytics Deep Dive",
+      "steps": ["/dashboard", "/analytics", "/analysis/technical", "/reports/custom"],
+      "description": "Comprehensive portfolio analysis workflow"
+    },
+    {
+      "name": "Account Management",
+      "steps": ["/dashboard", "/settings", "/account-management", "/profile"],
+      "description": "Managing account settings and preferences"
+    }
+  ]
+} 

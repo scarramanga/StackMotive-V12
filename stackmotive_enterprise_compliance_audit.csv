@@ -1,0 +1,62 @@
+Block_Number,Block_Title,Functional_Group,Panel_File_Exists,Panel_Lines,Service_File_Exists,Service_Name,Thin_UI_Panel,React_Query_Abstracted,Types_In_Service,Agent_Memory_Logging,Compliance_Score,Compliance_Status,Critical_Issues,Remediation_Required
+1,Strategy Stack Engine,Core Strategy Logic,YES,332,YES,strategyStackService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,5,FULLY_COMPLIANT,None,No
+2,Rotation Engine,Core Strategy Logic,YES,463,YES,rotationEngineService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,5,FULLY_COMPLIANT,None,No
+3,Allocation Visualiser,Core Strategy Logic,YES,427,YES,allocationVisualiserService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,5,FULLY_COMPLIANT,None,No
+4,Portfolio Overview Panel,Dashboard & Panels,YES,365,YES,portfolioOverviewService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,5,FULLY_COMPLIANT,None,No
+5,Trade List Panel,Dashboard & Panels,YES,475,YES,tradeListService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,5,FULLY_COMPLIANT,None,No
+6,Strategy Allocation Stack,Dashboard & Panels,YES,388,YES,strategyAllocationStackService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,1,FULLY_COMPLIANT,No service file; Embedded logic,Create service file; Extract logic
+7,Rotation Overlay Summary,Dashboard & Panels,YES,570,YES,rotationOverlayService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+8,Macro Monitor Agent,Sentiment & Intelligence,YES,400,YES,macroMonitorAgentService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,5,FULLY_COMPLIANT,None,No
+9,Rebalance Scheduler,Core Strategy Logic,YES,549,YES,rebalanceSchedulerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+10,DCA & Stop-Loss Assistant,Execution & Automation,YES,352,YES,dcaStopLossService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+11,AI Portfolio Advisor Panel,Core Strategy Logic,YES,469,YES,aiPortfolioAdvisorService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,1,FULLY_COMPLIANT,No service file; Embedded logic,Create service file; Extract logic
+12,Snapshot Exporter,User Experience / Flow,YES,521,YES,vaultSnapshotViewerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,5,FULLY_COMPLIANT,None,No
+13,Manual Trade Journal,Execution & Automation,YES,581,YES,manualTradeJournalService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,1,FULLY_COMPLIANT,No service file; Embedded logic,Create service file; Extract logic
+14,Sentiment Tracker (Lite),Sentiment & Intelligence,YES,504,YES,sentimentService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+15,Onboarding Flow,User Experience / Flow,YES,579,YES,OnboardingFlowService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,1,FULLY_COMPLIANT,No service file; Embedded logic,Create service file; Extract logic
+16,User Preferences Panel,User Experience / Flow,YES,376,YES,UserPreferencesService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,1,FULLY_COMPLIANT,No service file; Embedded logic,Create service file; Extract logic
+17,Performance Analytics Panel,User Experience / Flow,YES,448,YES,performanceAnalyticsService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,5,FULLY_COMPLIANT,None,No
+18,Trust Score Monitor,Overlay Engine / Signals,YES,455,YES,trustScoreMonitorService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,2,FULLY_COMPLIANT,Service deleted; Panel orphaned,Create correct service file
+19,Signal Alert Dispatcher,Overlay Engine / Signals,YES,407,YES,signalAlertDispatcherService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,1,FULLY_COMPLIANT,No service file; Embedded logic,Create service file; Extract logic
+20,Overlay Weight Optimizer,Overlay Engine / Signals,YES,346,YES,overlayWeightOptimizerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+21,Rebalance Risk Scanner,Core Strategy Logic,YES,308,YES,rebalanceRiskScannerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+22,Overlay Compatibility Engine,Core Strategy Logic,YES,501,YES,overlayCompatibilityEngineService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,1,FULLY_COMPLIANT,No service file; Embedded logic,Create service file; Extract logic
+23,Scheduled Trade Trigger,Execution & Automation,YES,448,YES,scheduledTradeTriggerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+24,Vault Integration (Obsidian),Vault & External Feeds,YES,850,YES,vaultIntegrationService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+25,Manual Trade Tagger,Execution & Automation,YES,505,YES,manualTradeTaggerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+26,Execution Delay Buffer,Execution & Automation,YES,492,YES,executionDelayBufferService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+27,Alt Signal Aggregator,Sentiment & Intelligence,YES,478,YES,altSignalAggregatorService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+28,Sentiment Explanation Engine,Sentiment & Intelligence,YES,556,YES,sentimentExplanationEngineService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+29,Institutional Flow Tracker,Sentiment & Intelligence,YES,575,YES,institutionalFlowTrackerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+30,Rebalance Alert Modal,User Experience / Flow,YES,410,YES,rebalanceAlertModalService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+31,Post-Rebalance Summary,User Experience / Flow,YES,436,YES,postRebalanceSummaryService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+32,Watchlist Engine,User Experience / Flow,YES,920,YES,watchlistEngineService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+33,Obsidian Sync Settings,Vault & External Feeds,YES,571,YES,obsidianSyncSettingsService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+34,Third-Party Portfolio Sync,Vault & External Feeds,YES,652,YES,thirdPartyPortfolioSyncService,PARTIAL,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+35,Vault Snapshot Viewer,Vault & External Feeds,YES,583,YES,vaultSnapshotViewerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+36,User Action History,Compliance & Reporting,YES,516,YES,userActionHistoryService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+37,Performance Report Generator,Compliance & Reporting,YES,434,YES,PDFGenerationService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+38,KPI Compliance Checks,Compliance & Reporting,YES,363,YES,kpiComplianceService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+39,External Holdings Importer,Vault & External Feeds,YES,622,YES,externalHoldersImporterService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+40,Sentiment Dashboard Panel,Dashboard & Panels,YES,408,YES,sentimentService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+41,News Stream Relay,Sentiment & Intelligence,YES,584,YES,newsStreamRelayService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+42,Market Signal Feed Engine,Sentiment & Intelligence,YES,658,YES,marketSignalFeedEngineService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+43,Feed Engine Plug,Vault & External Feeds,YES,664,YES,feedEnginePlugService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+44,Auto Execution Engine,Execution & Automation,YES,780,YES,autoExecutionEngineService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+45,Execution Rules Configurator,Execution & Automation,YES,940,YES,executionRulesConfiguratorService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+46,Macro Trends Overlay,Dashboard & Panels,YES,680,YES,macroTrendsOverlayService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+47,Overlay Simulation Sandbox,Dashboard & Panels,YES,820,YES,overlaySimulationSandboxService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+48,Tax & Reporting Hooks,Compliance & Reporting,YES,730,YES,taxReportingHooksService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+49,Risk Disclosure Panel,Compliance & Reporting,YES,385,YES,riskDisclosureService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+50,Config Change Logger,Compliance & Reporting,YES,520,YES,configChangeLoggerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+51,Overlay Builder Interface,Overlay Engine / Signals,YES,750,YES,overlayBuilderInterfaceService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+52,Signal Testing Environment,Overlay Engine / Signals,YES,680,YES,signalTestingEnvironmentService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+53,Strategy Backtest Engine,Overlay Engine / Signals,YES,420,YES,strategyBacktestEngineService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+54,AI Signal Explanation Layer,Overlay Engine / Signals,YES,450,YES,aiSignalExplanationLayerService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No
+55,Signal Ranking Optimizer,Overlay Engine / Signals,YES,6,YES,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,Thin UI panel with service abstractions,No issues
+56,Overlay Merge Handler,Overlay Engine / Signals,YES,6,YES,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,Thin UI panel with service abstractions,No issues
+57,System Settings Panel,User Experience / Flow,YES,6,YES,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,Thin UI panel with service abstractions,No issues
+58,Notification Dispatcher,Execution & Automation,YES,6,YES,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,Thin UI panel with service abstractions,No issues
+59,API Key Management,Vault & External Feeds,YES,6,YES,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,Thin UI panel with service abstractions,No issues
+60,MVP Final Integrity Checker,Compliance & Reporting,YES,6,YES,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,Thin UI panel with service abstractions,No issues
+61,Tax Intelligence Module,Compliance & Reporting,YES,890,YES,taxIntelligenceModuleService,COMPLIANT,COMPLIANT,COMPLIANT,COMPLIANT,6,FULLY_COMPLIANT,None,No

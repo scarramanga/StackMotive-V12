@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Staging Frontend (different port)
+  stackmotive-frontend-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    ports:
+      - "3000:3000"  # Staging port instead of 5173
+    environment:
+      - NODE_ENV=staging
+      - VITE_API_URL=http://170.64.239.17:7000
+    volumes:
+      - .env.staging:/app/.env
+    networks:
+      - stackmotive-staging
+    restart: unless-stopped
+    container_name: stackmotive-frontend-staging
+
+  # Staging Backend (different port)  
+  stackmotive-backend-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    ports:
+      - "7000:8000"  # Staging port instead of 8000
+    environment:
+      - NODE_ENV=staging
+      - DATABASE_URL=postgresql://stackmotive:${STAGING_DB_PASSWORD}@localhost:5432/stackmotive_staging
+    volumes:
+      - .env.staging:/app/.env
+    depends_on:
+      - postgres-staging
+    networks:
+      - stackmotive-staging
+    restart: unless-stopped
+    container_name: stackmotive-backend-staging
+
+  # Staging Database (separate from production)
+  postgres-staging:
+    image: postgres:14
+    environment:
+      - POSTGRES_DB=stackmotive_staging
+      - POSTGRES_USER=stackmotive
+      - POSTGRES_PASSWORD=${STAGING_DB_PASSWORD}
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+      - ./schema:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"  # Different port than production PostgreSQL
+    networks:
+      - stackmotive-staging
+    restart: unless-stopped
+    container_name: postgres-staging
+
+  # Staging Redis (if needed)
+  redis-staging:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"  # Different port than production Redis
+    volumes:
+      - redis_staging_data:/data
+    networks:
+      - stackmotive-staging
+    restart: unless-stopped
+    container_name: redis-staging
+
+volumes:
+  postgres_staging_data:
+  redis_staging_data:
+
+networks:
+  stackmotive-staging:
+    driver: bridge 

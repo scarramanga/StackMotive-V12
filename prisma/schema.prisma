@@ -1,0 +1,393 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id          Int       @id @default(autoincrement())
+  token       String    @unique
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  lastUsedAt  DateTime  @default(now())
+}
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  username              String    @unique
+  email                 String    @unique
+  password              String
+  fullName              String?
+  createdAt             DateTime  @default(now())
+  lastLogin             DateTime?
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+  subscriptionTier      String    @default("free")
+  twoFactorEnabled      Boolean   @default(false)
+  twoFactorSecret       String?
+  role                  String    @default("user")
+  trialStartedAt        DateTime?
+  trialEndsAt           DateTime?
+  onboardingComplete    Boolean   @default(false)
+  onboardingStep        Int       @default(0)
+  taxResidency          String?
+  secondaryTaxResidency String?
+  taxIdentificationNumber String?
+  taxFileNumber         String?
+  taxRegisteredBusiness Boolean  @default(false)
+  taxYear               String?
+
+  sessions                  Session[]
+  tradingAccounts          TradingAccount[]
+  strategies               Strategy[]
+  trades                   Trade[]
+  automationPreferences    AutomationPreference[]
+  taxSettings              TaxSetting?
+  portfolioPlans           PortfolioPlan[]
+  paperTradingAccounts     PaperTradingAccount[]
+  backtestSessions         BacktestSession[]
+  taxLots                  TaxLot[]
+  rebalanceRecommendations RebalanceRecommendation[]
+  paperTradingTransactions PaperTradingTransaction[]
+  taxCalculations          TaxCalculation[]
+  portfolioPositions       PortfolioPosition[]
+  portfolioSyncLogs        PortfolioSyncLog[]
+  agentMemory              AgentMemory[]
+}
+
+model TradingAccount {
+  id               Int       @id @default(autoincrement())
+  userId           Int
+  name             String
+  broker           String
+  apiKey           String?
+  apiSecret        String?
+  apiPassphrase    String?
+  accountNumber    String?
+  isActive         Boolean   @default(true)
+  balance          Decimal?
+  currency         String?
+  createdAt        DateTime  @default(now())
+  lastSynced       DateTime?
+  connectionStatus String?
+
+  user             User      @relation(fields: [userId], references: [id])
+  strategies       Strategy[]
+  trades           Trade[]
+}
+
+model Strategy {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  accountId       Int?
+  name            String
+  description     String?
+  symbol          String
+  exchange        String
+  indicators      String
+  entryConditions String
+  exitConditions  String
+  riskPercentage  Decimal?
+  status          String    @default("inactive")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  performance     Decimal?
+  winRate         Decimal?
+  profitFactor    Decimal?
+
+  user                       User      @relation(fields: [userId], references: [id])
+  tradingAccount             TradingAccount? @relation(fields: [accountId], references: [id])
+  trades                     Trade[]
+  backtestSessions           BacktestSession[]
+  automationPreferences      AutomationPreference[]
+  paperTradingTransactions   PaperTradingTransaction[]
+}
+
+model Trade {
+  id                    Int       @id @default(autoincrement())
+  userId                Int
+  strategyId            Int?
+  accountId             Int?
+  symbol                String
+  type                  String
+  entryPrice            Decimal
+  exitPrice             Decimal?
+  amount                Decimal
+  status                String
+  profitLoss            Decimal?
+  profitLossPercentage  Decimal?
+  exchange              String?
+  entryTime             DateTime
+  exitTime              DateTime?
+  isAutomated           Boolean   @default(false)
+  taxImpact             String?
+
+  user                  User      @relation(fields: [userId], references: [id])
+  strategy              Strategy? @relation(fields: [strategyId], references: [id])
+  tradingAccount        TradingAccount? @relation(fields: [accountId], references: [id])
+  taxLots               TaxLot[]
+}
+
+model AutomationPreference {
+  id                    Int       @id @default(autoincrement())
+  userId                Int
+  strategyId            Int?
+  symbol                String?
+  automationLevel       String    @default("notification")
+  notificationChannels  String
+  minSignalStrength     Decimal?
+  maxTradeAmount        Decimal?
+  cooldownPeriod        Int?
+  activeHours           String?
+  updatedAt             DateTime  @updatedAt
+  createdAt             DateTime  @default(now())
+
+  user                  User      @relation(fields: [userId], references: [id])
+  strategy              Strategy? @relation(fields: [strategyId], references: [id])
+}
+
+model BacktestSession {
+  id                    Int       @id @default(autoincrement())
+  userId                Int
+  strategyId            Int
+  name                  String
+  startDate             DateTime
+  endDate               DateTime
+  symbol                String
+  interval              String
+  initialCapital        Decimal
+  finalCapital          Decimal?
+  profitLoss            Decimal?
+  profitLossPercentage  Decimal?
+  maxDrawdown           Decimal?
+  winRate               Decimal?
+  totalTrades           Int?
+  winningTrades         Int?
+  losingTrades          Int?
+  sharpeRatio           Decimal?
+  status                String
+  resultSummary         String?
+  configuration         String
+  createdAt             DateTime  @default(now())
+  completedAt           DateTime?
+
+  user                  User      @relation(fields: [userId], references: [id])
+  strategy              Strategy  @relation(fields: [strategyId], references: [id])
+  trades                BacktestTrade[]
+}
+
+model BacktestTrade {
+  id                    Int       @id @default(autoincrement())
+  sessionId             Int
+  symbol                String
+  type                  String
+  entryPrice            Decimal
+  exitPrice             Decimal?
+  quantity              Decimal
+  entryTime             DateTime
+  exitTime              DateTime?
+  profitLoss            Decimal?
+  profitLossPercentage  Decimal?
+  indicators            String?
+  notes                 String?
+  status                String
+
+  session               BacktestSession @relation(fields: [sessionId], references: [id])
+}
+
+model TaxSetting {
+  id                   Int       @id @default(autoincrement())
+  userId               Int       @unique
+  country              String
+  region               String?
+  taxYear              String
+  enabled              Boolean   @default(true)
+  accountingMethod     String    @default("FIFO")
+  includeFees          Boolean   @default(true)
+  includeForeignTax    Boolean   @default(true)
+  capitalGainsRules    String?
+  ratesTable           String?
+  exemptions           String?
+  offsetLosses         Boolean   @default(true)
+  carryForward         Boolean   @default(true)
+  previousYearLosses   Decimal   @default(0)
+  lastUpdated          DateTime  @updatedAt
+  createdAt            DateTime  @default(now())
+
+  user                 User      @relation(fields: [userId], references: [id])
+}
+
+model TaxLot {
+  id                   Int       @id @default(autoincrement())
+  userId               Int
+  tradeId              Int?
+  taxYear              String
+  symbol               String
+  assetType            String
+  acquiredDate         DateTime
+  disposedDate         DateTime?
+  quantity             Decimal
+  costBasis            Decimal
+  proceeds             Decimal?
+  adjustedCostBasis    Decimal?
+  feesPaid             Decimal   @default(0)
+  foreignTaxPaid       Decimal   @default(0)
+  exchangeRate         Decimal?
+  gainLoss             Decimal?
+  gainType             String?
+  taxRate              Decimal?
+  taxOwed              Decimal?
+  washSale             Boolean   @default(false)
+  status               String    @default("open")
+  notes                String?
+  createdAt            DateTime  @default(now())
+  lastUpdated          DateTime  @updatedAt
+
+  user                 User      @relation(fields: [userId], references: [id])
+  trade                Trade?    @relation(fields: [tradeId], references: [id])
+}
+
+model PortfolioPlan {
+  id                      Int       @id @default(autoincrement())
+  userId                  Int
+  name                    String
+  description             String?
+  isActive                Boolean   @default(true)
+  rebalanceFrequency      String    @default("quarterly")
+  lastRebalanced          DateTime?
+  nextScheduledRebalance  DateTime?
+  deviationThreshold      Decimal   @default(5)
+  notes                   String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  user                    User      @relation(fields: [userId], references: [id])
+  recommendations         RebalanceRecommendation[]
+}
+
+model RebalanceRecommendation {
+  id                    Int       @id @default(autoincrement())
+  portfolioPlanId       Int
+  userId                Int
+  generatedAt           DateTime  @default(now())
+  totalPortfolioValue   Decimal
+  status                String    @default("pending")
+  appliedAt             DateTime?
+  recommendations       String
+  estimatedFees         Decimal?
+  estimatedTaxImpact    Decimal?
+  notes                 String?
+
+  portfolioPlan         PortfolioPlan @relation(fields: [portfolioPlanId], references: [id])
+  user                  User          @relation(fields: [userId], references: [id])
+}
+
+model PaperTradingAccount {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  name            String
+  initialBalance  Decimal
+  currentBalance  Decimal
+  currency        String
+  createdAt       DateTime  @default(now())
+  isActive        Boolean   @default(true)
+  resetCount      Int       @default(0)
+
+  user            User      @relation(fields: [userId], references: [id])
+  transactions    PaperTradingTransaction[]
+}
+
+model PaperTradingTransaction {
+  id              Int       @id @default(autoincrement())
+  accountId       Int
+  userId          Int
+  strategyId      Int?
+  symbol          String?
+  type            String
+  quantity        Decimal
+  price           Decimal?
+  amount          Decimal
+  fees            Decimal   @default(0)
+  timestamp       DateTime
+  notes           String?
+
+  account         PaperTradingAccount @relation(fields: [accountId], references: [id])
+  user            User                @relation(fields: [userId], references: [id])
+  strategy        Strategy?           @relation(fields: [strategyId], references: [id])
+}
+
+model TaxCalculation {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  user               User     @relation(fields: [userId], references: [id])
+  taxYear            String
+  totalGains         Float
+  totalLosses        Float
+  netIncome          Float
+  taxableIncome      Float
+  taxOwed            Float
+  carryForwardLosses Float
+  foreignIncome      Float
+  feesPaid           Float
+  yearBreakdown      String   // Store as stringified JSON
+  calculatedAt       DateTime @default(now())
+
+  @@unique([userId, taxYear])
+}
+
+// Block 1: Portfolio Positions - Real holdings data
+model PortfolioPosition {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  symbol          String
+  name            String?
+  quantity        Decimal
+  avgPrice        Decimal
+  currentPrice    Decimal?
+  assetClass      String    // equity, crypto, fund, bond, cash
+  account         String    // which account/broker this position is from
+  currency        String    @default("USD")
+  lastUpdated     DateTime  @default(now())
+  syncSource      String    // csv, ibkr, kucoin, kraken, manual
+  createdAt       DateTime  @default(now())
+
+  user            User      @relation(fields: [userId], references: [id])
+}
+
+// Block 1: Portfolio Sync Logs - Track all import/sync operations
+model PortfolioSyncLog {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  syncSource      String    // csv, ibkr, kucoin, kraken
+  status          String    // success, error, partial
+  recordsImported Int       @default(0)
+  errorMessage    String?
+  filename        String?   // for CSV imports
+  syncStarted     DateTime  @default(now())
+  syncCompleted   DateTime?
+  metadata        String?   // JSON string for additional data
+
+  user            User      @relation(fields: [userId], references: [id])
+}
+
+// Agent Memory Table - Log all user and agent actions across all blocks
+model AgentMemory {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  blockId         String    // Block number (e.g., "1", "4", "7")
+  action          String    // action type
+  context         String?   // additional context
+  userInput       String?   // user input if applicable
+  agentResponse   String?   // agent response if applicable
+  metadata        String?   // JSON string for structured data
+  timestamp       DateTime  @default(now())
+  sessionId       String?   // optional session tracking
+
+  user            User      @relation(fields: [userId], references: [id])
+}
+

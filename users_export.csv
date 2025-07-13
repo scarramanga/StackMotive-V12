@@ -1,0 +1,4 @@
+id,username,email,password,fullName,createdAt,lastLogin,stripeCustomerId,stripeSubscriptionId,subscriptionTier,twoFactorEnabled,twoFactorSecret,role,trialStartedAt,trialEndsAt,onboardingComplete,onboardingStep,taxResidency,secondaryTaxResidency,taxIdentificationNumber,taxFileNumber,taxRegisteredBusiness,taxYear
+1,testuser,test@example.com,$2b$10$IMZKALR6w/npOgEQBlWCAub7fcYbQcENOtJm6340romvChpQT3Cwq,"Test User",1751366170748,,,,free,0,,user,,,0,0,NZ,,,,0,
+2,admin,admin@stackmotive.com,$2b$10$yEs3tPwRUrCPV96kh2CMgucGXfZJjRDR5zVpm2ZnVBgu0XIAk9Xby,"Admin User",1751366170801,,,,free,0,,admin,,,0,0,NZ,,,,0,
+3,demo,demo@stackmotive.com,$2b$10$BqbO/e9.JOKMruMCuGBSqOvFZYSenSr2nqEPFV3/nx6PLhDFKJKda,,1751366170860,,,,free,0,,user,,,1,4,NZ,,,,0,
