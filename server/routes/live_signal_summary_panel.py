@@ -1,12 +1,13 @@
 # Block 40: Live Signal Summary Panel - FULLY INTEGRATED ✅
 
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from typing import List, Dict, Any
 from pydantic import BaseModel
 import json
 from datetime import datetime, timedelta
-import sqlite3
 from pathlib import Path as FilePath
+from server.deps import db_session
+from server.db.qmark import qmark, qmark_many
 
 router = APIRouter()
 
@@ -22,19 +23,11 @@ class LiveSignal(BaseModel):
     currentPrice: float
     signalTimestamp: str
 
-# Database connection
-def get_db_connection():
-    db_path = FilePath(__file__).parent.parent.parent / "prisma" / "dev.db"
-    return sqlite3.connect(str(db_path))
-
 @router.get("/live-signal-summary-panel/signals")
-async def get_live_signals(user_id: int = 1):
+async def get_live_signals(user_id: int = 1, db = Depends(db_session)):
     """Get live trading signals"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        db.execute(*qmark("""
             CREATE TABLE IF NOT EXISTS LiveSignals (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -52,20 +45,19 @@ async def get_live_signals(user_id: int = 1):
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(signal_id, signal_source)
             )
-        """)
+        """, ()))
+        db.commit()
         
-        # Get active signals
-        cursor.execute("""
+        res = db.execute(*qmark("""
             SELECT * FROM LiveSignals 
             WHERE userId = ? AND signal_status = 'active'
             ORDER BY signal_timestamp DESC, priority_level
             LIMIT 50
-        """, (user_id,))
+        """, (user_id,)))
         
-        results = cursor.fetchall()
+        results = res.fetchall()
         
         if not results:
-            # Generate sample signals for demo
             sample_signals = [
                 {"signal_id": "BUY_AAPL_001", "signal_source": "TechnicalAnalysis", "signal_type": "buy", "asset_symbol": "AAPL", "signal_title": "Strong Bullish Breakout", "confidence_score": 85.5, "signal_strength": 78.2, "priority_level": "high", "current_price": 189.45},
                 {"signal_id": "SELL_TSLA_002", "signal_source": "FundamentalAnalysis", "signal_type": "sell", "asset_symbol": "TSLA", "signal_title": "Overvaluation Alert", "confidence_score": 72.3, "signal_strength": 65.1, "priority_level": "medium", "current_price": 245.67},
@@ -73,7 +65,7 @@ async def get_live_signals(user_id: int = 1):
             ]
             
             for signal in sample_signals:
-                cursor.execute("""
+                db.execute(*qmark("""
                     INSERT OR REPLACE INTO LiveSignals 
                     (userId, signal_id, signal_source, signal_type, asset_symbol, signal_title,
                      confidence_score, signal_strength, priority_level, current_price, signal_timestamp)
@@ -83,23 +75,20 @@ async def get_live_signals(user_id: int = 1):
                     signal["asset_symbol"], signal["signal_title"], signal["confidence_score"],
                     signal["signal_strength"], signal["priority_level"], signal["current_price"],
                     datetime.now().isoformat()
-                ))
+                )))
             
-            conn.commit()
+            db.commit()
             
-            # Re-fetch data
-            cursor.execute("""
+            res = db.execute(*qmark("""
                 SELECT * FROM LiveSignals 
                 WHERE userId = ? AND signal_status = 'active'
                 ORDER BY signal_timestamp DESC
                 LIMIT 50
-            """, (user_id,))
-            results = cursor.fetchall()
+            """, (user_id,)))
+            results = res.fetchall()
         
-        columns = [description[0] for description in cursor.description]
+        columns = [col[0] for col in res.description]
         signals = [dict(zip(columns, row)) for row in results]
-        
-        conn.close()
         
         return {"signals": signals, "totalCount": len(signals)}
         
@@ -107,13 +96,10 @@ async def get_live_signals(user_id: int = 1):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/live-signal-summary-panel/signals")
-async def add_live_signal(signal: LiveSignal = Body(...), user_id: int = 1):
+async def add_live_signal(signal: LiveSignal = Body(...), user_id: int = 1, db = Depends(db_session)):
     """Add new live signal"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        db.execute(*qmark("""
             INSERT OR REPLACE INTO LiveSignals 
             (userId, signal_id, signal_source, signal_type, asset_symbol, signal_title,
              confidence_score, signal_strength, priority_level, current_price, signal_timestamp)
@@ -123,10 +109,9 @@ async def add_live_signal(signal: LiveSignal = Body(...), user_id: int = 1):
             signal.assetSymbol, signal.signalTitle, signal.confidenceScore,
             signal.signalStrength, signal.priorityLevel, signal.currentPrice,
             signal.signalTimestamp
-        ))
+        )))
         
-        conn.commit()
-        conn.close()
+        db.commit()
         
         return {"success": True, "message": "Signal added successfully"}
         
@@ -134,13 +119,10 @@ async def add_live_signal(signal: LiveSignal = Body(...), user_id: int = 1):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/live-signal-summary-panel/summary")
-async def get_signal_summary(user_id: int = 1):
+async def get_signal_summary(user_id: int = 1, db = Depends(db_session)):
     """Get signal summary statistics"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        res = db.execute(*qmark("""
             SELECT 
                 COUNT(*) as total_signals,
                 COUNT(CASE WHEN signal_type = 'buy' THEN 1 END) as buy_signals,
@@ -149,10 +131,9 @@ async def get_signal_summary(user_id: int = 1):
                 AVG(confidence_score) as avg_confidence
             FROM LiveSignals 
             WHERE userId = ? AND signal_status = 'active'
-        """, (user_id,))
+        """, (user_id,)))
         
-        result = cursor.fetchone()
-        conn.close()
+        result = res.fetchone()
         
         return {
             "totalSignals": result[0] or 0,
@@ -163,4 +144,4 @@ async def get_signal_summary(user_id: int = 1):
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))     
