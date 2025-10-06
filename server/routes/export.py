@@ -1,12 +1,13 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
 import hashlib
 import json
 from pydantic import BaseModel, Field
-import sqlite3
 from pathlib import Path
+from server.deps import db_session
+from server.db.qmark import qmark, qmark_many
 
 router = APIRouter()
 
@@ -40,18 +41,10 @@ class SnapshotExportHistoryResponse(BaseModel):
     fileSize: Optional[int] = None
     downloadCount: int = 0
 
-# Database connection
-def get_db_connection():
-    db_path = Path(__file__).parent.parent.parent / "prisma" / "dev.db"
-    return sqlite3.connect(str(db_path))
-
 # Database operations
-def create_snapshot_export_history_table():
+def create_snapshot_export_history_table(db):
     """Create snapshot export history table if it doesn't exist"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
+    db.execute(*qmark("""
         CREATE TABLE IF NOT EXISTS snapshot_export_history (
             id TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -63,19 +56,18 @@ def create_snapshot_export_history_table():
             status TEXT NOT NULL DEFAULT 'completed',
             file_size INTEGER,
             download_count INTEGER DEFAULT 0,
-            created_at TEXT NOT NULL DEFAULT (datetime('now')),
-            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
-    """)
-    
-    conn.commit()
-    conn.close()
+    """, ()))
+    db.commit()
 
 # API Endpoints
 @router.post("/export/snapshot")
 async def create_snapshot_export(
     export_request: SnapshotExportRequest,
-    user_id: int = 1  # TODO: Get from authentication
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """
     Log a snapshot export operation
@@ -101,16 +93,13 @@ async def create_snapshot_export(
             )
         
         # Ensure table exists
-        create_snapshot_export_history_table()
+        create_snapshot_export_history_table(db)
         
         # Create export record
         export_id = str(uuid.uuid4())
         exported_at = datetime.now(timezone.utc).isoformat()
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        db.execute(*qmark("""
             INSERT INTO snapshot_export_history 
             (id, user_id, export_type, metadata, content_hash, export_method, exported_at, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -123,10 +112,9 @@ async def create_snapshot_export(
             export_request.exportMethod,
             exported_at,
             "completed"
-        ))
+        )))
         
-        conn.commit()
-        conn.close()
+        db.commit()
         
         return {
             "id": export_id,
@@ -151,7 +139,8 @@ async def create_snapshot_export(
 async def get_export_history_for_user(
     user_id: str,
     limit: int = Query(50, description="Number of records to return"),
-    current_user_id: int = 1  # TODO: Get from authentication
+    current_user_id: int = 1,
+    db = Depends(db_session)
 ):
     """
     Get export history for a specific user
@@ -161,22 +150,18 @@ async def get_export_history_for_user(
     """
     try:
         # Ensure table exists
-        create_snapshot_export_history_table()
+        create_snapshot_export_history_table(db)
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        res = db.execute(*qmark("""
             SELECT id, user_id, export_type, metadata, content_hash, export_method, 
                    exported_at, status, file_size, download_count
             FROM snapshot_export_history 
             WHERE user_id = ? 
             ORDER BY exported_at DESC 
             LIMIT ?
-        """, (user_id, limit))
+        """, (user_id, limit)))
         
-        rows = cursor.fetchall()
-        conn.close()
+        rows = res.fetchall()
         
         history = []
         for row in rows:
@@ -204,7 +189,8 @@ async def get_export_history_for_user(
 @router.get("/export/stats/{user_id}")
 async def get_export_stats(
     user_id: str,
-    current_user_id: int = 1  # TODO: Get from authentication
+    current_user_id: int = 1,
+    db = Depends(db_session)
 ):
     """
     Get export statistics for a user
@@ -213,12 +199,9 @@ async def get_export_stats(
     """
     try:
         # Ensure table exists
-        create_snapshot_export_history_table()
+        create_snapshot_export_history_table(db)
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        res = db.execute(*qmark("""
             SELECT 
                 COUNT(*) as total_exports,
                 COUNT(DISTINCT export_type) as unique_types,
@@ -228,10 +211,9 @@ async def get_export_stats(
                 AVG(file_size) as avg_file_size
             FROM snapshot_export_history 
             WHERE user_id = ?
-        """, (user_id,))
+        """, (user_id,)))
         
-        row = cursor.fetchone()
-        conn.close()
+        row = res.fetchone()
         
         if not row:
             return {
@@ -256,4 +238,4 @@ async def get_export_stats(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to retrieve export stats: {str(e)}"
-        ) 
+        )    
