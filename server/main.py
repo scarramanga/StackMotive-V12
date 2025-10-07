@@ -67,6 +67,7 @@ from server.routes.vault_push import router as vault_push_router
 from server.routes.macro_summary import router as macro_summary_router
 from server.routes.user_preferences import router as user_preferences_router
 from server.routes.notifications import router as notifications_router
+from server.routes.data_federation import router as federation_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
 from server.websocket_server import socket_app, initialize_websocket_services, cleanup_websocket_services
@@ -433,6 +434,10 @@ app.include_router(
     notifications_router,
     prefix="/api",
     tags=["Notifications"]
+)
+app.include_router(
+    federation_router,
+    tags=["Data Federation"]
 )
 
 app.mount("/socket.io", socket_app)
