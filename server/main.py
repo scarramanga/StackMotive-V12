@@ -50,6 +50,8 @@ from server.routes.rebalance_scheduler import router as rebalance_scheduler_rout
 from server.routes.dca_stop_loss import router as dca_stop_loss_router
 from server.routes.asset_tagging_system import router as asset_tagging_system_router
 from server.routes.asset_exclusion_panel import router as asset_exclusion_panel_router
+from server.routes.vault_categories import router as vault_categories_router
+from server.routes.rotation_control import router as rotation_control_router
 from server.routes.live_signal_summary_panel import router as live_signal_summary_panel_router
 from server.routes.strategy_ranking_system import router as strategy_ranking_system_router
 from server.routes.strategy_comparison_engine import router as strategy_comparison_engine_router
@@ -357,6 +359,16 @@ app.include_router(
     dca_stop_loss_router,
     prefix="/api",
     tags=["DCA & Stop-Loss"]
+)
+app.include_router(
+    vault_categories_router,
+    prefix="/api",
+    tags=["Vault Categories"]
+)
+app.include_router(
+    rotation_control_router,
+    prefix="/api",
+    tags=["Rotation Control"]
 )
 app.include_router(
     export_router,
