@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from server.deps import db_session, get_current_user
+from server.deps import db_session
+from server.auth import get_current_user
 from server.models.user import User
 from server.services.kucoin_service import KuCoinService
 
