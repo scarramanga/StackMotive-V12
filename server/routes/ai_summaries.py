@@ -4,7 +4,7 @@ AI Summaries Routes - AI-powered portfolio insights
 from fastapi import APIRouter, HTTPException, Depends, Request, Body
 from typing import Dict, Any
 from server.deps import db_session
-from server.main import limiter
+from server.services.rate_limiter import limiter
 from pydantic import BaseModel
 import logging
 

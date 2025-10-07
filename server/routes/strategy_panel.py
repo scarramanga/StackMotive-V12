@@ -4,7 +4,7 @@ Strategy Panel Routes - Strategy overlays for operator+ tier
 from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Dict, Any
 from server.deps import db_session
-from server.main import limiter
+from server.services.rate_limiter import limiter
 import logging
 
 logger = logging.getLogger(__name__)

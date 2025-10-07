@@ -12,12 +12,11 @@ import uvicorn
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 
 from server.database import Base, engine
+from server.services.rate_limiter import limiter
 from server.routes.user import router as user_router, UserResponse, Token
 from server.routes.paper_trading import router as paper_trading_router
 from server.routes.market_data import router as market_data_router
@@ -81,8 +80,6 @@ logger = logging.getLogger(__name__)
 Base.metadata.create_all(bind=engine)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
-
-limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
 app = FastAPI(
     title="StackMotive API",
