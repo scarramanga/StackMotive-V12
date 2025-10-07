@@ -19,7 +19,7 @@ from slowapi.errors import RateLimitExceeded
 
 from server.database import Base, engine
 from server.routes.user import router as user_router, UserResponse, Token
-from server.routes.paper_trading import router as paper_trading_router, PaperTradingAccountResponse, HoldingResponse, EnhancedPaperTradingAccountResponse, DetailedHoldingResponse, AssetPerformanceResponse
+from server.routes.paper_trading import router as paper_trading_router
 from server.routes.market_data import router as market_data_router
 from server.routes.strategy import router as strategy_router
 from server.routes.tax import router as tax_router
@@ -134,12 +134,7 @@ def custom_openapi():
     openapi_schema["components"]["schemas"].update(
         {
             "Token": Token.schema(),
-            "UserResponse": UserResponse.schema(),
-            "PaperTradingAccountResponse": PaperTradingAccountResponse.schema(),
-            "HoldingResponse": HoldingResponse.schema(),
-            "EnhancedPaperTradingAccountResponse": EnhancedPaperTradingAccountResponse.schema(),
-            "DetailedHoldingResponse": DetailedHoldingResponse.schema(),
-            "AssetPerformanceResponse": AssetPerformanceResponse.schema()
+            "UserResponse": UserResponse.schema()
         }
     )
 
