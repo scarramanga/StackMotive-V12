@@ -2,13 +2,18 @@
 Tests for audit_logger service
 """
 
+import os
+import sys
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, repo_root)
+
 import pytest
 import hashlib
 import json
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from services.audit_logger import (
+from server.services.audit_logger import (
     log_activity,
     get_activity,
     UserActivityLog,

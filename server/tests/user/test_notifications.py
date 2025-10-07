@@ -2,18 +2,23 @@
 Tests for notification dispatcher and routes
 """
 
+import os
+import sys
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, repo_root)
+
 import pytest
 import asyncio
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from services.notification_dispatcher import (
+from server.services.notification_dispatcher import (
     dispatch_notification,
     get_notification_stats,
     notification_queue,
     Notification
 )
-from services.audit_logger import Base as AuditBase
+from server.services.audit_logger import Base as AuditBase
 
 
 @pytest.fixture

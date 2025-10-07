@@ -2,12 +2,17 @@
 Tests for preferences_manager service
 """
 
+import os
+import sys
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, repo_root)
+
 import pytest
 import json
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from services.preferences_manager import (
+from server.services.preferences_manager import (
     get_preferences,
     update_preferences,
     reset_to_default,
