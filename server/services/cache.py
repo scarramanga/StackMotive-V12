@@ -64,3 +64,8 @@ def delete_cache(key: str) -> bool:
     except Exception as e:
         logger.warning(f"Cache delete failed for {key}: {e}")
         return False
+
+
+def get_redis_client():
+    """Get the Redis client instance, returns None if unavailable"""
+    return redis_client
