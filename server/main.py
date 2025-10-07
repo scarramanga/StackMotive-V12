@@ -61,6 +61,8 @@ from server.routes.billing import router as billing_router
 from server.routes.stripe_webhook import router as stripe_router
 from server.routes.kucoin import router as kucoin_router
 from server.routes.ibkr_import import router as ibkr_import_router
+from server.routes.strategy_panel import router as strategy_panel_router
+from server.routes.ai_summaries import router as ai_summaries_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
 
@@ -393,6 +395,16 @@ app.include_router(
     ibkr_import_router,
     prefix="/api",
     tags=["IBKR Import"]
+)
+app.include_router(
+    strategy_panel_router,
+    prefix="/api",
+    tags=["Strategy Panel"]
+)
+app.include_router(
+    ai_summaries_router,
+    prefix="/api",
+    tags=["AI Summaries"]
 )
 
 @app.exception_handler(RateLimitExceeded)
