@@ -7,7 +7,7 @@ from alembic import context
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from server.models.paper_trading import Base as PaperTradingBase
 from server.models.tax import Base as TaxBase
