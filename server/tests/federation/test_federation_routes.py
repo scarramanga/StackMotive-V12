@@ -5,7 +5,6 @@ Integration tests for federation routes
 import os
 import sys
 
-os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("STACKMOTIVE_JWT_SECRET", "test-secret")
 os.environ.setdefault("STACKMOTIVE_DEV_MODE", "true")
 
@@ -14,8 +13,7 @@ sys.path.insert(0, repo_root)
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 from unittest.mock import patch
 
 from server.main import app
@@ -23,58 +21,54 @@ from server.database import get_db
 
 
 @pytest.fixture
-def test_db():
-    """Create test database"""
-    engine = create_engine("sqlite:///:memory:")
-    
-    with engine.begin() as conn:
-        conn.execute(text("""
-            CREATE TABLE data_sources (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                source_type TEXT NOT NULL,
-                display_name TEXT,
-                priority INTEGER DEFAULT 100,
-                enabled INTEGER DEFAULT 1,
-                config TEXT DEFAULT '{}',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """))
-    
-    TestingSessionLocal = sessionmaker(bind=engine)
-    
-    def override_get_db():
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-    
-    app.dependency_overrides[get_db] = override_get_db
-    
-    yield TestingSessionLocal()
-    
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
 def mock_auth():
-    """Mock tier enforcement to bypass auth"""
-    def mock_tier_checker(required_tier: str):
-        async def checker(request, db):
-            return {"user_id": 1, "email": "test@example.com", "tier": "operator"}
-        return checker
+    """Mock JWT authentication to bypass auth in tests"""
+    async def mock_get_user(token: str, db):
+        class MockUser:
+            id = 1
+            email = "test@example.com"
+            subscription_tier = "operator"
+        
+        return MockUser()
     
-    with patch("server.routes.data_federation.enforce_tier", side_effect=mock_tier_checker):
+    async def mock_get_tier(user_id: int, db):
+        return "operator"
+    
+    with patch("server.middleware.tier_enforcement.get_current_user_from_token", new=mock_get_user), \
+         patch("server.middleware.tier_enforcement.get_effective_tier", new=mock_get_tier):
         yield
 
 
-def test_list_sources_empty(test_db, mock_auth):
+@pytest.fixture(autouse=True)
+def cleanup_test_data():
+    """Clean up test data before and after each test"""
+    db = next(get_db())
+    
+    try:
+        db.execute(text("DELETE FROM data_sources WHERE user_id = 1"))
+        db.commit()
+    except:
+        db.rollback()
+    
+    yield
+    
+    try:
+        db.execute(text("DELETE FROM data_sources WHERE user_id = 1"))
+        db.commit()
+    except:
+        db.rollback()
+    finally:
+        db.close()
+
+
+def test_list_sources_empty(mock_auth):
     """Test listing sources when none exist"""
     client = TestClient(app)
     
-    response = client.get("/api/federation/sources")
+    response = client.get(
+        "/api/federation/sources",
+        headers={"Authorization": "Bearer fake-test-token"}
+    )
     
     assert response.status_code == 200
     data = response.json()
@@ -82,7 +76,7 @@ def test_list_sources_empty(test_db, mock_auth):
     assert len(data["sources"]) == 0
 
 
-def test_register_source(test_db, mock_auth):
+def test_register_source(mock_auth):
     """Test registering a new source"""
     client = TestClient(app)
     
@@ -92,7 +86,8 @@ def test_register_source(test_db, mock_auth):
             "source_type": "manual",
             "display_name": "Manual Entry",
             "priority": 150
-        }
+        },
+        headers={"Authorization": "Bearer fake-test-token"}
     )
     
     assert response.status_code == 200
