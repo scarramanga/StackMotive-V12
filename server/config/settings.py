@@ -23,8 +23,8 @@ class Settings:
         os.getenv("STACKMOTIVE_MODE", "dev")
     )
     
-    # Database configuration - uses canonical dev.db at project root
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./dev.db")
+    # Database configuration - uses PostgreSQL
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg://stackmotive:stackmotive@localhost:5432/stackmotive")
     
     # JWT configuration
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "your-secret-key")
@@ -67,10 +67,8 @@ class Settings:
             if self.JWT_SECRET_KEY == "your-secret-key":
                 raise ValueError("Production requires secure JWT_SECRET_KEY")
             
-            # ⚠️ TEMPORARILY DISABLED for production testing with SQLite
-            # TODO: Re-enable for actual production deployment
-            # if "sqlite" in self.DATABASE_URL.lower():
-            #     raise ValueError("Production should not use SQLite database")
+            if "sqlite" in self.DATABASE_URL.lower():
+                raise ValueError("Production should not use SQLite database")
 
 
 # Global settings instance
@@ -78,4 +76,4 @@ settings = Settings()
 
 # Validate on import if in production
 if settings.is_production:
-    settings.validate_production_constraints() 
+    settings.validate_production_constraints()  
