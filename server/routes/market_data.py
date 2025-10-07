@@ -6,12 +6,12 @@ from datetime import datetime
 router = APIRouter()
 
 
-@router.get("/market/prices", response_model=List[CryptoPrice])
+@router.get("/market/prices")
 async def get_crypto_prices():
     """Get current cryptocurrency prices"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
-@router.get("/market/price/{symbol}", response_model=CryptoPrice)
+@router.get("/market/price/{symbol}")
 async def get_crypto_price(symbol: str):
     """Get current price for a specific cryptocurrency"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
