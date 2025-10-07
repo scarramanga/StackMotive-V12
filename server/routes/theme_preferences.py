@@ -3,8 +3,10 @@ from pydantic import BaseModel, validator
 from typing import Optional, Dict, Any
 import json
 from datetime import datetime
-import sqlite3
 from pathlib import Path
+
+from server.deps import db_session
+from server.db.qmark import qmark, qmark_many
 
 router = APIRouter()
 
@@ -47,18 +49,10 @@ class ThemePreferencesResponse(BaseModel):
     created_at: str
     updated_at: str
 
-# Database connection
-def get_db_connection():
-    db_path = Path(__file__).parent.parent.parent / "prisma" / "dev.db"
-    return sqlite3.connect(str(db_path))
-
 # Agent Memory logging
-async def log_to_agent_memory(user_id: int, action_type: str, action_summary: str, input_data: str, output_data: str, metadata: Dict[str, Any]):
+async def log_to_agent_memory(user_id: int, action_type: str, action_summary: str, input_data: str, output_data: str, metadata: Dict[str, Any], db = Depends(db_session)):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        stmt, params = qmark("""
             INSERT INTO AgentMemory 
             (userId, blockId, action, context, userInput, agentResponse, metadata, timestamp, sessionId)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -74,21 +68,17 @@ async def log_to_agent_memory(user_id: int, action_type: str, action_summary: st
             f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         ))
         
-        conn.commit()
-        conn.close()
+        db.execute(stmt, params)
+        db.commit()
         
     except Exception as e:
         print(f"Failed to log to agent memory: {e}")
 
 @router.get("/theme/preferences/{user_id}")
-async def get_theme_preferences(user_id: int):
+async def get_theme_preferences(user_id: int, db = Depends(db_session)):
     """Get user theme preferences"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Create theme preferences table if it doesn't exist
-        cursor.execute("""
+        stmt, params = qmark("""
             CREATE TABLE IF NOT EXISTS UserThemePreferences (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -104,19 +94,18 @@ async def get_theme_preferences(user_id: int):
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(userId)
             )
-        """)
+        """, ())
+        db.execute(stmt, params)
         
-        # Get user preferences
-        cursor.execute("""
+        stmt, params = qmark("""
             SELECT * FROM UserThemePreferences WHERE userId = ?
         """, (user_id,))
         
-        result = cursor.fetchone()
+        result = db.execute(stmt, params).mappings().first()
         
         if not result:
-            # Create default preferences
             default_preferences = ThemePreferences()
-            cursor.execute("""
+            stmt, params = qmark("""
                 INSERT INTO UserThemePreferences 
                 (userId, theme_mode, accent_color, font_size, high_contrast, 
                  reduce_motion, compact_mode, sidebar_collapsed)
@@ -132,18 +121,15 @@ async def get_theme_preferences(user_id: int):
                 default_preferences.sidebar_collapsed
             ))
             
-            conn.commit()
+            db.execute(stmt, params)
+            db.commit()
             
-            # Fetch the created preferences
-            cursor.execute("""
+            stmt, params = qmark("""
                 SELECT * FROM UserThemePreferences WHERE userId = ?
             """, (user_id,))
-            result = cursor.fetchone()
+            result = db.execute(stmt, params).mappings().first()
         
-        columns = [description[0] for description in cursor.description]
-        preference_data = dict(zip(columns, result))
-        
-        conn.close()
+        preference_data = dict(result)
         
         preferences = ThemePreferences(
             theme_mode=preference_data['theme_mode'],
@@ -159,9 +145,10 @@ async def get_theme_preferences(user_id: int):
             user_id,
             "theme_preferences_retrieved",
             f"Retrieved theme preferences for user",
-            None,
+            "",
             f"Theme: {preferences.theme_mode}, Font: {preferences.font_size}",
-            {"theme_mode": preferences.theme_mode, "font_size": preferences.font_size}
+            {"theme_mode": preferences.theme_mode, "font_size": preferences.font_size},
+            db
         )
         
         return {
@@ -177,14 +164,10 @@ async def get_theme_preferences(user_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/theme/preferences/{user_id}")
-async def update_theme_preferences(user_id: int, preferences: ThemePreferences):
+async def update_theme_preferences(user_id: int, preferences: ThemePreferences, db = Depends(db_session)):
     """Update user theme preferences"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Update preferences
-        cursor.execute("""
+        stmt, params = qmark("""
             UPDATE UserThemePreferences 
             SET theme_mode = ?, accent_color = ?, font_size = ?, 
                 high_contrast = ?, reduce_motion = ?, compact_mode = ?, 
@@ -202,9 +185,10 @@ async def update_theme_preferences(user_id: int, preferences: ThemePreferences):
             user_id
         ))
         
-        if cursor.rowcount == 0:
-            # Create new preferences if none exist
-            cursor.execute("""
+        result = db.execute(stmt, params)
+        
+        if result.rowcount == 0:
+            stmt, params = qmark("""
                 INSERT INTO UserThemePreferences 
                 (userId, theme_mode, accent_color, font_size, high_contrast, 
                  reduce_motion, compact_mode, sidebar_collapsed)
@@ -219,9 +203,9 @@ async def update_theme_preferences(user_id: int, preferences: ThemePreferences):
                 preferences.compact_mode,
                 preferences.sidebar_collapsed
             ))
+            db.execute(stmt, params)
         
-        conn.commit()
-        conn.close()
+        db.commit()
         
         await log_to_agent_memory(
             user_id,
@@ -233,7 +217,8 @@ async def update_theme_preferences(user_id: int, preferences: ThemePreferences):
                 "theme_mode": preferences.theme_mode,
                 "accent_color": preferences.accent_color,
                 "font_size": preferences.font_size
-            }
+            },
+            db
         )
         
         return {
@@ -246,14 +231,10 @@ async def update_theme_preferences(user_id: int, preferences: ThemePreferences):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/theme/sync/{user_id}")
-async def sync_theme_preferences(user_id: int, sync_request: ThemeSyncRequest):
+async def sync_theme_preferences(user_id: int, sync_request: ThemeSyncRequest, db = Depends(db_session)):
     """Sync theme preferences across devices"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Create theme sync history table
-        cursor.execute("""
+        stmt, params = qmark("""
             CREATE TABLE IF NOT EXISTS ThemeSyncHistory (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -263,13 +244,12 @@ async def sync_theme_preferences(user_id: int, sync_request: ThemeSyncRequest):
                 sync_source TEXT NOT NULL DEFAULT 'web',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """, ())
+        db.execute(stmt, params)
         
-        # Update preferences
-        await update_theme_preferences(user_id, sync_request.preferences)
+        await update_theme_preferences(user_id, sync_request.preferences, db)
         
-        # Log sync history
-        cursor.execute("""
+        stmt, params = qmark("""
             INSERT INTO ThemeSyncHistory (userId, device_id, theme_data, sync_source)
             VALUES (?, ?, ?, ?)
         """, (
@@ -279,8 +259,8 @@ async def sync_theme_preferences(user_id: int, sync_request: ThemeSyncRequest):
             sync_request.sync_source
         ))
         
-        conn.commit()
-        conn.close()
+        db.execute(stmt, params)
+        db.commit()
         
         await log_to_agent_memory(
             user_id,
@@ -292,7 +272,8 @@ async def sync_theme_preferences(user_id: int, sync_request: ThemeSyncRequest):
                 "sync_source": sync_request.sync_source,
                 "device_id": sync_request.device_id,
                 "theme_mode": sync_request.preferences.theme_mode
-            }
+            },
+            db
         )
         
         return {
@@ -305,30 +286,23 @@ async def sync_theme_preferences(user_id: int, sync_request: ThemeSyncRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/theme/sync/history/{user_id}")
-async def get_theme_sync_history(user_id: int, limit: int = 10):
+async def get_theme_sync_history(user_id: int, limit: int = 10, db = Depends(db_session)):
     """Get theme sync history for a user"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        stmt, params = qmark("""
             SELECT * FROM ThemeSyncHistory 
             WHERE userId = ? 
             ORDER BY sync_timestamp DESC 
             LIMIT ?
         """, (user_id, limit))
         
-        columns = [description[0] for description in cursor.description]
-        history = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        history = [dict(row) for row in db.execute(stmt, params).mappings().all()]
         
-        # Parse theme data
         for entry in history:
             try:
                 entry['theme_data'] = json.loads(entry['theme_data'])
             except:
                 entry['theme_data'] = {}
-        
-        conn.close()
         
         return {
             "history": history,
@@ -340,19 +314,20 @@ async def get_theme_sync_history(user_id: int, limit: int = 10):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/theme/preferences/{user_id}")
-async def reset_theme_preferences(user_id: int):
+async def reset_theme_preferences(user_id: int, db = Depends(db_session)):
     """Reset theme preferences to default"""
     try:
         default_preferences = ThemePreferences()
-        await update_theme_preferences(user_id, default_preferences)
+        await update_theme_preferences(user_id, default_preferences, db)
         
         await log_to_agent_memory(
             user_id,
             "theme_preferences_reset",
             f"Reset theme preferences to default",
-            None,
+            "",
             f"Theme reset to default settings",
-            {"action": "reset_to_default"}
+            {"action": "reset_to_default"},
+            db
         )
         
         return {
@@ -362,4 +337,4 @@ async def reset_theme_preferences(user_id: int):
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))       
