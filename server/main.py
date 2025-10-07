@@ -62,6 +62,9 @@ from server.routes.kucoin import router as kucoin_router
 from server.routes.ibkr_import import router as ibkr_import_router
 from server.routes.strategy_panel import router as strategy_panel_router
 from server.routes.ai_summaries import router as ai_summaries_router
+from server.routes.export_snapshot import router as export_snapshot_router
+from server.routes.vault_push import router as vault_push_router
+from server.routes.macro_summary import router as macro_summary_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
 
@@ -402,6 +405,21 @@ app.include_router(
     ai_summaries_router,
     prefix="/api",
     tags=["AI Summaries"]
+)
+app.include_router(
+    export_snapshot_router,
+    prefix="/api",
+    tags=["Export Snapshot"]
+)
+app.include_router(
+    vault_push_router,
+    prefix="/api",
+    tags=["Vault"]
+)
+app.include_router(
+    macro_summary_router,
+    prefix="/api",
+    tags=["Macro Monitor"]
 )
 
 @app.exception_handler(RateLimitExceeded)
