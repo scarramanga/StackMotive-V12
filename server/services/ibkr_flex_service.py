@@ -6,7 +6,7 @@ import os
 import time
 import hashlib
 import xml.etree.ElementTree as ET
-from server.services.http_client import create_client, _make_request_with_retry
+from server.services.http_client import request_with_retry
 
 class IbkrFlexError(Exception):
     """IBKR Flex API error"""
@@ -55,51 +55,46 @@ async def fetch_statement_xml():
     if not (flex_token and flex_query):
         raise IbkrFlexNotConfigured("Missing IBKR_FLEX_TOKEN or IBKR_FLEX_QUERY_ID")
 
-    client = create_client(base_url=flex_base, timeout=30.0)
+    try:
+        r = await request_with_retry(
+            "GET",
+            f"{flex_base}/SendRequest",
+            params={"t": flex_token, "q": flex_query, "v": "3"},
+        )
+    except Exception as e:
+        raise IbkrFlexError(f"SendRequest failed: {e}") from e
     
-    async with client:
+    root = ET.fromstring(r.text)
+    status = root.findtext(".//Status") or ""
+    if status != "Success":
+        msg = root.findtext(".//ErrorMessage") or "SendRequest failed"
+        raise IbkrFlexError(msg)
+    ref = root.findtext(".//ReferenceCode")
+    if not ref:
+        raise IbkrFlexError("No ReferenceCode returned")
+
+    for attempt in range(10):
         try:
-            r = await _make_request_with_retry(
-                client,
+            g = await request_with_retry(
                 "GET",
-                "/SendRequest",
-                params={"t": flex_token, "q": flex_query, "v": "3"},
+                f"{flex_base}/GetStatement",
+                params={"t": flex_token, "q": ref, "v": "3"},
             )
         except Exception as e:
-            raise IbkrFlexError(f"SendRequest failed: {e}") from e
-        
-        root = ET.fromstring(r.text)
-        status = root.findtext(".//Status") or ""
-        if status != "Success":
-            msg = root.findtext(".//ErrorMessage") or "SendRequest failed"
-            raise IbkrFlexError(msg)
-        ref = root.findtext(".//ReferenceCode")
-        if not ref:
-            raise IbkrFlexError("No ReferenceCode returned")
-
-        for attempt in range(10):
-            try:
-                g = await _make_request_with_retry(
-                    client,
-                    "GET",
-                    "/GetStatement",
-                    params={"t": flex_token, "q": ref, "v": "3"},
-                )
-            except Exception as e:
-                if attempt == 9:
-                    raise IbkrFlexError(f"GetStatement polling failed: {e}") from e
-                time.sleep(1)
-                continue
-            
-            gr = ET.fromstring(g.text)
-            if (
-                gr.tag == "FlexQueryResponse"
-                and gr.find(".//FlexStatement") is not None
-            ):
-                return gr
+            if attempt == 9:
+                raise IbkrFlexError(f"GetStatement polling failed: {e}") from e
             time.sleep(1)
+            continue
+        
+        gr = ET.fromstring(g.text)
+        if (
+            gr.tag == "FlexQueryResponse"
+            and gr.find(".//FlexStatement") is not None
+        ):
+            return gr
+        time.sleep(1)
 
-        raise IbkrFlexError("Statement not ready after polling")
+    raise IbkrFlexError("Statement not ready after polling")
 
 
 def _as_float(s):

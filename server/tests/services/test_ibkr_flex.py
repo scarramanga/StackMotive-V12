@@ -38,19 +38,13 @@ MOCK_XML_NO_REFERENCE = """<?xml version="1.0" encoding="UTF-8"?>
 async def test_fetch_statement_xml_success():
     """Test successful IBKR Flex statement fetch"""
     with patch.dict('os.environ', {'IBKR_FLEX_TOKEN': 'test_token', 'IBKR_FLEX_QUERY_ID': 'test_query'}):
-        mock_client = AsyncMock()
-        
         send_response = AsyncMock()
         send_response.text = '<FlexQueryResponse><Status>Success</Status><ReferenceCode>123456</ReferenceCode></FlexQueryResponse>'
-        send_response.raise_for_status = AsyncMock()
         
         get_response = AsyncMock()
         get_response.text = MOCK_XML_RESPONSE
-        get_response.raise_for_status = AsyncMock()
         
-        mock_client.request = AsyncMock(side_effect=[send_response, get_response])
-        
-        with patch('server.services.ibkr_flex_service.create_client', return_value=mock_client):
+        with patch('server.services.ibkr_flex_service.request_with_retry', side_effect=[send_response, get_response]):
             result = await ibkr_flex_service.fetch_statement_xml()
             
             assert result is not None
@@ -69,15 +63,10 @@ async def test_fetch_statement_xml_not_configured():
 async def test_fetch_statement_xml_no_reference_code():
     """Test error when no ReferenceCode returned"""
     with patch.dict('os.environ', {'IBKR_FLEX_TOKEN': 'test_token', 'IBKR_FLEX_QUERY_ID': 'test_query'}):
-        mock_client = AsyncMock()
-        
         send_response = AsyncMock()
         send_response.text = MOCK_XML_NO_REFERENCE
-        send_response.raise_for_status = AsyncMock()
         
-        mock_client.request = AsyncMock(return_value=send_response)
-        
-        with patch('server.services.ibkr_flex_service.create_client', return_value=mock_client):
+        with patch('server.services.ibkr_flex_service.request_with_retry', return_value=send_response):
             with pytest.raises(ibkr_flex_service.IbkrFlexError, match="No ReferenceCode"):
                 await ibkr_flex_service.fetch_statement_xml()
 
