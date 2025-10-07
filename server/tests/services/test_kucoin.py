@@ -94,10 +94,8 @@ async def test_get_accounts_success(kucoin_service, mock_accounts_response):
     mock_response.json.return_value = mock_accounts_response
     mock_response.raise_for_status = Mock()
     
-    with patch("server.services.kucoin_service.create_client") as mock_client:
-        mock_http = AsyncMock()
-        mock_http.get = AsyncMock(return_value=mock_response)
-        mock_client.return_value = mock_http
+    with patch("server.services.kucoin_service.request_with_retry") as mock_retry:
+        mock_retry.return_value = mock_response
         
         result = await kucoin_service.get_accounts(user_id=1)
     
@@ -120,10 +118,8 @@ async def test_get_accounts_api_error(kucoin_service):
     }
     mock_response.raise_for_status = Mock()
     
-    with patch("server.services.kucoin_service.create_client") as mock_client:
-        mock_http = AsyncMock()
-        mock_http.get = AsyncMock(return_value=mock_response)
-        mock_client.return_value = mock_http
+    with patch("server.services.kucoin_service.request_with_retry") as mock_retry:
+        mock_retry.return_value = mock_response
         
         result = await kucoin_service.get_accounts(user_id=1)
     
@@ -133,17 +129,14 @@ async def test_get_accounts_api_error(kucoin_service):
 
 @pytest.mark.asyncio
 async def test_get_accounts_http_error(kucoin_service):
-    with patch("server.services.kucoin_service.create_client") as mock_client:
-        mock_http = AsyncMock()
-        mock_response = Mock()
-        mock_response.status_code = 401
-        mock_response.text = "Unauthorized"
-        mock_http.get = AsyncMock(
-            side_effect=httpx.HTTPStatusError(
-                "401", request=Mock(), response=mock_response
-            )
+    mock_response = Mock()
+    mock_response.status_code = 401
+    mock_response.text = "Unauthorized"
+    
+    with patch("server.services.kucoin_service.request_with_retry") as mock_retry:
+        mock_retry.side_effect = httpx.HTTPStatusError(
+            "401", request=Mock(), response=mock_response
         )
-        mock_client.return_value = mock_http
         
         result = await kucoin_service.get_accounts(user_id=1)
     
@@ -157,10 +150,8 @@ async def test_get_fills_success(kucoin_service, mock_fills_response):
     mock_response.json.return_value = mock_fills_response
     mock_response.raise_for_status = Mock()
     
-    with patch("server.services.kucoin_service.create_client") as mock_client:
-        mock_http = AsyncMock()
-        mock_http.get = AsyncMock(return_value=mock_response)
-        mock_client.return_value = mock_http
+    with patch("server.services.kucoin_service.request_with_retry") as mock_retry:
+        mock_retry.return_value = mock_response
         
         result = await kucoin_service.get_fills(user_id=1)
     
@@ -178,15 +169,13 @@ async def test_get_fills_with_symbol_filter(kucoin_service, mock_fills_response)
     mock_response.json.return_value = mock_fills_response
     mock_response.raise_for_status = Mock()
     
-    with patch("server.services.kucoin_service.create_client") as mock_client:
-        mock_http = AsyncMock()
-        mock_http.get = AsyncMock(return_value=mock_response)
-        mock_client.return_value = mock_http
+    with patch("server.services.kucoin_service.request_with_retry") as mock_retry:
+        mock_retry.return_value = mock_response
         
         result = await kucoin_service.get_fills(user_id=1, symbol="BTC-USDT")
         
-        mock_http.get.assert_called_once()
-        call_args = mock_http.get.call_args[0][0]
+        mock_retry.assert_called_once()
+        call_args = mock_retry.call_args[0][1]
         assert "symbol=BTC-USDT" in call_args
     
     assert "error" not in result
@@ -201,10 +190,8 @@ async def test_get_fills_api_error(kucoin_service):
     }
     mock_response.raise_for_status = Mock()
     
-    with patch("server.services.kucoin_service.create_client") as mock_client:
-        mock_http = AsyncMock()
-        mock_http.get = AsyncMock(return_value=mock_response)
-        mock_client.return_value = mock_http
+    with patch("server.services.kucoin_service.request_with_retry") as mock_retry:
+        mock_retry.return_value = mock_response
         
         result = await kucoin_service.get_fills(user_id=1)
     

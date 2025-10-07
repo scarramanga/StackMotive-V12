@@ -2,91 +2,57 @@
 Shared HTTP client with retry logic and timeouts
 Used by data import adapters (IBKR, KuCoin)
 """
+import asyncio
+import math
+import random
+from typing import Callable, Awaitable, Dict, Any, Optional
 import httpx
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_exponential,
-    retry_if_exception_type,
-)
-from typing import Optional, Dict, Any
 
+DEFAULT_TIMEOUT = httpx.Timeout(30.0, connect=10.0)
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
-USER_AGENT = "StackMotive/1.0"
+async def _sleep_backoff(attempt: int, base: float = 0.25, cap: float = 4.0) -> None:
+    delay = min(cap, base * (2 ** attempt))
+    jitter = delay * (0.5 * (random.random() - 0.5))
+    await asyncio.sleep(max(0.0, delay + jitter))
 
-
-class RetryableHTTPError(Exception):
-    """HTTP error that should be retried"""
-    pass
-
-
-def _should_retry(exc: Exception) -> bool:
-    """Determine if an exception should trigger a retry"""
-    if isinstance(exc, httpx.TimeoutException):
-        return True
-    if isinstance(exc, httpx.HTTPStatusError):
-        return 500 <= exc.response.status_code < 600
-    return False
-
-
-@retry(
-    retry=retry_if_exception_type(RetryableHTTPError),
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-)
-async def _make_request_with_retry(
-    client: httpx.AsyncClient,
+async def request_with_retry(
     method: str,
     url: str,
-    **kwargs
+    *,
+    client: Optional[httpx.AsyncClient] = None,
+    max_attempts: int = 4,
+    timeout: httpx.Timeout = DEFAULT_TIMEOUT,
+    retry_on: Optional[set] = None,
+    **kwargs: Dict[str, Any],
 ) -> httpx.Response:
     """
-    Make HTTP request with automatic retry on 5xx and timeouts
-    
-    Args:
-        client: httpx AsyncClient
-        method: HTTP method (GET, POST, etc.)
-        url: Full URL or path
-        **kwargs: Additional arguments for httpx request
-    
-    Returns:
-        httpx.Response
-        
-    Raises:
-        RetryableHTTPError: If request fails after retries
+    Minimal async retry wrapper for httpx.
+    Retries on network errors and retryable HTTP status codes.
     """
+    retry_on = retry_on or RETRYABLE_STATUS
+    owns_client = client is None
+    if owns_client:
+        client = httpx.AsyncClient(timeout=timeout, headers={"User-Agent": "StackMotive/Phase6"})
     try:
-        response = await client.request(method, url, **kwargs)
-        response.raise_for_status()
-        return response
-    except (httpx.TimeoutException, httpx.HTTPStatusError) as e:
-        if _should_retry(e):
-            raise RetryableHTTPError(f"Request failed: {e}") from e
-        raise
-
-
-def create_client(
-    base_url: str,
-    timeout: Optional[float] = 15.0,
-    headers: Optional[Dict[str, str]] = None
-) -> httpx.AsyncClient:
-    """
-    Create configured httpx client with timeouts and User-Agent
-    
-    Args:
-        base_url: Base URL for API
-        timeout: Request timeout in seconds (default 15)
-        headers: Additional headers to include
-    
-    Returns:
-        Configured httpx.AsyncClient
-    """
-    default_headers = {"User-Agent": USER_AGENT}
-    if headers:
-        default_headers.update(headers)
-    
-    return httpx.AsyncClient(
-        base_url=base_url,
-        timeout=httpx.Timeout(timeout, connect=5.0),
-        headers=default_headers,
-    )
+        last_exc = None
+        for attempt in range(max_attempts):
+            try:
+                resp = await client.request(method, url, **kwargs)
+                if resp.status_code in retry_on:
+                    _ = resp.text
+                    raise httpx.HTTPStatusError(
+                        f"Retryable status {resp.status_code}",
+                        request=resp.request,
+                        response=resp,
+                    )
+                return resp
+            except (httpx.TransportError, httpx.TimeoutException, httpx.HTTPStatusError) as e:
+                last_exc = e
+                if attempt == max_attempts - 1:
+                    raise
+                await _sleep_backoff(attempt)
+        raise last_exc if last_exc else RuntimeError("request_with_retry fell through")
+    finally:
+        if owns_client:
+            await client.aclose()

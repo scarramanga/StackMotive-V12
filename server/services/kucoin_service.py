@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 import httpx
 
-from server.services.http_client import create_client
+from server.services.http_client import request_with_retry
 from server.utils.observability import log_import_event
 
 
@@ -74,8 +74,7 @@ class KuCoinService:
             endpoint = "/api/v1/accounts"
             headers = self._get_headers("GET", endpoint)
 
-            client = create_client(self.base_url)
-            response = await client.get(endpoint, headers=headers)
+            response = await request_with_retry("GET", f"{self.base_url}{endpoint}", headers=headers)
             response.raise_for_status()
             data = response.json()
 
@@ -183,8 +182,7 @@ class KuCoinService:
 
             headers = self._get_headers("GET", endpoint)
 
-            client = create_client(self.base_url)
-            response = await client.get(endpoint, headers=headers)
+            response = await request_with_retry("GET", f"{self.base_url}{endpoint}", headers=headers)
             response.raise_for_status()
             data = response.json()
 
