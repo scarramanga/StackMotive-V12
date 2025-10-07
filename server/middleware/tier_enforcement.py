@@ -48,6 +48,7 @@ ROUTE_TIER_REQUIREMENTS: Dict[str, str] = {
     "/api/kucoin/accounts": "premium",
     "/api/kucoin/fills": "premium",
     "/api/portfolio/loader/csv": "builder",
+    "/api/import/ibkr-flex": "builder",
 }
 
 PUBLIC_ROUTES: Set[str] = {

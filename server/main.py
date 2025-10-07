@@ -60,6 +60,7 @@ from server.routes.rebalance_risk import router as rebalance_risk_router
 from server.routes.billing import router as billing_router
 from server.routes.stripe_webhook import router as stripe_router
 from server.routes.kucoin import router as kucoin_router
+from server.routes.ibkr_import import router as ibkr_import_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
 
@@ -387,6 +388,11 @@ app.include_router(
     kucoin_router,
     prefix="/api/kucoin",
     tags=["KuCoin"]
+)
+app.include_router(
+    ibkr_import_router,
+    prefix="/api",
+    tags=["IBKR Import"]
 )
 
 @app.exception_handler(RateLimitExceeded)
