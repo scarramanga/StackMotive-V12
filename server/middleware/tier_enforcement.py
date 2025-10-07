@@ -4,7 +4,7 @@ Tier Enforcement Middleware
 Simplified version ported from V11 - removed Redis dependency for surgical V12 integration.
 Enforces tier-based access control on protected routes.
 """
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, Depends
 from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.orm import Session
 from typing import Dict, Set
@@ -171,7 +171,7 @@ async def get_current_user_from_token(token: str, db: Session) -> User:
     
     try:
         payload = jwt.decode(token, AUTH_SECRET_KEY, algorithms=[AUTH_ALGO])
-        email: str = payload.get("sub")
+        email = payload.get("sub")
         if email is None:
             raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError:
@@ -182,3 +182,48 @@ async def get_current_user_from_token(token: str, db: Session) -> User:
         raise HTTPException(status_code=401, detail="User not found")
     
     return user
+
+
+def enforce_tier(required_tier: str):
+    """
+    Dependency function that enforces tier access for routes
+    Returns the current user if they have sufficient tier access
+    """
+    async def tier_checker(
+        request: Request,
+        db: Session = Depends(get_db)
+    ) -> dict:
+        authorization = request.headers.get("Authorization")
+        if not authorization:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required"
+            )
+        
+        try:
+            token = authorization.split(" ")[1] if " " in authorization else authorization
+            user = await get_current_user_from_token(token, db)
+            user_tier = await get_effective_tier(str(user.id), db)
+            
+            if not user_has_tier_access(user_tier, required_tier):
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Access denied. Required tier: {required_tier}, your tier: {user_tier}"
+                )
+            
+            return {
+                "user_id": user.id,
+                "email": user.email,
+                "tier": user_tier
+            }
+        
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error in tier enforcement: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Internal server error during tier check"
+            )
+    
+    return tier_checker

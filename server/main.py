@@ -65,8 +65,11 @@ from server.routes.ai_summaries import router as ai_summaries_router
 from server.routes.export_snapshot import router as export_snapshot_router
 from server.routes.vault_push import router as vault_push_router
 from server.routes.macro_summary import router as macro_summary_router
+from server.routes.user_preferences import router as user_preferences_router
+from server.routes.notifications import router as notifications_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
+from server.websocket_server import socket_app, initialize_websocket_services, cleanup_websocket_services
 
 from server.models.user import User
 from server.models.paper_trading import PaperTradingAccount
@@ -421,6 +424,30 @@ app.include_router(
     prefix="/api",
     tags=["Macro Monitor"]
 )
+app.include_router(
+    user_preferences_router,
+    prefix="/api",
+    tags=["User Preferences"]
+)
+app.include_router(
+    notifications_router,
+    prefix="/api",
+    tags=["Notifications"]
+)
+
+app.mount("/socket.io", socket_app)
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    logger.info("StackMotive API starting...")
+    await initialize_websocket_services()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    logger.info("StackMotive API shutting down...")
+    await cleanup_websocket_services()
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request, exc):

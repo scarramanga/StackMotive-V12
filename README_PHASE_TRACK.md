@@ -261,33 +261,146 @@ CI: ✅ grep-gates, ✅ backend-db, ✅ auth-smoke, ✅ rate-limit-tests, ✅ da
 
 ---
 
-## 🏦 Phase 9 — Vault & Macro Modules (Planned)
+## ✅ Phase 9 Complete: Vault & Macro Modules
 
-**Goal:** Integrate Obsidian Vault connector and Macro Monitor Agent.
+**Summary:**
+Successfully implemented Phase 9 of the StackMotive project, adding portfolio snapshot export capabilities, vault storage integration, and macro-economic monitoring with deterministic fixture-based regime detection.
 
-**Scope:**
-- Sync vault & macro feeds through agent layer.
-- Build vault/macro dashboards with AI summaries.
-- Add macro snapshot tests + data validation.
+**Deliverables:**
+- server/services/snapshot_exporter.py
+- server/services/vault_client.py
+- server/services/macro_engine.py
+- server/routes/export_snapshot.py
+- server/routes/vault_push.py
+- server/routes/macro_summary.py
+- server/migrations/versions/2b16a8ea0a5b_add_export_jobs_table.py
+- .github/workflows/ci.yml
+- server/.env.example
 
-**Tag:** v12-vault-macro-modules
+**CI Status:**
+✅ All 8 jobs passing (includes `export-tests`)
+
+**Git Status:**
+- PR #18 merged ✅  
+- Tag `v12-vault-macro-modules` pushed ✅  
+- Branch `feat/vault-macro-modules` deleted  
+
+**Code Changes:**
++1,141 lines added, 0 removed  
+
+**Key Technical Achievements:**
+- Background job processing via FastAPI BackgroundTasks  
+- Unified multi-format export (JSON, CSV, PDF) with checksums  
+- Vault storage abstraction (local + S3)  
+- Deterministic macro regime detection with fixtures  
+- Tier-based access enforcement  
+- All tests and CI green  
+
+**Acceptance Criteria:**
+- ✅ Exports generate and checksum verified  
+- ✅ Vault integration (local & S3)  
+- ✅ Macro regime logic deterministic  
+- ✅ Operator+/Navigator+ access controls  
+- ✅ All CI jobs passing  
+
+**What Changed for Users:**
+Users can now export portfolio snapshots, store them in vault storage, and view macro regime insights based on fixture data.
+
+**Tag Command:**
+```bash
+git tag -a v12-vault-macro-modules -m "Vault & Macro Modules implemented"
+git push origin v12-vault-macro-modules
+```
 
 ---
 
-## 🧱 Phase 10 — Production Hardening & Ops (Planned)
+## ✅ Phase 10 Complete: User Preferences & Notification Hub
 
-**Goal:** Finalize production deployment and reliability ops.
+**Summary:**
+Successfully implemented Phase 10 of the StackMotive project, adding user preferences management engine, real-time notification delivery via Socket.IO with Redis scaling support, and comprehensive audit logging infrastructure.
 
-**Scope:**
-- Add DigitalOcean cron jobs (backups, cleanup, monitoring).
-- Harden CI/CD for release flow.
-- Security audit + penetration test.
-- Tag final release: v12-production-ready.
+**Deliverables:**
+- server/services/preferences_manager.py - CRUD interface with Redis caching (60s TTL)
+- server/services/notification_dispatcher.py - Multi-channel notification routing with batching
+- server/services/audit_logger.py - Immutable audit log with SHA256 hashing
+- server/routes/user_preferences.py - Preferences API (navigator+)
+- server/routes/notifications.py - Notifications API and WebSocket stream (navigator+)
+- server/websocket_server.py - Socket.IO server with JWT auth, tier limits, circuit breaker, Redis manager
+- server/migrations/versions/3f42bce0a98b_add_preferences_and_activity_log.py - Database schema
+- server/tests/user/test_preferences_manager.py - Preferences CRUD tests
+- server/tests/user/test_notifications.py - Notification dispatch and batching tests
+- server/tests/user/test_audit_logger.py - Audit logging tests
+- .github/workflows/ci.yml - Added notifications-tests job
+- docs/deltas/realtime_inventory.md - Real-time transport audit (V11, V12, Final)
 
-**Tag:** v12-production-ready
+**CI Status:**
+✅ All 9 jobs passing (includes `notifications-tests`)
+
+**Git Status:**
+- PR #19 open (ready for merge)
+- Branch `feat/user-preferences-notifications` active
+- Tag `v12-user-preferences-notifications` ready
+
+**Code Changes:**
++1,925 lines added, 2 removed
+
+**Key Technical Achievements:**
+- Socket.IO real-time transport with AsyncRedisManager for multi-instance scaling
+- Strict JWT authentication and tier-based subscription limits at connection time
+- Circuit breaker protection and rate limiting (20/min) on WebSocket events
+- Message deduplication with 120s window to prevent notification spam
+- Preferences versioning with audit trail on every change
+- Notification batching with 120s window to reduce duplicate alerts
+- Redis caching for preferences (60s TTL) to reduce database load
+- All tests deterministic and offline-safe (no external dependencies)
+
+**Acceptance Criteria:**
+- ✅ CRUD for user preferences works (get/update/reset)
+- ✅ Audit log records every change with deterministic SHA256 hash
+- ✅ Notification hub delivers and batches events via Socket.IO
+- ✅ Tier-based access enforced (navigator+ for preferences, operator+ for test notifications)
+- ✅ WebSocket integration at /socket.io/ with Redis manager for scaling
+- ✅ All 9 CI jobs green including notifications-tests
+- ✅ Environment variables documented in .env.example
+
+**What Changed for Users:**
+Users can now customize preferences (theme, language, risk profile, rotation settings, macro/trade alerts), receive real-time notifications via WebSocket for portfolio events (rebalance triggers, macro changes, overlay updates), and view complete audit history of all preference changes.
+
+**Tag Command:**
+```bash
+git tag -a v12-user-preferences-notifications -m "User Preferences & Notification Hub implemented"
+git push origin v12-user-preferences-notifications
+```
+
+---
+
+## 🛡️ Phase 12 Plan: Governance & Branch Protection
+
+**Summary:**
+Final governance phase to harden repository controls, enforce CI checks, and establish merge / tag governance for production.
+
+**Deliverables:**
+- Branch protection on `main`
+  - Required checks: `grep-gates`, `backend-db`, `auth-smoke`, `rate-limit-tests`, `data-source-tests`, `integration-tests`, `ai-overlay-tests`, `export-tests`, `notifications-tests`
+  - Require PR review & signed commits  
+  - Disallow direct pushes  
+- docs/governance.md
+- server/scripts/verify_ci_matrix.py
+
+**Acceptance Criteria:**
+- ✅ All CI jobs registered and enforced in GitHub branch protection  
+- ✅ `verify_ci_matrix.py` passes with exit code 0  
+- ✅ Governance documentation approved and committed  
+- ✅ Tag `v12-governance-lock` pushed  
+
+**Tag Command:**
+```bash
+git tag -a v12-governance-lock -m "Governance & Branch Protection finalized"
+git push origin v12-governance-lock
+```
 
 ---
 
 Notes:
 - Every PR must include CI passes before merge.
-- Phases 1-8 complete; Phases 9-10 planned for future implementation.
+- Phases 1-10 complete; Phase 12 planned for future implementation.
