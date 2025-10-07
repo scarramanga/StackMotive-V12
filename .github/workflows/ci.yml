@@ -47,3 +47,19 @@ jobs:
         working-directory: server
         run: |
           if [ -d tests ]; then pytest -q tests/routes --maxfail=1 -x || pytest -q --maxfail=1 -x; else echo "No tests dir; skipping"; fi
+
+  auth-smoke:
+    runs-on: ubuntu-latest
+    env:
+      AUTH_SECRET_KEY: testsecret
+      AUTH_ALGO: HS256
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Run JWT smoke
+        working-directory: server
+        run: |
+          pip install -r requirements.txt || true
+          pip install python-jose pytest
+          pytest -q tests/auth/test_jwt_smoke.py
