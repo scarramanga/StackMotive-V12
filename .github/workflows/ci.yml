@@ -1,0 +1,49 @@
+name: ci
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  grep-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if SQLite remnants or hardcoded secrets
+        run: |
+          set -e
+          ! rg -n 'sqlite3|dev\.db' server || (echo "SQLite remnants found"; exit 1)
+          ! rg -n 'SECRET_KEY\s*=' server || (echo "Hardcoded SECRET_KEY found"; exit 1)
+
+  backend-db:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: stackmotive
+          POSTGRES_PASSWORD: stackmotive
+          POSTGRES_DB: stackmotive_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U stackmotive"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DATABASE_URL: postgresql+psycopg://stackmotive:stackmotive@localhost:5432/stackmotive_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install backend
+        working-directory: server
+        run: |
+          python -m pip install -U pip
+          if [ -f pyproject.toml ]; then pip install -e .; else pip install -r requirements.txt; fi
+          pip install alembic pytest
+      - name: Run Alembic migrations
+        working-directory: server
+        run: alembic upgrade head
+      - name: Route smoke tests (if present)
+        working-directory: server
+        run: |
+          if [ -d tests ]; then pytest -q tests/routes --maxfail=1 -x || pytest -q --maxfail=1 -x; else echo "No tests dir; skipping"; fi

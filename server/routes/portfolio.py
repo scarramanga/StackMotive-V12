@@ -16,9 +16,11 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 import json
 from datetime import datetime, timedelta
-import sqlite3
 from pathlib import Path
 import random
+
+from server.deps import db_session
+from server.db.qmark import qmark, qmark_many
 
 router = APIRouter()
 
@@ -71,18 +73,10 @@ class CombinedPortfolioResponse(BaseModel):
     combinedHoldings: List[CombinedHolding]
     totalValue: float
 
-# Database connection
-def get_db_connection():
-    db_path = Path(__file__).parent.parent.parent / "prisma" / "dev.db"
-    return sqlite3.connect(str(db_path))
-
 # Agent Memory logging
-async def log_to_agent_memory(user_id: int, action_type: str, action_summary: str, input_data: str, output_data: str, metadata: Dict[str, Any]):
+async def log_to_agent_memory(user_id: int, action_type: str, action_summary: str, input_data: str, output_data: str, metadata: Dict[str, Any], db = Depends(db_session)):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        stmt, params = qmark("""
             INSERT INTO AgentMemory 
             (userId, blockId, action, context, userInput, agentResponse, metadata, timestamp, sessionId)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -98,8 +92,8 @@ async def log_to_agent_memory(user_id: int, action_type: str, action_summary: st
             f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         ))
         
-        conn.commit()
-        conn.close()
+        db.execute(stmt, params)
+        db.commit()
         
     except Exception as e:
         print(f"Failed to log to agent memory: {e}")
@@ -107,15 +101,12 @@ async def log_to_agent_memory(user_id: int, action_type: str, action_summary: st
 @router.get("/portfolio/summary")
 async def get_portfolio_summary(
     vaultId: Optional[str] = Query(None),
-    user_id: int = 1  # TODO: Get from authentication
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Get portfolio summary data for dashboard"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Create portfolio summary table if it doesn't exist
-        cursor.execute("""
+        stmt, sql_params = qmark("""
             CREATE TABLE IF NOT EXISTS PortfolioSummary (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -134,11 +125,11 @@ async def get_portfolio_summary(
                 last_updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """, ())
+        db.execute(stmt, sql_params)
         
-        # Get existing summary or create default
         where_clause = "WHERE userId = ?"
-        params = [user_id]
+        params: list = [user_id]
         
         if vaultId:
             where_clause += " AND vaultId = ?"
@@ -146,17 +137,16 @@ async def get_portfolio_summary(
         else:
             where_clause += " AND vaultId IS NULL"
         
-        cursor.execute(f"""
+        stmt, sql_params = qmark(f"""
             SELECT * FROM PortfolioSummary 
             {where_clause}
             ORDER BY last_updated DESC 
             LIMIT 1
-        """, params)
+        """, tuple(params))
         
-        result = cursor.fetchone()
+        result = db.execute(stmt, sql_params).mappings().first()
         
         if not result:
-            # Create default summary with realistic demo data
             total_value = 125000.00
             holdings_value = 118500.00
             cash_balance = 6500.00
@@ -169,7 +159,7 @@ async def get_portfolio_summary(
             total_return_percent = 17.39
             asset_count = 12
             
-            cursor.execute("""
+            stmt, sql_params = qmark("""
                 INSERT INTO PortfolioSummary 
                 (userId, vaultId, total_value, cash_balance, holdings_value, net_worth,
                  change_value, change_percent, day_change_value, day_change_percent,
@@ -181,9 +171,9 @@ async def get_portfolio_summary(
                 total_return, total_return_percent, asset_count
             ))
             
-            conn.commit()
+            db.execute(stmt, sql_params)
+            db.commit()
             
-            # Return the created summary
             summary = PortfolioSummary(
                 totalValue=total_value,
                 changePercent=change_percent,
@@ -199,8 +189,7 @@ async def get_portfolio_summary(
                 lastUpdated=datetime.now().isoformat()
             )
         else:
-            columns = [description[0] for description in cursor.description]
-            summary_data = dict(zip(columns, result))
+            summary_data = dict(result)
             
             summary = PortfolioSummary(
                 totalValue=summary_data['total_value'],
@@ -217,8 +206,6 @@ async def get_portfolio_summary(
                 lastUpdated=summary_data['last_updated']
             )
         
-        conn.close()
-        
         await log_to_agent_memory(
             user_id,
             "portfolio_summary_retrieved",
@@ -229,7 +216,8 @@ async def get_portfolio_summary(
                 "total_value": summary.totalValue,
                 "asset_count": summary.assetCount,
                 "change_percent": summary.changePercent
-            }
+            },
+            db
         )
         
         return summary.dict()
@@ -240,15 +228,12 @@ async def get_portfolio_summary(
 @router.get("/portfolio/holdings")
 async def get_portfolio_holdings(
     vaultId: Optional[str] = Query(None),
-    user_id: int = 1  # TODO: Get from authentication
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Get portfolio holdings data for dashboard"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Create portfolio holdings table if it doesn't exist
-        cursor.execute("""
+        stmt, sql_params = qmark("""
             CREATE TABLE IF NOT EXISTS PortfolioHoldings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -273,11 +258,11 @@ async def get_portfolio_holdings(
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(userId, vaultId, symbol, broker_account)
             )
-        """)
+        """, ())
+        db.execute(stmt, sql_params)
         
-        # Get existing holdings
         where_clause = "WHERE userId = ?"
-        params = [user_id]
+        params: list = [user_id]
         
         if vaultId:
             where_clause += " AND vaultId = ?"
@@ -285,16 +270,15 @@ async def get_portfolio_holdings(
         else:
             where_clause += " AND vaultId IS NULL"
         
-        cursor.execute(f"""
-            SELECT * FROM PortfolioHoldings 
+        stmt, sql_params = qmark(f"""
+            SELECT * FROM PortfolioHoldings
             {where_clause}
             ORDER BY market_value DESC
-        """, params)
+        """, tuple(params))
         
-        results = cursor.fetchall()
+        results = db.execute(stmt, sql_params).mappings().all()
         
         if not results:
-            # Create demo holdings data
             demo_holdings = [
                 {
                     "symbol": "FPH", "asset_name": "Fisher & Paykel Healthcare Corp", "asset_class": "Healthcare", 
@@ -341,11 +325,11 @@ async def get_portfolio_holdings(
             for holding in demo_holdings:
                 unrealized_pnl = holding["market_value"] - holding["cost_basis"]
                 unrealized_pnl_percent = (unrealized_pnl / holding["cost_basis"]) * 100 if holding["cost_basis"] > 0 else 0
-                day_change = holding["market_value"] * 0.0085  # Simulate 0.85% daily gain
+                day_change = holding["market_value"] * 0.0085
                 day_change_percent = 0.85
-                portfolio_percent = (holding["market_value"] / 125000.00) * 100  # Against total portfolio
+                portfolio_percent = (holding["market_value"] / 125000.00) * 100
                 
-                cursor.execute("""
+                stmt, sql_params = qmark("""
                     INSERT OR IGNORE INTO PortfolioHoldings 
                     (userId, vaultId, symbol, asset_name, asset_class, sector, market,
                      quantity, average_cost, current_price, market_value, cost_basis,
@@ -359,23 +343,22 @@ async def get_portfolio_holdings(
                     holding["market_value"], holding["cost_basis"], unrealized_pnl,
                     unrealized_pnl_percent, day_change, day_change_percent, portfolio_percent
                 ))
+                db.execute(stmt, sql_params)
             
-            conn.commit()
+            db.commit()
             
-            # Re-fetch the created holdings
-            cursor.execute(f"""
+            stmt, sql_params = qmark(f"""
                 SELECT * FROM PortfolioHoldings 
                 {where_clause}
                 ORDER BY market_value DESC
-            """, params)
+            """, tuple(params))
             
-            results = cursor.fetchall()
+            results = db.execute(stmt, sql_params).mappings().all()
         
-        columns = [description[0] for description in cursor.description]
         holdings = []
         
         for row in results:
-            holding_data = dict(zip(columns, row))
+            holding_data = dict(row)
             
             holding = PortfolioHolding(
                 symbol=holding_data['symbol'],
@@ -399,15 +382,14 @@ async def get_portfolio_holdings(
             
             holdings.append(holding.dict())
         
-        conn.close()
-        
         await log_to_agent_memory(
             user_id,
             "portfolio_holdings_retrieved",
             f"Retrieved {len(holdings)} portfolio holdings",
             json.dumps({"vaultId": vaultId}),
             f"Found {len(holdings)} holdings",
-            {"holdings_count": len(holdings), "vaultId": vaultId}
+            {"holdings_count": len(holdings), "vaultId": vaultId},
+            db
         )
         
         return holdings
@@ -418,16 +400,11 @@ async def get_portfolio_holdings(
 @router.post("/portfolio/refresh")
 async def refresh_portfolio_data(
     vaultId: Optional[str] = None,
-    user_id: int = 1  # TODO: Get from authentication
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Refresh portfolio data from all connected sources"""
     try:
-        # This would normally trigger data refresh from brokers/exchanges
-        # For now, we'll update the last_updated timestamp
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         where_clause = "WHERE userId = ?"
         params = [user_id, datetime.now().isoformat()]
         
@@ -437,22 +414,21 @@ async def refresh_portfolio_data(
         else:
             where_clause += " AND vaultId IS NULL"
         
-        # Update summary
-        cursor.execute(f"""
+        stmt, sql_params = qmark(f"""
             UPDATE PortfolioSummary 
             SET last_updated = ?
             {where_clause}
-        """, params)
+        """, tuple(params))
+        db.execute(stmt, sql_params)
         
-        # Update holdings
-        cursor.execute(f"""
+        stmt, sql_params = qmark(f"""
             UPDATE PortfolioHoldings 
             SET last_updated = ?
             {where_clause}
-        """, params)
+        """, tuple(params))
+        db.execute(stmt, sql_params)
         
-        conn.commit()
-        conn.close()
+        db.commit()
         
         await log_to_agent_memory(
             user_id,
@@ -460,7 +436,8 @@ async def refresh_portfolio_data(
             f"Refreshed portfolio data",
             json.dumps({"vaultId": vaultId}),
             "Portfolio data refresh completed",
-            {"vaultId": vaultId, "refresh_time": datetime.now().isoformat()}
+            {"vaultId": vaultId, "refresh_time": datetime.now().isoformat()},
+            db
         )
         
         return {
@@ -489,15 +466,14 @@ async def get_combined_portfolio():
 @router.get("/portfolio/snapshot")
 async def get_portfolio_snapshot(
     vaultId: Optional[str] = Query(None),
-    user_id: int = 1  # TODO: Get from authentication
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Get portfolio snapshot with allocation and overlay data"""
     try:
-        # Get portfolio summary data
-        summary_response = await get_portfolio_summary(vaultId, user_id)
+        summary_response = await get_portfolio_summary(vaultId, user_id, db)
         
-        # Get holdings data
-        holdings_response = await get_portfolio_holdings(vaultId, user_id)
+        holdings_response = await get_portfolio_holdings(vaultId, user_id, db)
         
         # Calculate overlay allocations (mock data based on holdings)
         total_value = summary_response.get('totalValue', 0)
@@ -544,11 +520,11 @@ async def get_portfolio_snapshot(
 async def get_portfolio_performance(
     vaultId: Optional[str] = Query(None),
     timeRange: str = Query("7d", description="Time range: 7d or 30d"),
-    user_id: int = 1  # TODO: Get from authentication
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Get portfolio performance history"""
     try:
-        # Calculate date range
         end_date = datetime.now()
         if timeRange == "7d":
             start_date = end_date - timedelta(days=7)
@@ -557,21 +533,18 @@ async def get_portfolio_performance(
         else:
             start_date = end_date - timedelta(days=7)
         
-        # Get current portfolio value
-        summary_response = await get_portfolio_summary(vaultId, user_id)
+        summary_response = await get_portfolio_summary(vaultId, user_id, db)
         current_value = summary_response.get('totalValue', 0)
         current_return = summary_response.get('totalReturnPercent', 0)
         
-        # Generate mock performance data points
         performance_data = []
         days = (end_date - start_date).days
         
         for i in range(days + 1):
             date = start_date + timedelta(days=i)
             
-            # Mock performance calculation (simulate some variance)
-            base_return = current_return * (i / days)  # Gradual increase
-            volatility = random.uniform(-0.5, 0.5)  # Daily volatility
+            base_return = current_return * (i / days)
+            volatility = random.uniform(-0.5, 0.5)
             day_return = base_return + volatility
             
             performance_data.append({
@@ -588,14 +561,13 @@ async def get_portfolio_performance(
 @router.get("/strategy/overlays")
 async def get_strategy_overlays(
     vaultId: Optional[str] = Query(None),
-    user_id: int = 1  # TODO: Get from authentication
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Get strategy overlay state"""
     try:
-        # Get holdings to determine active overlays
-        holdings_response = await get_portfolio_holdings(vaultId, user_id)
+        holdings_response = await get_portfolio_holdings(vaultId, user_id, db)
         
-        # Create mock overlay state based on holdings
         overlays = []
         
         if holdings_response:
@@ -607,7 +579,7 @@ async def get_strategy_overlays(
                         'name': f"{asset_class} Strategy",
                         'assets': [],
                         'totalValue': 0,
-                        'performance': random.uniform(-2, 8)  # Mock performance
+                        'performance': random.uniform(-2, 8)
                     }
                 asset_classes[asset_class]['assets'].append(holding.get('symbol'))
                 asset_classes[asset_class]['totalValue'] += holding.get('marketValue', 0)
@@ -636,25 +608,23 @@ async def get_strategy_overlays(
 @router.get("/portfolio/rebalance-recommendations")
 async def get_rebalance_recommendations(
     vaultId: Optional[str] = Query(None),
-    user_id: int = 1  # TODO: Get from authentication
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Get portfolio rebalance recommendations"""
     try:
-        # Get portfolio holdings
-        holdings_response = await get_portfolio_holdings(vaultId, user_id)
+        holdings_response = await get_portfolio_holdings(vaultId, user_id, db)
         
-        # Simple rebalance logic - check if any asset class is over 40% or under 5%
         has_recommendation = False
         recommendation_count = 0
         urgency = 'low'
         reason = 'Portfolio is well balanced'
         
         if holdings_response:
-            summary_response = await get_portfolio_summary(vaultId, user_id)
+            summary_response = await get_portfolio_summary(vaultId, user_id, db)
             total_value = summary_response.get('totalValue', 0)
             
             if total_value > 0:
-                # Calculate asset class percentages
                 asset_classes = {}
                 for holding in holdings_response:
                     asset_class = holding.get('assetClass', 'Unknown')
@@ -662,7 +632,6 @@ async def get_rebalance_recommendations(
                         asset_classes[asset_class] = 0
                     asset_classes[asset_class] += holding.get('marketValue', 0)
                 
-                # Check for imbalances
                 for asset_class, value in asset_classes.items():
                     percentage = (value / total_value) * 100
                     
@@ -686,4 +655,4 @@ async def get_rebalance_recommendations(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))      
