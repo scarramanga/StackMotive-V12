@@ -160,6 +160,116 @@ Acceptance:
 
 ---
 
+## ✅ Phase 6 — Data-Source De-Mock (Harvest, not rebuild) (Complete)
+
+Branches / PRs:
+- PR #9 – Documentation (docs/deltas/data_adapters_inventory.md)
+- PR #10 – IBKR Flex adapter
+- PR #11 – CSV Import adapter
+- PR #12 – KuCoin adapter
+
+CI Status: ✅ All green
+Tag: v12-data-sources
+
+**Summary:**
+- Integrated IBKR Flex, KuCoin, CSV import, and manual input routes.
+- Unified async HTTP client with manual retry/backoff (no tenacity dependency).
+- CI checks added to guarantee retry safety and adapter validation.
+- All adapters produce consistent, normalized data structures ready for ingestion into analytics.
+- Environment variables documented in server/.env.example.
+
+**Key Improvements Applied:**
+1. **Moved DDL to Alembic migrations** - No CREATE TABLE in routes; all schema changes in migrations/versions/
+2. **HTTP client hygiene** - Timeouts (30s total, 10s connect), retry with exponential backoff + jitter, User-Agent headers
+3. **Idempotency checks** - import_digests table with SHA256 digest tracking to prevent duplicate imports
+4. **CSV file limits** - Enforced 10K rows / 20MB max via config (CSV_MAX_ROWS, CSV_MAX_SIZE_MB)
+5. **Feature-flagged logging** - CSV_AGENT_LOG flag for field-level observability (PII-safe)
+6. **Tier-based access** - IBKR/CSV at operator tier, KuCoin at premium tier
+7. **Rate limiting** - 10 requests/minute per user for import endpoints
+8. **Sanitized test fixtures** - All tests use mocked/sanitized data, zero network calls in CI
+9. **Observability logging** - Structured import events: {source, userId, itemsImported, duration_ms, status}
+
+**Deliverables:**
+- server/services/ibkr_flex_service.py (async httpx + XML parsing + retry logic)
+- server/services/csv_import_service.py (pandas + validation + field mapping)
+- server/services/kucoin_service.py (multi-account auth + mocked tests)
+- server/services/http_client.py (manual retry with exponential backoff, ±25% jitter)
+- server/utils/observability.py (structured import event logging)
+- server/routes/ibkr_import.py, portfolio_loader.py, kucoin.py
+- server/migrations/versions/: import_digests, ibkr_import_history, portfolio sync tables
+- server/tests/services/: test_ibkr_flex.py, test_csv_import.py, test_kucoin.py, test_http_retry.py
+- .github/workflows/ci.yml: Added "Data Source Tests" job
+
+**Acceptance:**
+- ✅ All routes use Alembic migrations (no DDL in routes)
+- ✅ HTTP client with timeout/retry/User-Agent
+- ✅ Idempotency via import_digests table
+- ✅ CSV limits enforced (10K rows, 20MB)
+- ✅ Feature-flagged agent logging (CSV_AGENT_LOG)
+- ✅ Tier enforcement (operator/premium)
+- ✅ Rate limiting (10 req/min)
+- ✅ Sanitized test fixtures
+- ✅ Observability logging
+- ✅ All CI jobs green (5 jobs: grep-gates, backend-db, auth-smoke, rate-limit-tests, Data Source Tests)
+
+---
+
+## 🚀 Phase 7 — Portfolio & Analytics Integration (Planned)
+
+**Goal:** Wire real adapter data into Portfolio and Performance panels.
+
+**Scope:**
+- Normalize tables (trades, positions, cash_events).
+- Build ingest orchestrator (ingest_ibkr, ingest_csv, ingest_kucoin).
+- Replace mocks in portfolio.py and performance_analytics_panel.py.
+- Add Redis-based caching layer.
+- Add integration tests for end-to-end data flow.
+
+**Tag:** v12-integration-portfolio-analytics
+
+---
+
+## ⚙️ Phase 8 — Strategy & AI Overlay Activation (Planned)
+
+**Goal:** Reconnect AI-generated signals and overlay logic.
+
+**Scope:**
+- Restore Stack AI orchestration endpoints.
+- Integrate strategy allocation, macro monitor, and sentiment tracker.
+- Wire Tier-based access gating.
+- Add overlay-simulation tests.
+
+**Tag:** v12-ai-overlay-integration
+
+---
+
+## 🧩 Phase 9 — Vault & Macro Modules (Planned)
+
+**Goal:** Integrate vault (Obsidian) connector and macro monitor agent.
+
+**Scope:**
+- Sync vault data and macro feeds via agents.
+- Build dashboards for vault, macro trends, and AI summaries.
+- Add macro snapshot tests and data validation.
+
+**Tag:** v12-vault-macro-modules
+
+---
+
+## 🛡️ Phase 10 — Final Harden & Production Prep (Planned)
+
+**Goal:** Production-ready deployment on DigitalOcean.
+
+**Scope:**
+- Add ops-level cron jobs (token cleanup, backups, alerts).
+- Add end-to-end CI/CD release pipeline.
+- Security audit + penetration test.
+- Tag release: v12-production-ready.
+
+**Tag:** v12-production-ready
+
+---
+
 Notes:
 - Every PR must include CI passes before merge.
-- Future phases: Data-source de-mock, panel enablement, feature harvests (whale/institutional/darkpools/tax), and optional monorepo consolidation.
+- Phases 1-6 complete; Phases 7-10 planned for future implementation.
