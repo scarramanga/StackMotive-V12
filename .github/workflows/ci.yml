@@ -65,6 +65,7 @@ jobs:
     env:
       AUTH_SECRET_KEY: testsecret
       STACKMOTIVE_DEV_MODE: "true"
+      DATABASE_URL: sqlite:///test.db
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
