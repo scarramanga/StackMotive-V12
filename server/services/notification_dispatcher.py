@@ -106,7 +106,7 @@ def _cleanup_old_notifications():
     """Remove notifications older than batch window from queue"""
     global notification_queue
     cutoff_time = datetime.utcnow() - timedelta(seconds=BATCH_WINDOW * 2)
-    notification_queue = [n for n in notification_queue if n.timestamp >= cutoff_time]
+    notification_queue[:] = [n for n in notification_queue if n.timestamp >= cutoff_time]
 
 
 def get_notification_stats() -> Dict[str, Any]:
