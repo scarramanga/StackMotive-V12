@@ -104,123 +104,91 @@ async def get_portfolio_summary(
     user_id: int = 1,
     db = Depends(db_session)
 ):
-    """Get portfolio summary data for dashboard"""
+    """Get portfolio summary data from live portfolio_positions and cash_events"""
+    from server.services.cache import get_cache, set_cache
+    
+    cache_key = f"portfolio:summary:{user_id}:{vaultId or 'default'}"
+    cached = get_cache(cache_key)
+    if cached:
+        return cached
+    
     try:
-        stmt, sql_params = qmark("""
-            CREATE TABLE IF NOT EXISTS PortfolioSummary (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                userId INTEGER NOT NULL,
-                vaultId TEXT,
-                total_value REAL NOT NULL DEFAULT 0,
-                cash_balance REAL NOT NULL DEFAULT 0,
-                holdings_value REAL NOT NULL DEFAULT 0,
-                net_worth REAL NOT NULL DEFAULT 0,
-                change_value REAL DEFAULT 0,
-                change_percent REAL DEFAULT 0,
-                day_change_value REAL DEFAULT 0,
-                day_change_percent REAL DEFAULT 0,
-                total_return REAL DEFAULT 0,
-                total_return_percent REAL DEFAULT 0,
-                asset_count INTEGER DEFAULT 0,
-                last_updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-        """, ())
-        db.execute(stmt, sql_params)
+        stmt, params = qmark("""
+            SELECT 
+                COUNT(*) as asset_count,
+                SUM(quantity * COALESCE(currentPrice, avgCost)) as holdings_value,
+                SUM(quantity * avgCost) as cost_basis
+            FROM portfolio_positions
+            WHERE userId = ?
+        """, (user_id,))
         
-        where_clause = "WHERE userId = ?"
-        params: list = [user_id]
+        result = db.execute(stmt, params).mappings().first()
         
-        if vaultId:
-            where_clause += " AND vaultId = ?"
-            params.append(vaultId)
-        else:
-            where_clause += " AND vaultId IS NULL"
-        
-        stmt, sql_params = qmark(f"""
-            SELECT * FROM PortfolioSummary 
-            {where_clause}
-            ORDER BY last_updated DESC 
-            LIMIT 1
-        """, tuple(params))
-        
-        result = db.execute(stmt, sql_params).mappings().first()
-        
-        if not result:
-            total_value = 125000.00
-            holdings_value = 118500.00
-            cash_balance = 6500.00
-            net_worth = total_value
-            change_value = 2750.50
-            change_percent = 2.24
-            day_change_value = 1234.56
-            day_change_percent = 0.99
-            total_return = 18500.00
-            total_return_percent = 17.39
-            asset_count = 12
-            
-            stmt, sql_params = qmark("""
-                INSERT INTO PortfolioSummary 
-                (userId, vaultId, total_value, cash_balance, holdings_value, net_worth,
-                 change_value, change_percent, day_change_value, day_change_percent,
-                 total_return, total_return_percent, asset_count)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                user_id, vaultId, total_value, cash_balance, holdings_value, net_worth,
-                change_value, change_percent, day_change_value, day_change_percent,
-                total_return, total_return_percent, asset_count
-            ))
-            
-            db.execute(stmt, sql_params)
-            db.commit()
-            
+        if not result or result['asset_count'] == 0:
             summary = PortfolioSummary(
-                totalValue=total_value,
-                changePercent=change_percent,
-                changeValue=change_value,
-                netWorth=net_worth,
-                assetCount=asset_count,
-                dayChangeValue=day_change_value,
-                dayChangePercent=day_change_percent,
-                totalReturn=total_return,
-                totalReturnPercent=total_return_percent,
-                cashBalance=cash_balance,
-                holdingsValue=holdings_value,
+                totalValue=0,
+                changePercent=0,
+                changeValue=0,
+                netWorth=0,
+                assetCount=0,
+                dayChangeValue=0,
+                dayChangePercent=0,
+                totalReturn=0,
+                totalReturnPercent=0,
+                cashBalance=0,
+                holdingsValue=0,
                 lastUpdated=datetime.now().isoformat()
             )
         else:
-            summary_data = dict(result)
+            holdings_value = float(result['holdings_value'] or 0)
+            cost_basis = float(result['cost_basis'] or 0)
+            asset_count = int(result['asset_count'])
+            
+            stmt, params = qmark("""
+                SELECT SUM(amount) as total_cash
+                FROM cash_events
+                WHERE userId = ?
+            """, (user_id,))
+            cash_result = db.execute(stmt, params).mappings().first()
+            cash_balance = float(cash_result['total_cash'] or 0) if cash_result else 0
+            
+            total_value = holdings_value + cash_balance
+            unrealized_return = holdings_value - cost_basis
+            unrealized_return_percent = (unrealized_return / cost_basis * 100) if cost_basis > 0 else 0
             
             summary = PortfolioSummary(
-                totalValue=summary_data['total_value'],
-                changePercent=summary_data['change_percent'],
-                changeValue=summary_data['change_value'],
-                netWorth=summary_data['net_worth'],
-                assetCount=summary_data['asset_count'],
-                dayChangeValue=summary_data['day_change_value'],
-                dayChangePercent=summary_data['day_change_percent'],
-                totalReturn=summary_data['total_return'],
-                totalReturnPercent=summary_data['total_return_percent'],
-                cashBalance=summary_data['cash_balance'],
-                holdingsValue=summary_data['holdings_value'],
-                lastUpdated=summary_data['last_updated']
+                totalValue=total_value,
+                changePercent=unrealized_return_percent,
+                changeValue=unrealized_return,
+                netWorth=total_value,
+                assetCount=asset_count,
+                dayChangeValue=0,
+                dayChangePercent=0,
+                totalReturn=unrealized_return,
+                totalReturnPercent=unrealized_return_percent,
+                cashBalance=cash_balance,
+                holdingsValue=holdings_value,
+                lastUpdated=datetime.now().isoformat()
             )
         
         await log_to_agent_memory(
             user_id,
             "portfolio_summary_retrieved",
-            f"Retrieved portfolio summary for {'vault ' + vaultId if vaultId else 'default portfolio'}",
+            f"Retrieved live portfolio summary for {'vault ' + vaultId if vaultId else 'default portfolio'}",
             json.dumps({"vaultId": vaultId}),
             f"Total value: ${summary.totalValue:,.2f}",
             {
                 "total_value": summary.totalValue,
                 "asset_count": summary.assetCount,
-                "change_percent": summary.changePercent
+                "change_percent": summary.changePercent,
+                "source": "live"
             },
             db
         )
         
-        return summary.dict()
+        summary_dict = summary.dict()
+        set_cache(cache_key, summary_dict, ttl=60)
+        return summary_dict
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -231,167 +199,79 @@ async def get_portfolio_holdings(
     user_id: int = 1,
     db = Depends(db_session)
 ):
-    """Get portfolio holdings data for dashboard"""
+    """Get portfolio holdings data from live portfolio_positions table"""
+    from server.services.cache import get_cache, set_cache
+    
+    cache_key = f"portfolio:holdings:{user_id}:{vaultId or 'default'}"
+    cached = get_cache(cache_key)
+    if cached:
+        return cached
+    
     try:
-        stmt, sql_params = qmark("""
-            CREATE TABLE IF NOT EXISTS PortfolioHoldings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                userId INTEGER NOT NULL,
-                vaultId TEXT,
-                symbol TEXT NOT NULL,
-                asset_name TEXT,
-                asset_class TEXT,
-                sector TEXT,
-                market TEXT DEFAULT 'NZX',
-                quantity REAL NOT NULL DEFAULT 0,
-                average_cost REAL DEFAULT 0,
-                current_price REAL DEFAULT 0,
-                market_value REAL NOT NULL DEFAULT 0,
-                cost_basis REAL DEFAULT 0,
-                unrealized_pnl REAL DEFAULT 0,
-                unrealized_pnl_percent REAL DEFAULT 0,
-                day_change REAL DEFAULT 0,
-                day_change_percent REAL DEFAULT 0,
-                portfolio_percent REAL DEFAULT 0,
-                broker_account TEXT,
-                last_updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(userId, vaultId, symbol, broker_account)
-            )
-        """, ())
-        db.execute(stmt, sql_params)
+        stmt, params = qmark("""
+            SELECT 
+                symbol,
+                name as asset_name,
+                assetClass as asset_class,
+                quantity,
+                avgCost as average_cost,
+                currentPrice as current_price,
+                quantity * COALESCE(currentPrice, avgCost) as market_value,
+                quantity * avgCost as cost_basis,
+                account as broker_account,
+                lastUpdated as last_updated
+            FROM portfolio_positions
+            WHERE userId = ?
+            ORDER BY (quantity * COALESCE(currentPrice, avgCost)) DESC
+        """, (user_id,))
         
-        where_clause = "WHERE userId = ?"
-        params: list = [user_id]
-        
-        if vaultId:
-            where_clause += " AND vaultId = ?"
-            params.append(vaultId)
-        else:
-            where_clause += " AND vaultId IS NULL"
-        
-        stmt, sql_params = qmark(f"""
-            SELECT * FROM PortfolioHoldings
-            {where_clause}
-            ORDER BY market_value DESC
-        """, tuple(params))
-        
-        results = db.execute(stmt, sql_params).mappings().all()
+        results = db.execute(stmt, params).mappings().all()
         
         if not results:
-            demo_holdings = [
-                {
-                    "symbol": "FPH", "asset_name": "Fisher & Paykel Healthcare Corp", "asset_class": "Healthcare", 
-                    "sector": "Healthcare Equipment", "market": "NZX", "quantity": 500, "average_cost": 28.50, 
-                    "current_price": 32.45, "market_value": 16225.00, "cost_basis": 14250.00
-                },
-                {
-                    "symbol": "SPK", "asset_name": "Spark New Zealand Ltd", "asset_class": "Telecommunications", 
-                    "sector": "Telecom Services", "market": "NZX", "quantity": 800, "average_cost": 4.85, 
-                    "current_price": 5.12, "market_value": 4096.00, "cost_basis": 3880.00
-                },
-                {
-                    "symbol": "CSL", "asset_name": "CSL Limited", "asset_class": "Healthcare", 
-                    "sector": "Biotechnology", "market": "ASX", "quantity": 45, "average_cost": 285.60, 
-                    "current_price": 298.75, "market_value": 13443.75, "cost_basis": 12852.00
-                },
-                {
-                    "symbol": "CBA", "asset_name": "Commonwealth Bank of Australia", "asset_class": "Financial", 
-                    "sector": "Banks", "market": "ASX", "quantity": 120, "average_cost": 98.20, 
-                    "current_price": 104.50, "market_value": 12540.00, "cost_basis": 11784.00
-                },
-                {
-                    "symbol": "AAPL", "asset_name": "Apple Inc", "asset_class": "Technology", 
-                    "sector": "Consumer Electronics", "market": "NASDAQ", "quantity": 75, "average_cost": 145.80, 
-                    "current_price": 189.45, "market_value": 14208.75, "cost_basis": 10935.00
-                },
-                {
-                    "symbol": "MSFT", "asset_name": "Microsoft Corporation", "asset_class": "Technology", 
-                    "sector": "Software", "market": "NASDAQ", "quantity": 60, "average_cost": 285.20, 
-                    "current_price": 325.75, "market_value": 19545.00, "cost_basis": 17112.00
-                },
-                {
-                    "symbol": "TSLA", "asset_name": "Tesla Inc", "asset_class": "Consumer Discretionary", 
-                    "sector": "Automobiles", "market": "NASDAQ", "quantity": 25, "average_cost": 195.60, 
-                    "current_price": 248.85, "market_value": 6221.25, "cost_basis": 4890.00
-                },
-                {
-                    "symbol": "VTI", "asset_name": "Vanguard Total Stock Market ETF", "asset_class": "ETF", 
-                    "sector": "Broad Market", "market": "NYSE", "quantity": 150, "average_cost": 195.40, 
-                    "current_price": 218.65, "market_value": 32797.50, "cost_basis": 29310.00
-                }
-            ]
-            
-            for holding in demo_holdings:
-                unrealized_pnl = holding["market_value"] - holding["cost_basis"]
-                unrealized_pnl_percent = (unrealized_pnl / holding["cost_basis"]) * 100 if holding["cost_basis"] > 0 else 0
-                day_change = holding["market_value"] * 0.0085
-                day_change_percent = 0.85
-                portfolio_percent = (holding["market_value"] / 125000.00) * 100
-                
-                stmt, sql_params = qmark("""
-                    INSERT OR IGNORE INTO PortfolioHoldings 
-                    (userId, vaultId, symbol, asset_name, asset_class, sector, market,
-                     quantity, average_cost, current_price, market_value, cost_basis,
-                     unrealized_pnl, unrealized_pnl_percent, day_change, day_change_percent,
-                     portfolio_percent)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    user_id, vaultId, holding["symbol"], holding["asset_name"], 
-                    holding["asset_class"], holding["sector"], holding["market"],
-                    holding["quantity"], holding["average_cost"], holding["current_price"],
-                    holding["market_value"], holding["cost_basis"], unrealized_pnl,
-                    unrealized_pnl_percent, day_change, day_change_percent, portfolio_percent
-                ))
-                db.execute(stmt, sql_params)
-            
-            db.commit()
-            
-            stmt, sql_params = qmark(f"""
-                SELECT * FROM PortfolioHoldings 
-                {where_clause}
-                ORDER BY market_value DESC
-            """, tuple(params))
-            
-            results = db.execute(stmt, sql_params).mappings().all()
+            return []
         
+        total_value = sum(float(r['market_value']) for r in results)
         holdings = []
         
         for row in results:
             holding_data = dict(row)
+            market_value = float(holding_data['market_value'])
+            cost_basis = float(holding_data['cost_basis'])
+            unrealized_pnl = market_value - cost_basis
+            unrealized_pnl_percent = (unrealized_pnl / cost_basis * 100) if cost_basis > 0 else 0
             
-            holding = PortfolioHolding(
-                symbol=holding_data['symbol'],
-                assetName=holding_data['asset_name'],
-                assetClass=holding_data['asset_class'],
-                sector=holding_data['sector'],
-                market=holding_data['market'],
-                quantity=holding_data['quantity'],
-                averageCost=holding_data['average_cost'],
-                currentPrice=holding_data['current_price'],
-                marketValue=holding_data['market_value'],
-                costBasis=holding_data['cost_basis'],
-                unrealizedPnl=holding_data['unrealized_pnl'],
-                unrealizedPnlPercent=holding_data['unrealized_pnl_percent'],
-                dayChange=holding_data['day_change'],
-                dayChangePercent=holding_data['day_change_percent'],
-                portfolioPercent=holding_data['portfolio_percent'],
-                brokerAccount=holding_data['broker_account'],
-                lastUpdated=holding_data['last_updated']
-            )
-            
-            holdings.append(holding.dict())
+            holding = {
+                "symbol": holding_data['symbol'],
+                "assetName": holding_data['asset_name'],
+                "assetClass": holding_data['asset_class'],
+                "sector": None,
+                "market": "MULTI",
+                "quantity": float(holding_data['quantity']),
+                "averageCost": float(holding_data['average_cost']),
+                "currentPrice": float(holding_data['current_price'] or holding_data['average_cost']),
+                "marketValue": market_value,
+                "costBasis": cost_basis,
+                "unrealizedPnl": unrealized_pnl,
+                "unrealizedPnlPercent": unrealized_pnl_percent,
+                "dayChange": 0,
+                "dayChangePercent": 0,
+                "portfolioPercent": (market_value / total_value * 100) if total_value > 0 else 0,
+                "brokerAccount": holding_data['broker_account'],
+                "lastUpdated": str(holding_data['last_updated']) if holding_data['last_updated'] else datetime.now().isoformat()
+            }
+            holdings.append(holding)
         
         await log_to_agent_memory(
             user_id,
             "portfolio_holdings_retrieved",
-            f"Retrieved {len(holdings)} portfolio holdings",
+            f"Retrieved {len(holdings)} live portfolio holdings",
             json.dumps({"vaultId": vaultId}),
             f"Found {len(holdings)} holdings",
-            {"holdings_count": len(holdings), "vaultId": vaultId},
+            {"holdings_count": len(holdings), "vaultId": vaultId, "source": "live"},
             db
         )
         
+        set_cache(cache_key, holdings, ttl=60)
         return holdings
         
     except Exception as e:
@@ -655,4 +535,4 @@ async def get_rebalance_recommendations(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))      
+        raise HTTPException(status_code=500, detail=str(e))            

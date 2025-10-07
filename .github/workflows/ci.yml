@@ -133,3 +133,42 @@ jobs:
         working-directory: server
         run: |
           pytest tests/services/test_ibkr_flex.py -v --maxfail=1
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: stackmotive
+          POSTGRES_PASSWORD: stackmotive
+          POSTGRES_DB: stackmotive_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U stackmotive"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DATABASE_URL: postgresql+psycopg://stackmotive:stackmotive@localhost:5432/stackmotive_ci
+      IBKR_FLEX_TOKEN: test_token
+      IBKR_FLEX_QUERY_ID: test_query
+      KUCOIN_API_KEY: test_key
+      KUCOIN_API_SECRET: test_secret
+      KUCOIN_API_PASSPHRASE: test_pass
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install dependencies
+        working-directory: server
+        run: |
+          python -m pip install -U pip
+          if [ -f pyproject.toml ]; then pip install -e .; else pip install -r requirements.txt; fi
+          pip install alembic pytest pytest-asyncio
+      - name: Run Alembic migrations
+        working-directory: server
+        run: alembic upgrade head
+      - name: Run integration tests
+        working-directory: server
+        run: |
+          pytest tests/integration/test_portfolio_pipeline.py -v --maxfail=1

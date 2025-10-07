@@ -250,136 +250,100 @@ async def get_trading_metrics(
     user_id: int = 1,
     db = Depends(db_session)
 ):
-    """Get trading performance metrics"""
+    """Get trading performance metrics from live trades table"""
+    from server.services.cache import get_cache, set_cache
+    
+    cache_key = f"analytics:metrics:{user_id}:{period_type}"
+    cached = get_cache(cache_key)
+    if cached:
+        return cached
+    
     try:
-        # Create trading metrics table
-        stmt, params = qmark("""
-            CREATE TABLE IF NOT EXISTS TradingPerformanceMetrics (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                userId INTEGER NOT NULL,
-                period_start TEXT NOT NULL,
-                period_end TEXT NOT NULL,
-                period_type TEXT DEFAULT 'monthly',
-                total_trades INTEGER DEFAULT 0,
-                winning_trades INTEGER DEFAULT 0,
-                losing_trades INTEGER DEFAULT 0,
-                win_rate REAL DEFAULT 0,
-                total_pnl REAL DEFAULT 0,
-                realized_pnl REAL DEFAULT 0,
-                unrealized_pnl REAL DEFAULT 0,
-                average_win REAL DEFAULT 0,
-                average_loss REAL DEFAULT 0,
-                largest_win REAL DEFAULT 0,
-                largest_loss REAL DEFAULT 0,
-                profit_factor REAL DEFAULT 0,
-                maximum_drawdown REAL DEFAULT 0,
-                maximum_runup REAL DEFAULT 0,
-                calmar_ratio REAL DEFAULT 0,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(userId, period_start, period_end, period_type)
-            )
-        """, ())
-        db.execute(stmt, params)
-        
-        # Set default date range if not provided
         if not end_date:
             end_date = datetime.now().date().isoformat()
         if not start_date:
             end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
             start_date = (end_date_obj - timedelta(days=365)).isoformat()
         
-        # Get trading metrics
         stmt, params = qmark("""
-            SELECT * FROM TradingPerformanceMetrics 
-            WHERE userId = ? AND period_type = ? 
-            AND period_start >= ? AND period_end <= ?
-            ORDER BY period_start DESC
-        """, (user_id, period_type, start_date, end_date))
+            SELECT 
+                symbol,
+                trade_type,
+                entry_price,
+                exit_price,
+                quantity,
+                profit_loss,
+                entry_time,
+                exit_time,
+                status
+            FROM trades
+            WHERE userId = ? 
+              AND entry_time >= ? 
+              AND entry_time <= ?
+              AND status = 'closed'
+            ORDER BY entry_time ASC
+        """, (user_id, start_date, end_date))
         
-        results = [dict(row) for row in db.execute(stmt, params).mappings().all()]
+        trades = [dict(row) for row in db.execute(stmt, params).mappings().all()]
         
-        if not results:
-            # Generate sample trading metrics
-            metrics_data = generate_sample_trading_metrics(start_date, end_date, period_type, user_id)
-            
-            # Insert sample data
-            for metric in metrics_data:
-                stmt, params = qmark("""
-                    INSERT OR REPLACE INTO TradingPerformanceMetrics 
-                    (userId, period_start, period_end, period_type, total_trades,
-                     winning_trades, losing_trades, win_rate, total_pnl, realized_pnl,
-                     average_win, average_loss, largest_win, largest_loss, profit_factor)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    user_id,
-                    metric['period_start'],
-                    metric['period_end'],
-                    period_type,
-                    metric['total_trades'],
-                    metric['winning_trades'],
-                    metric['losing_trades'],
-                    metric['win_rate'],
-                    metric['total_pnl'],
-                    metric['realized_pnl'],
-                    metric['average_win'],
-                    metric['average_loss'],
-                    metric['largest_win'],
-                    metric['largest_loss'],
-                    metric['profit_factor']
-                ))
-                db.execute(stmt, params)
-            
-            db.commit()
-            
-            # Re-fetch data
-            stmt, params = qmark("""
-                SELECT * FROM TradingPerformanceMetrics 
-                WHERE userId = ? AND period_type = ? 
-                AND period_start >= ? AND period_end <= ?
-                ORDER BY period_start DESC
-            """, (user_id, period_type, start_date, end_date))
-            
-            results = [dict(row) for row in db.execute(stmt, params).mappings().all()]
+        total_trades = len(trades)
+        winning_trades = sum(1 for t in trades if t['profit_loss'] and t['profit_loss'] > 0)
+        losing_trades = sum(1 for t in trades if t['profit_loss'] and t['profit_loss'] < 0)
+        win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
         
-        # Convert to list of dictionaries
-        trading_metrics = []
-        for data in results:
-            trading_metrics.append({
-                "periodStart": data['period_start'],
-                "periodEnd": data['period_end'],
-                "periodType": data['period_type'],
-                "totalTrades": data['total_trades'],
-                "winningTrades": data['winning_trades'],
-                "losingTrades": data['losing_trades'],
-                "winRate": data['win_rate'],
-                "totalPnl": data['total_pnl'],
-                "realizedPnl": data['realized_pnl'],
-                "unrealizedPnl": data.get('unrealized_pnl', 0),
-                "averageWin": data['average_win'],
-                "averageLoss": data['average_loss'],
-                "largestWin": data['largest_win'],
-                "largestLoss": data['largest_loss'],
-                "profitFactor": data['profit_factor'],
-                "maximumDrawdown": data.get('maximum_drawdown', 0),
-                "calmarRatio": data.get('calmar_ratio', 0)
-            })
+        total_pnl = sum(float(t['profit_loss'] or 0) for t in trades)
+        realized_pnl = total_pnl
+        
+        winning_amounts = [float(t['profit_loss']) for t in trades if t['profit_loss'] and t['profit_loss'] > 0]
+        losing_amounts = [abs(float(t['profit_loss'])) for t in trades if t['profit_loss'] and t['profit_loss'] < 0]
+        
+        average_win = sum(winning_amounts) / len(winning_amounts) if winning_amounts else 0
+        average_loss = sum(losing_amounts) / len(losing_amounts) if losing_amounts else 0
+        largest_win = max(winning_amounts) if winning_amounts else 0
+        largest_loss = max(losing_amounts) if losing_amounts else 0
+        
+        total_wins = sum(winning_amounts) if winning_amounts else 0
+        total_losses = sum(losing_amounts) if losing_amounts else 1
+        profit_factor = total_wins / total_losses if total_losses > 0 else 0
+        
+        metrics = {
+            "periodStart": start_date,
+            "periodEnd": end_date,
+            "periodType": period_type,
+            "totalTrades": total_trades,
+            "winningTrades": winning_trades,
+            "losingTrades": losing_trades,
+            "winRate": win_rate,
+            "totalPnl": total_pnl,
+            "realizedPnl": realized_pnl,
+            "unrealizedPnl": 0,
+            "averageWin": average_win,
+            "averageLoss": average_loss,
+            "largestWin": largest_win,
+            "largestLoss": largest_loss,
+            "profitFactor": profit_factor,
+            "maximumDrawdown": 0,
+            "calmarRatio": 0
+        }
         
         await log_to_agent_memory(
             user_id,
-            "trading_metrics_retrieved",
-            f"Retrieved trading metrics for {period_type} periods",
-            json.dumps({"periodType": period_type, "startDate": start_date, "endDate": end_date}),
-            f"Returned {len(trading_metrics)} metric periods",
-            {"periods": len(trading_metrics), "periodType": period_type},
+            "trading_metrics_calculated",
+            f"Calculated metrics from {total_trades} live trades",
+            json.dumps({"periodType": period_type}),
+            f"Win rate: {win_rate:.2f}%",
+            {"trades": total_trades, "source": "live"},
             db
         )
         
-        return {
+        result = {
             "periodType": period_type,
             "startDate": start_date,
             "endDate": end_date,
-            "data": trading_metrics
+            "data": [metrics]
         }
+        set_cache(cache_key, result, ttl=60)
+        return result
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -763,4 +727,4 @@ def get_concentration_risk_level(largest_position_pct: float) -> str:
     elif largest_position_pct < 30:
         return "High"
     else:
-        return "Very High"                                          
+        return "Very High"                                                                                    
