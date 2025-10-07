@@ -15,8 +15,10 @@ from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 import json
 from datetime import datetime
-import sqlite3
 from pathlib import Path as FilePath
+
+from server.deps import db_session
+from server.db.qmark import qmark, qmark_many
 
 router = APIRouter()
 
@@ -121,18 +123,10 @@ class NotificationPreferences(BaseModel):
     quiet_hours_start: str = "22:00"
     quiet_hours_end: str = "08:00"
 
-# Database connection
-def get_db_connection():
-    db_path = FilePath(__file__).parent.parent.parent / "prisma" / "dev.db"
-    return sqlite3.connect(str(db_path))
-
 # Agent Memory logging
-async def log_to_agent_memory(user_id: int, action_type: str, action_summary: str, input_data: str, output_data: str, metadata: Dict[str, Any]):
+async def log_to_agent_memory(user_id: int, action_type: str, action_summary: str, input_data: str, output_data: str, metadata: Dict[str, Any], db):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        stmt, params = qmark("""
             INSERT INTO AgentMemory 
             (userId, blockId, action, context, userInput, agentResponse, metadata, timestamp, sessionId)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -148,22 +142,19 @@ async def log_to_agent_memory(user_id: int, action_type: str, action_summary: st
             f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         ))
         
-        conn.commit()
-        conn.close()
+        db.execute(stmt, params)
+        db.commit()
         
     except Exception as e:
         print(f"Failed to log to agent memory: {e}")
 
 # User Preferences Endpoints
 @router.get("/user-preferences")
-async def get_user_preferences(user_id: int = 1):
+async def get_user_preferences(user_id: int = 1, db = Depends(db_session)):
     """Get user's comprehensive preferences"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         # Create tables if they don't exist
-        cursor.execute("""
+        stmt, params = qmark("""
             CREATE TABLE IF NOT EXISTS UserPreferences (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -215,27 +206,28 @@ async def get_user_preferences(user_id: int = 1):
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(userId)
             )
-        """)
+        """, ())
+        db.execute(stmt, params)
         
         # Get user preferences
-        cursor.execute("SELECT * FROM UserPreferences WHERE userId = ?", (user_id,))
-        result = cursor.fetchone()
+        stmt, params = qmark("SELECT * FROM UserPreferences WHERE userId = ?", (user_id,))
+        result = db.execute(stmt, params).mappings().first()
         
         if not result:
             # Create default preferences
             default_prefs = UserPreferences()
-            cursor.execute("""
+            stmt, params = qmark("""
                 INSERT INTO UserPreferences (userId, theme, language, base_currency)
                 VALUES (?, ?, ?, ?)
             """, (user_id, default_prefs.theme, default_prefs.language, default_prefs.base_currency))
-            conn.commit()
+            db.execute(stmt, params)
+            db.commit()
             
             # Fetch the created preferences
-            cursor.execute("SELECT * FROM UserPreferences WHERE userId = ?", (user_id,))
-            result = cursor.fetchone()
+            stmt, params = qmark("SELECT * FROM UserPreferences WHERE userId = ?", (user_id,))
+            result = db.execute(stmt, params).mappings().first()
         
-        columns = [description[0] for description in cursor.description]
-        prefs_data = dict(zip(columns, result))
+        prefs_data = dict(result)
         
         # Parse JSON fields
         panel_arrangement = json.loads(prefs_data.get('panel_arrangement', '[]'))
@@ -287,15 +279,14 @@ async def get_user_preferences(user_id: int = 1):
             "developerMode": prefs_data['developer_mode']
         }
         
-        conn.close()
-        
         await log_to_agent_memory(
             user_id,
             "preferences_retrieved",
             "Retrieved user preferences",
             json.dumps({"userId": user_id}),
             f"Preferences loaded successfully",
-            {"theme": preferences["theme"], "currency": preferences["baseCurrency"]}
+            {"theme": preferences["theme"], "currency": preferences["baseCurrency"]},
+            db
         )
         
         return preferences
@@ -306,15 +297,13 @@ async def get_user_preferences(user_id: int = 1):
 @router.post("/user-preferences")
 async def update_user_preferences(
     preferences: Dict[str, Any] = Body(...),
-    user_id: int = 1
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Update user preferences"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         # Update preferences
-        cursor.execute("""
+        stmt, params = qmark("""
             UPDATE UserPreferences 
             SET theme = ?,
                 language = ?,
@@ -410,8 +399,8 @@ async def update_user_preferences(
             user_id
         ))
         
-        conn.commit()
-        conn.close()
+        db.execute(stmt, params)
+        db.commit()
         
         await log_to_agent_memory(
             user_id,
@@ -419,7 +408,8 @@ async def update_user_preferences(
             "Updated user preferences",
             json.dumps(preferences),
             "Preferences updated successfully",
-            {"updatedFields": list(preferences.keys())}
+            {"updatedFields": list(preferences.keys())},
+            db
         )
         
         return {"success": True, "message": "Preferences updated successfully"}
@@ -428,14 +418,11 @@ async def update_user_preferences(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/user-preferences/theme")
-async def get_theme_preferences(user_id: int = 1):
+async def get_theme_preferences(user_id: int = 1, db = Depends(db_session)):
     """Get user's theme preferences"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         # Create theme preferences table
-        cursor.execute("""
+        stmt, params = qmark("""
             CREATE TABLE IF NOT EXISTS UserThemePreferences (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -454,25 +441,24 @@ async def get_theme_preferences(user_id: int = 1):
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(userId)
             )
-        """)
+        """, ())
+        db.execute(stmt, params)
         
-        cursor.execute("SELECT * FROM UserThemePreferences WHERE userId = ?", (user_id,))
-        result = cursor.fetchone()
+        stmt, params = qmark("SELECT * FROM UserThemePreferences WHERE userId = ?", (user_id,))
+        result = db.execute(stmt, params).mappings().first()
         
         if not result:
             # Create default theme preferences
-            cursor.execute("""
+            stmt, params = qmark("""
                 INSERT INTO UserThemePreferences (userId) VALUES (?)
             """, (user_id,))
-            conn.commit()
+            db.execute(stmt, params)
+            db.commit()
             
-            cursor.execute("SELECT * FROM UserThemePreferences WHERE userId = ?", (user_id,))
-            result = cursor.fetchone()
+            stmt, params = qmark("SELECT * FROM UserThemePreferences WHERE userId = ?", (user_id,))
+            result = db.execute(stmt, params).mappings().first()
         
-        columns = [description[0] for description in cursor.description]
-        theme_data = dict(zip(columns, result))
-        
-        conn.close()
+        theme_data = dict(result)
         
         return {
             "themeMode": theme_data['theme_mode'],
@@ -494,14 +480,12 @@ async def get_theme_preferences(user_id: int = 1):
 @router.post("/user-preferences/theme")
 async def update_theme_preferences(
     theme_prefs: Dict[str, Any] = Body(...),
-    user_id: int = 1
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Update user's theme preferences"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        stmt, params = qmark("""
             UPDATE UserThemePreferences 
             SET theme_mode = ?,
                 color_scheme = ?,
@@ -531,8 +515,8 @@ async def update_theme_preferences(
             user_id
         ))
         
-        conn.commit()
-        conn.close()
+        db.execute(stmt, params)
+        db.commit()
         
         await log_to_agent_memory(
             user_id,
@@ -540,7 +524,8 @@ async def update_theme_preferences(
             "Updated theme preferences",
             json.dumps(theme_prefs),
             "Theme preferences updated successfully",
-            {"themeMode": theme_prefs.get('themeMode')}
+            {"themeMode": theme_prefs.get('themeMode')},
+            db
         )
         
         return {"success": True, "message": "Theme preferences updated successfully"}
@@ -551,21 +536,20 @@ async def update_theme_preferences(
 @router.post("/user-preferences/reset")
 async def reset_user_preferences(
     category: Optional[str] = None,
-    user_id: int = 1
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Reset user preferences to defaults"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         if category == "theme" or category is None:
-            cursor.execute("DELETE FROM UserThemePreferences WHERE userId = ?", (user_id,))
+            stmt, params = qmark("DELETE FROM UserThemePreferences WHERE userId = ?", (user_id,))
+            db.execute(stmt, params)
             
         if category == "general" or category is None:
-            cursor.execute("DELETE FROM UserPreferences WHERE userId = ?", (user_id,))
+            stmt, params = qmark("DELETE FROM UserPreferences WHERE userId = ?", (user_id,))
+            db.execute(stmt, params)
         
-        conn.commit()
-        conn.close()
+        db.commit()
         
         await log_to_agent_memory(
             user_id,
@@ -573,7 +557,8 @@ async def reset_user_preferences(
             f"Reset user preferences - category: {category or 'all'}",
             json.dumps({"category": category}),
             "Preferences reset to defaults",
-            {"resetCategory": category or "all"}
+            {"resetCategory": category or "all"},
+            db
         )
         
         return {
@@ -585,12 +570,12 @@ async def reset_user_preferences(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/user-preferences/export")
-async def export_user_preferences(user_id: int = 1):
+async def export_user_preferences(user_id: int = 1, db = Depends(db_session)):
     """Export user preferences for backup"""
     try:
         # Get all preferences
-        general_prefs = await get_user_preferences(user_id)
-        theme_prefs = await get_theme_preferences(user_id)
+        general_prefs = await get_user_preferences(user_id, db)
+        theme_prefs = await get_theme_preferences(user_id, db)
         
         export_data = {
             "exportDate": datetime.now().isoformat(),
@@ -608,7 +593,8 @@ async def export_user_preferences(user_id: int = 1):
             "Exported user preferences",
             json.dumps({"userId": user_id}),
             "Preferences exported successfully",
-            {"exportDate": export_data["exportDate"]}
+            {"exportDate": export_data["exportDate"]},
+            db
         )
         
         return export_data
@@ -619,7 +605,8 @@ async def export_user_preferences(user_id: int = 1):
 @router.post("/user-preferences/import")
 async def import_user_preferences(
     import_data: Dict[str, Any] = Body(...),
-    user_id: int = 1
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Import user preferences from backup"""
     try:
@@ -627,11 +614,11 @@ async def import_user_preferences(
         
         # Import general preferences
         if "general" in preferences_data:
-            await update_user_preferences(preferences_data["general"], user_id)
+            await update_user_preferences(preferences_data["general"], user_id, db)
             
         # Import theme preferences
         if "theme" in preferences_data:
-            await update_theme_preferences(preferences_data["theme"], user_id)
+            await update_theme_preferences(preferences_data["theme"], user_id, db)
         
         await log_to_agent_memory(
             user_id,
@@ -639,10 +626,11 @@ async def import_user_preferences(
             "Imported user preferences",
             json.dumps(import_data),
             "Preferences imported successfully",
-            {"importDate": datetime.now().isoformat()}
+            {"importDate": datetime.now().isoformat()},
+            db
         )
         
         return {"success": True, "message": "Preferences imported successfully"}
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))                          

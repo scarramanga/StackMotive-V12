@@ -15,8 +15,10 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 import json
 from datetime import datetime, date, timedelta
-import sqlite3
 from pathlib import Path as FilePath
+
+from server.deps import db_session
+from server.db.qmark import qmark, qmark_many
 import math
 
 router = APIRouter()
@@ -86,18 +88,10 @@ class PerformanceSummary(BaseModel):
     profit_factor: float
     calmar_ratio: float
 
-# Database connection
-def get_db_connection():
-    db_path = FilePath(__file__).parent.parent.parent / "prisma" / "dev.db"
-    return sqlite3.connect(str(db_path))
-
 # Agent Memory logging
-async def log_to_agent_memory(user_id: int, action_type: str, action_summary: str, input_data: str, output_data: str, metadata: Dict[str, Any]):
+async def log_to_agent_memory(user_id: int, action_type: str, action_summary: str, input_data: str, output_data: str, metadata: Dict[str, Any], db):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
+        stmt, params = qmark("""
             INSERT INTO AgentMemory 
             (userId, blockId, action, context, userInput, agentResponse, metadata, timestamp, sessionId)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -113,8 +107,8 @@ async def log_to_agent_memory(user_id: int, action_type: str, action_summary: st
             f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         ))
         
-        conn.commit()
-        conn.close()
+        db.execute(stmt, params)
+        db.commit()
         
     except Exception as e:
         print(f"Failed to log to agent memory: {e}")
@@ -123,15 +117,13 @@ async def log_to_agent_memory(user_id: int, action_type: str, action_summary: st
 @router.get("/performance-analytics/portfolio-performance")
 async def get_portfolio_performance(
     timeframe: str = Query("1m", description="Timeframe: 1w, 1m, 3m, 6m, 1y, all"),
-    user_id: int = 1
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Get portfolio performance history"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         # Create tables if they don't exist
-        cursor.execute("""
+        stmt, params = qmark("""
             CREATE TABLE IF NOT EXISTS PortfolioPerformanceHistory (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -150,7 +142,8 @@ async def get_portfolio_performance(
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(userId, date)
             )
-        """)
+        """, ())
+        db.execute(stmt, params)
         
         # Calculate date range based on timeframe
         end_date = datetime.now().date()
@@ -168,14 +161,13 @@ async def get_portfolio_performance(
             start_date = end_date - timedelta(days=1095)  # 3 years max
         
         # Get portfolio performance data
-        cursor.execute("""
+        stmt, params = qmark("""
             SELECT * FROM PortfolioPerformanceHistory 
             WHERE userId = ? AND date >= ? AND date <= ?
             ORDER BY date ASC
         """, (user_id, start_date.isoformat(), end_date.isoformat()))
         
-        results = cursor.fetchall()
-        columns = [description[0] for description in cursor.description]
+        results = [dict(row) for row in db.execute(stmt, params).mappings().all()]
         
         if not results:
             # Generate sample performance data for demo
@@ -183,7 +175,7 @@ async def get_portfolio_performance(
             
             # Insert sample data
             for data_point in performance_data:
-                cursor.execute("""
+                stmt, params = qmark("""
                     INSERT OR REPLACE INTO PortfolioPerformanceHistory 
                     (userId, date, total_value, equity_value, crypto_value, cash_value,
                      daily_change, daily_change_pct, total_return)
@@ -199,22 +191,22 @@ async def get_portfolio_performance(
                     data_point['daily_change_pct'],
                     data_point['total_return']
                 ))
+                db.execute(stmt, params)
             
-            conn.commit()
+            db.commit()
             
             # Re-fetch data
-            cursor.execute("""
+            stmt, params = qmark("""
                 SELECT * FROM PortfolioPerformanceHistory 
                 WHERE userId = ? AND date >= ? AND date <= ?
                 ORDER BY date ASC
             """, (user_id, start_date.isoformat(), end_date.isoformat()))
             
-            results = cursor.fetchall()
+            results = [dict(row) for row in db.execute(stmt, params).mappings().all()]
         
         # Convert to list of dictionaries
         performance_history = []
-        for row in results:
-            data = dict(zip(columns, row))
+        for data in results:
             performance_history.append({
                 "date": data['date'],
                 "totalValue": data['total_value'],
@@ -230,15 +222,14 @@ async def get_portfolio_performance(
                 "maxDrawdown": data['max_drawdown']
             })
         
-        conn.close()
-        
         await log_to_agent_memory(
             user_id,
             "portfolio_performance_retrieved",
             f"Retrieved portfolio performance for {timeframe}",
             json.dumps({"timeframe": timeframe, "userId": user_id}),
             f"Returned {len(performance_history)} data points",
-            {"dataPoints": len(performance_history), "timeframe": timeframe}
+            {"dataPoints": len(performance_history), "timeframe": timeframe},
+            db
         )
         
         return {
@@ -256,15 +247,13 @@ async def get_trading_metrics(
     period_type: str = Query("monthly", description="Period type: daily, weekly, monthly, quarterly, yearly"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
-    user_id: int = 1
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Get trading performance metrics"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         # Create trading metrics table
-        cursor.execute("""
+        stmt, params = qmark("""
             CREATE TABLE IF NOT EXISTS TradingPerformanceMetrics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -289,7 +278,8 @@ async def get_trading_metrics(
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(userId, period_start, period_end, period_type)
             )
-        """)
+        """, ())
+        db.execute(stmt, params)
         
         # Set default date range if not provided
         if not end_date:
@@ -299,15 +289,14 @@ async def get_trading_metrics(
             start_date = (end_date_obj - timedelta(days=365)).isoformat()
         
         # Get trading metrics
-        cursor.execute("""
+        stmt, params = qmark("""
             SELECT * FROM TradingPerformanceMetrics 
             WHERE userId = ? AND period_type = ? 
             AND period_start >= ? AND period_end <= ?
             ORDER BY period_start DESC
         """, (user_id, period_type, start_date, end_date))
         
-        results = cursor.fetchall()
-        columns = [description[0] for description in cursor.description]
+        results = [dict(row) for row in db.execute(stmt, params).mappings().all()]
         
         if not results:
             # Generate sample trading metrics
@@ -315,7 +304,7 @@ async def get_trading_metrics(
             
             # Insert sample data
             for metric in metrics_data:
-                cursor.execute("""
+                stmt, params = qmark("""
                     INSERT OR REPLACE INTO TradingPerformanceMetrics 
                     (userId, period_start, period_end, period_type, total_trades,
                      winning_trades, losing_trades, win_rate, total_pnl, realized_pnl,
@@ -338,23 +327,23 @@ async def get_trading_metrics(
                     metric['largest_loss'],
                     metric['profit_factor']
                 ))
+                db.execute(stmt, params)
             
-            conn.commit()
+            db.commit()
             
             # Re-fetch data
-            cursor.execute("""
+            stmt, params = qmark("""
                 SELECT * FROM TradingPerformanceMetrics 
                 WHERE userId = ? AND period_type = ? 
                 AND period_start >= ? AND period_end <= ?
                 ORDER BY period_start DESC
             """, (user_id, period_type, start_date, end_date))
             
-            results = cursor.fetchall()
+            results = [dict(row) for row in db.execute(stmt, params).mappings().all()]
         
         # Convert to list of dictionaries
         trading_metrics = []
-        for row in results:
-            data = dict(zip(columns, row))
+        for data in results:
             trading_metrics.append({
                 "periodStart": data['period_start'],
                 "periodEnd": data['period_end'],
@@ -375,15 +364,14 @@ async def get_trading_metrics(
                 "calmarRatio": data.get('calmar_ratio', 0)
             })
         
-        conn.close()
-        
         await log_to_agent_memory(
             user_id,
             "trading_metrics_retrieved",
             f"Retrieved trading metrics for {period_type} periods",
             json.dumps({"periodType": period_type, "startDate": start_date, "endDate": end_date}),
             f"Returned {len(trading_metrics)} metric periods",
-            {"periods": len(trading_metrics), "periodType": period_type}
+            {"periods": len(trading_metrics), "periodType": period_type},
+            db
         )
         
         return {
@@ -397,14 +385,11 @@ async def get_trading_metrics(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/performance-analytics/risk-analytics")
-async def get_risk_analytics(user_id: int = 1):
+async def get_risk_analytics(user_id: int = 1, db = Depends(db_session)):
     """Get portfolio risk analytics"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         # Create risk analytics table
-        cursor.execute("""
+        stmt, params = qmark("""
             CREATE TABLE IF NOT EXISTS RiskAnalytics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER NOT NULL,
@@ -423,23 +408,24 @@ async def get_risk_analytics(user_id: int = 1):
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(userId, analysis_date)
             )
-        """)
+        """, ())
+        db.execute(stmt, params)
         
         # Get latest risk analytics
-        cursor.execute("""
+        stmt, params = qmark("""
             SELECT * FROM RiskAnalytics 
             WHERE userId = ? 
             ORDER BY analysis_date DESC 
             LIMIT 1
         """, (user_id,))
         
-        result = cursor.fetchone()
+        result = db.execute(stmt, params).mappings().first()
         
         if not result:
             # Generate sample risk analytics
             risk_data = generate_sample_risk_analytics(user_id)
             
-            cursor.execute("""
+            stmt, params = qmark("""
                 INSERT INTO RiskAnalytics 
                 (userId, analysis_date, portfolio_volatility, portfolio_beta,
                  var_1day_95, var_1day_99, cvar_1day_95, largest_position_pct,
@@ -458,21 +444,21 @@ async def get_risk_analytics(user_id: int = 1):
                 risk_data['top_10_positions_pct'],
                 json.dumps(risk_data['sector_concentrations'])
             ))
+            db.execute(stmt, params)
             
-            conn.commit()
+            db.commit()
             
             # Re-fetch data
-            cursor.execute("""
+            stmt, params = qmark("""
                 SELECT * FROM RiskAnalytics 
                 WHERE userId = ? 
                 ORDER BY analysis_date DESC 
                 LIMIT 1
             """, (user_id,))
             
-            result = cursor.fetchone()
+            result = db.execute(stmt, params).mappings().first()
         
-        columns = [description[0] for description in cursor.description]
-        risk_data = dict(zip(columns, result))
+        risk_data = dict(result)
         
         # Parse JSON fields
         sector_concentrations = json.loads(risk_data.get('sector_concentrations', '{}'))
@@ -494,15 +480,14 @@ async def get_risk_analytics(user_id: int = 1):
             "concentrationRisk": get_concentration_risk_level(risk_data['largest_position_pct'])
         }
         
-        conn.close()
-        
         await log_to_agent_memory(
             user_id,
             "risk_analytics_retrieved",
             "Retrieved portfolio risk analytics",
             json.dumps({"userId": user_id}),
             "Risk analytics data provided",
-            {"portfolioVolatility": risk_analytics["portfolioVolatility"]}
+            {"portfolioVolatility": risk_analytics["portfolioVolatility"]},
+            db
         )
         
         return risk_analytics
@@ -579,14 +564,6 @@ async def get_performance_summary(
             "concentrationRisk": risk_data["concentrationRisk"]
         }
         
-        await log_to_agent_memory(
-            user_id,
-            "performance_summary_retrieved",
-            f"Retrieved performance summary for {timeframe}",
-            json.dumps({"timeframe": timeframe}),
-            f"Summary metrics: Return {total_return:.2f}%, Sharpe {sharpe_ratio:.2f}",
-            {"timeframe": timeframe, "totalReturn": total_return}
-        )
         
         return summary
         
@@ -596,13 +573,11 @@ async def get_performance_summary(
 @router.post("/performance-analytics/update-portfolio")
 async def update_portfolio_performance(
     portfolio_data: Dict[str, Any] = Body(...),
-    user_id: int = 1
+    user_id: int = 1,
+    db = Depends(db_session)
 ):
     """Update portfolio performance data"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
         # Extract data from request
         total_value = portfolio_data.get("totalValue", 0)
         equity_value = portfolio_data.get("equityValue", 0)
@@ -611,21 +586,21 @@ async def update_portfolio_performance(
         update_date = portfolio_data.get("date", datetime.now().date().isoformat())
         
         # Get previous value for change calculation
-        cursor.execute("""
+        stmt, params = qmark("""
             SELECT total_value FROM PortfolioPerformanceHistory 
             WHERE userId = ? AND date < ?
             ORDER BY date DESC LIMIT 1
         """, (user_id, update_date))
         
-        prev_result = cursor.fetchone()
-        prev_value = prev_result[0] if prev_result else total_value
+        prev_result = db.execute(stmt, params).mappings().first()
+        prev_value = prev_result['total_value'] if prev_result else total_value
         
         # Calculate changes
         daily_change = total_value - prev_value
         daily_change_pct = (daily_change / prev_value * 100) if prev_value > 0 else 0
         
         # Insert or update performance record
-        cursor.execute("""
+        stmt, params = qmark("""
             INSERT OR REPLACE INTO PortfolioPerformanceHistory 
             (userId, date, total_value, equity_value, crypto_value, cash_value,
              daily_change, daily_change_pct)
@@ -634,9 +609,9 @@ async def update_portfolio_performance(
             user_id, update_date, total_value, equity_value, crypto_value, 
             cash_value, daily_change, daily_change_pct
         ))
+        db.execute(stmt, params)
         
-        conn.commit()
-        conn.close()
+        db.commit()
         
         await log_to_agent_memory(
             user_id,
@@ -644,7 +619,8 @@ async def update_portfolio_performance(
             "Updated portfolio performance data",
             json.dumps(portfolio_data),
             f"Portfolio value updated to ${total_value:,.2f}",
-            {"totalValue": total_value, "dailyChange": daily_change}
+            {"totalValue": total_value, "dailyChange": daily_change},
+            db
         )
         
         return {
@@ -787,4 +763,4 @@ def get_concentration_risk_level(largest_position_pct: float) -> str:
     elif largest_position_pct < 30:
         return "High"
     else:
-        return "Very High" 
+        return "Very High"                                          
