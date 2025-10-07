@@ -1,7 +1,7 @@
 """add_cash_events_table
 
 Revision ID: def789abc123
-Revises: abc123def456
+Revises: 7f16dd3d760f
 Create Date: 2025-10-07 18:51:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 revision: str = 'def789abc123'
-down_revision: Union[str, None] = 'abc123def456'
+down_revision: Union[str, None] = '7f16dd3d760f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
