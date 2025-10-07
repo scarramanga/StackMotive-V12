@@ -10,22 +10,20 @@ from server.models.user import User
 import logging
 import uuid
 
-from server.config.production_auth import (
-    get_jwt_secret,
-    get_jwt_refresh_secret,
-    get_jwt_algorithm,
-    get_access_token_expire_minutes,
-    get_refresh_token_expire_days
+from server.config.env import (
+    AUTH_SECRET_KEY,
+    AUTH_REFRESH_SECRET,
+    AUTH_ALGO,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    REFRESH_TOKEN_EXPIRE_DAYS
 )
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-SECRET_KEY = get_jwt_secret()
-REFRESH_SECRET_KEY = get_jwt_refresh_secret()
-ALGORITHM = get_jwt_algorithm()
-ACCESS_TOKEN_EXPIRE_MINUTES = get_access_token_expire_minutes()
-REFRESH_TOKEN_EXPIRE_DAYS = get_refresh_token_expire_days()
+SECRET_KEY = AUTH_SECRET_KEY
+REFRESH_SECRET_KEY = AUTH_REFRESH_SECRET
+ALGORITHM = AUTH_ALGO
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

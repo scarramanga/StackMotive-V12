@@ -157,10 +157,10 @@ class TierEnforcementMiddleware(BaseHTTPMiddleware):
 async def get_current_user_from_token(token: str, db: Session) -> User:
     """Extract user from JWT token"""
     from jose import jwt, JWTError
-    from server.config.production_auth import get_jwt_secret, get_jwt_algorithm
+    from server.config.env import AUTH_SECRET_KEY, AUTH_ALGO
     
     try:
-        payload = jwt.decode(token, get_jwt_secret(), algorithms=[get_jwt_algorithm()])
+        payload = jwt.decode(token, AUTH_SECRET_KEY, algorithms=[AUTH_ALGO])
         email: str = payload.get("sub")
         if email is None:
             raise HTTPException(status_code=401, detail="Invalid token")
