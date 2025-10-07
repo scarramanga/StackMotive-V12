@@ -9,16 +9,22 @@ from server.database import get_db
 from server.models.user import User
 import logging
 
-# Configure logging
+from server.config.production_auth import (
+    get_jwt_secret,
+    get_jwt_refresh_secret,
+    get_jwt_algorithm,
+    get_access_token_expire_minutes,
+    get_refresh_token_expire_days
+)
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# JWT Configuration
-SECRET_KEY = "your-secret-key-keep-it-secret"  # In production, use environment variable
-REFRESH_SECRET_KEY = "your-refresh-secret-key"  # In production, use environment variable
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 30
+SECRET_KEY = get_jwt_secret()
+REFRESH_SECRET_KEY = get_jwt_refresh_secret()
+ALGORITHM = get_jwt_algorithm()
+ACCESS_TOKEN_EXPIRE_MINUTES = get_access_token_expire_minutes()
+REFRESH_TOKEN_EXPIRE_DAYS = get_refresh_token_expire_days()
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

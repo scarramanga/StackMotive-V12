@@ -12,6 +12,11 @@ import uvicorn
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.errors import RateLimitExceeded
+
 from server.database import Base, engine
 from server.routes.user import router as user_router, UserResponse, Token
 from server.routes.paper_trading import router as paper_trading_router, PaperTradingAccountResponse, HoldingResponse, EnhancedPaperTradingAccountResponse, DetailedHoldingResponse, AssetPerformanceResponse
@@ -53,7 +58,8 @@ from server.routes.rebalance_risk import router as rebalance_risk_router
 from routes.billing import router as billing_router
 from routes.stripe_webhook import router as stripe_router
 
-# Import models to register them with SQLAlchemy before creating tables
+from server.middleware.tier_enforcement import TierEnforcementMiddleware
+
 from server.models.user import User
 from server.models.paper_trading import PaperTradingAccount
 from server.models.signal_models import TradingSignal, RebalanceAction
@@ -68,18 +74,23 @@ logger = logging.getLogger(__name__)
 # Create all database tables
 Base.metadata.create_all(bind=engine)
 
-# OAuth2 scheme for token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 
-# Initialize FastAPI app
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title="StackMotive API",
     description="Trading platform API with integrated billing",
     version="1.0.0",
-    docs_url="/api/docs",  # Swagger UI
-    redoc_url="/api/redoc",  # ReDoc UI
-    swagger_ui_parameters={"persistAuthorization": True}  # Keep authorization after page refresh
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    swagger_ui_parameters={"persistAuthorization": True}
 )
+
+app.state.limiter = limiter
+
+app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(TierEnforcementMiddleware)
 
 # Override the default OpenAPI schema to use Bearer auth
 def custom_openapi():
@@ -364,6 +375,13 @@ app.include_router(
 )
 app.include_router(billing_router, prefix="/api")
 app.include_router(stripe_router, prefix="/api")
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Rate limit exceeded"}
+    )
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
