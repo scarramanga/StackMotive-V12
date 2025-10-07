@@ -93,6 +93,73 @@ Acceptance:
 
 ---
 
+## ✅ Phase 5 — MVP Route Restoration (Complete)
+
+### Batch 1 (Complete)
+Branch: feat/routes-restore-batch-1 → merged to main (PR #7)
+CI: ✅ grep-gates, ✅ backend-db, ✅ auth-smoke, ✅ rate-limit-tests
+Tag: v12-routes-batch1
+
+Features:
+- Created server/config/env.py with AUTH_* environment variable compatibility shim.
+- Restored 8 MVP routes to PostgreSQL using qmark pattern (40 total endpoints):
+  * dca_stop_loss.py (5 endpoints)
+  * portfolio_loader.py (4 endpoints)
+  * rebalance_scheduler.py (5 endpoints)
+  * market_data.py (6 endpoints)
+  * asset_drilldown.py (7 endpoints)
+  * watchlist.py (5 endpoints)
+  * macro_monitor.py (4 endpoints)
+  * holdings_review.py (4 endpoints)
+- Added server/tests/routes/test_restored_batch1.py with smoke tests.
+- Added psycopg==3.2.10 to requirements.txt for PostgreSQL driver support.
+
+Acceptance:
+- All routes use db=Depends(db_session), qmark pattern, .mappings().all()/.first(), db.commit().
+- All 501 placeholders removed from restored routes.
+- No sqlite3 or dev.db references in routes.
+- All smoke tests pass locally.
+- All CI jobs green.
+
+### Batch 2 (Complete)
+Branch: feat/routes-restore-batch-2 → merged to main (PR #8)
+CI: ✅ grep-gates, ✅ backend-db, ✅ auth-smoke, ✅ rate-limit-tests
+Tag: v12-routes-batch2
+
+Features:
+- Restored 12 MVP routes to PostgreSQL using qmark pattern (54 total endpoints):
+  * asset_tagging_system.py (7 endpoints)
+  * asset_exclusion_panel.py (4 endpoints)
+  * asset_view_tools.py (6 endpoints)
+  * strategy_editor.py (5 endpoints)
+  * asset_sync_settings.py (5 endpoints)
+  * vault_categories.py (5 endpoints)
+  * rotation_control.py (4 endpoints)
+  * strategy_assignment.py (6 endpoints)
+  * ai_rebalance_suggestions.py (4 endpoints)
+  * allocation_visualizer.py (4 endpoints)
+  * whale_activities.py (2 endpoints)
+  * rebalance_risk.py (2 endpoints)
+- Added server/tests/routes/test_restored_batch2.py with comprehensive smoke tests.
+- Registered vault_categories and rotation_control routers in main.py.
+- All routes use CREATE TABLE IF NOT EXISTS for isolated testing and dynamic schema generation.
+
+Acceptance:
+- All routes use db=Depends(db_session), qmark pattern, .mappings().all()/.first(), db.commit().
+- All 501 placeholders removed from restored routes.
+- No sqlite3 or dev.db references in routes.
+- All smoke tests pass locally (12/12).
+- All CI jobs green.
+
+**Phase 5 Summary:**
+- Total routes restored: 20 (8 in Batch 1, 12 in Batch 2)
+- Total endpoints restored: 94 (40 in Batch 1, 54 in Batch 2)
+- All routes follow consistent PostgreSQL + qmark pattern
+- Comprehensive test coverage with isolated testing support
+- Zero SQLite dependencies remaining in restored routes
+
+---
+
 Notes:
 - Every PR must include CI passes before merge.
 - Future phases: Data-source de-mock, panel enablement, feature harvests (whale/institutional/darkpools/tax), and optional monorepo consolidation.
