@@ -12,12 +12,11 @@ import uvicorn
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 
 from server.database import Base, engine
+from server.services.rate_limiter import limiter
 from server.routes.user import router as user_router, UserResponse, Token
 from server.routes.paper_trading import router as paper_trading_router
 from server.routes.market_data import router as market_data_router
@@ -61,6 +60,8 @@ from server.routes.billing import router as billing_router
 from server.routes.stripe_webhook import router as stripe_router
 from server.routes.kucoin import router as kucoin_router
 from server.routes.ibkr_import import router as ibkr_import_router
+from server.routes.strategy_panel import router as strategy_panel_router
+from server.routes.ai_summaries import router as ai_summaries_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
 
@@ -79,8 +80,6 @@ logger = logging.getLogger(__name__)
 Base.metadata.create_all(bind=engine)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
-
-limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
 app = FastAPI(
     title="StackMotive API",
@@ -393,6 +392,16 @@ app.include_router(
     ibkr_import_router,
     prefix="/api",
     tags=["IBKR Import"]
+)
+app.include_router(
+    strategy_panel_router,
+    prefix="/api",
+    tags=["Strategy Panel"]
+)
+app.include_router(
+    ai_summaries_router,
+    prefix="/api",
+    tags=["AI Summaries"]
 )
 
 @app.exception_handler(RateLimitExceeded)
