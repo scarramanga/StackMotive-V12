@@ -59,6 +59,7 @@ from server.routes.export import router as export_router
 from server.routes.rebalance_risk import router as rebalance_risk_router
 from server.routes.billing import router as billing_router
 from server.routes.stripe_webhook import router as stripe_router
+from server.routes.kucoin import router as kucoin_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
 
@@ -382,6 +383,11 @@ app.include_router(
 )
 app.include_router(billing_router, prefix="/api")
 app.include_router(stripe_router, prefix="/api")
+app.include_router(
+    kucoin_router,
+    prefix="/api/kucoin",
+    tags=["KuCoin"]
+)
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request, exc):

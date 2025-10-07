@@ -45,6 +45,8 @@ ROUTE_TIER_REQUIREMENTS: Dict[str, str] = {
     "/api/strategy/backtest": "builder",
     "/api/ai-rebalance": "participant",
     "/api/signals": "participant",
+    "/api/kucoin/accounts": "premium",
+    "/api/kucoin/fills": "premium",
 }
 
 PUBLIC_ROUTES: Set[str] = {
