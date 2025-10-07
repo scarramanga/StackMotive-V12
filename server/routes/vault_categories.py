@@ -7,17 +7,17 @@ router = APIRouter()
 
 
 @router.post("/vault/categories/{user_id}")
-async def create_vault_category(user_id: int, category: VaultCategory):
+async def create_vault_category(user_id: int, category: dict):
     """Create a new vault category"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.put("/vault/categories/{user_id}/{category_id}")
-async def update_vault_category(user_id: int, category_id: int, category: VaultCategory):
+async def update_vault_category(user_id: int, category_id: int, category: dict):
     """Update a vault category"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/vault/assignments/{user_id}")
-async def assign_asset_to_category(user_id: int, assignment: AssetCategoryAssignment):
+async def assign_asset_to_category(user_id: int, assignment: dict):
     """Assign an asset to a category"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

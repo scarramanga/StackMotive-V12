@@ -12,7 +12,7 @@ async def get_ai_rebalance_suggestions(user_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/ai-rebalance/respond/{user_id}")
-async def respond_to_suggestion(user_id: int, response: SuggestionResponse):
+async def respond_to_suggestion(user_id: int, response: dict):
     """User response to an AI rebalancing suggestion"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

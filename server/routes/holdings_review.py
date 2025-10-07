@@ -7,12 +7,12 @@ router = APIRouter()
 
 
 @router.get("/holdings/all/{user_id}")
-async def get_all_holdings(user_id: int, filter_params: Optional[HoldingFilter] = None):
+async def get_all_holdings(user_id: int, filter_params: Optional[dict] = None):
     """Get all holdings for a user with sorting and filtering"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/holdings/tag")
-async def add_holding_tag(tag_data: HoldingTag):
+async def add_holding_tag(tag_data: dict):
     """Add a tag to a holding"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

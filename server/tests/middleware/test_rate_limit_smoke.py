@@ -14,6 +14,6 @@ client = TestClient(app)
 
 def test_rate_limit_enforced():
     """Test that rate limiting returns 429 after exceeding limits"""
-    responses = [client.get("/auth/ping") for _ in range(65)]
+    responses = [client.get("/api/ping") for _ in range(65)]
     status_codes = [r.status_code for r in responses]
     assert 429 in status_codes, f"Expected 429 in responses, got {set(status_codes)}"

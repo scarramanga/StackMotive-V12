@@ -12,7 +12,7 @@ async def get_rebalance_schedule(user_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/rebalance/schedule")
-async def save_rebalance_schedule(schedule: RebalanceSchedule):
+async def save_rebalance_schedule(schedule: dict):
     """Save or update rebalance schedule"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

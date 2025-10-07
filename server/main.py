@@ -55,8 +55,8 @@ from server.routes.strategy_ranking_system import router as strategy_ranking_sys
 from server.routes.strategy_comparison_engine import router as strategy_comparison_engine_router
 from server.routes.export import router as export_router
 from server.routes.rebalance_risk import router as rebalance_risk_router
-from routes.billing import router as billing_router
-from routes.stripe_webhook import router as stripe_router
+from server.routes.billing import router as billing_router
+from server.routes.stripe_webhook import router as stripe_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
 
@@ -76,7 +76,7 @@ Base.metadata.create_all(bind=engine)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
 app = FastAPI(
     title="StackMotive API",
