@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from server.services import ibkr_flex_service
 from server.deps import db_session
 from server.db.qmark import qmark
-from server.middleware.tier_enforcement import require_tier
 from server.utils.observability import log_import_operation
 import uuid
 
@@ -12,8 +11,7 @@ router = APIRouter()
 @router.post("/import/ibkr-flex")
 async def import_ibkr_flex(
     user_id: int,
-    db=Depends(db_session),
-    _tier=Depends(require_tier("operator"))
+    db=Depends(db_session)
 ):
     """
     Import portfolio data from IBKR Flex Query
