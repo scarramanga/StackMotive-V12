@@ -8,7 +8,7 @@ import json
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from server.services.audit_logger import (
+from services.audit_logger import (
     log_activity,
     get_activity,
     UserActivityLog,

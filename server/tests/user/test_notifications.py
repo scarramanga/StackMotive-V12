@@ -7,13 +7,13 @@ import asyncio
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from server.services.notification_dispatcher import (
+from services.notification_dispatcher import (
     dispatch_notification,
     get_notification_stats,
     notification_queue,
     Notification
 )
-from server.services.audit_logger import Base as AuditBase
+from services.audit_logger import Base as AuditBase
 
 
 @pytest.fixture

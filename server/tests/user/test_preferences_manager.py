@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from server.services.preferences_manager import (
+from services.preferences_manager import (
     get_preferences,
     update_preferences,
     reset_to_default,
