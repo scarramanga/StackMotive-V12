@@ -12,7 +12,7 @@ async def get_rotation_preferences(user_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/rotation/preferences/{user_id}")
-async def update_rotation_preferences(user_id: int, preferences: RotationPreferences):
+async def update_rotation_preferences(user_id: int, preferences: dict):
     """Update user rotation preferences"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
@@ -22,7 +22,7 @@ async def get_rotation_recommendation(user_id: int, portfolio_data: Dict[str, An
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/rotation/execute/{user_id}")
-async def execute_rotation(user_id: int, rotation_event: RotationEvent):
+async def execute_rotation(user_id: int, rotation_event: dict):
     """Log rotation execution and update history"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

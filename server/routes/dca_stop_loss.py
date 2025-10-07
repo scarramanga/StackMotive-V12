@@ -12,12 +12,12 @@ async def get_user_trade_rules(user_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/rules/save")
-async def save_trade_rule(rule: UserTradeRule):
+async def save_trade_rule(rule: dict):
     """Save or update a trade rule"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.put("/rules/{rule_id}")
-async def update_trade_rule(rule_id: int, rule: UserTradeRule):
+async def update_trade_rule(rule_id: int, rule: dict):
     """Update an existing trade rule"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
@@ -27,7 +27,7 @@ async def delete_trade_rule(rule_id: int, user_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/rules/execute/{rule_id}")
-async def execute_trade_rule(rule_id: int, execution: RuleExecution):
+async def execute_trade_rule(rule_id: int, execution: dict):
     """Execute a trade rule (simulate execution)"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

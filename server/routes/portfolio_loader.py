@@ -12,12 +12,12 @@ async def get_user_portfolio(user_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/portfolio/loader/csv")
-async def import_csv_portfolio(request: CSVImportRequest):
+async def import_csv_portfolio(request: dict):
     """Handle CSV portfolio import"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/portfolio/loader/manual")
-async def add_manual_position(request: ManualPositionRequest):
+async def add_manual_position(request: dict):
     """Add a manual portfolio position"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

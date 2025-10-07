@@ -13,7 +13,7 @@ async def get_asset_view_preferences(user_id: int = 1):
 
 @router.put("/asset-view-tools/preferences")
 async def update_asset_view_preferences(
-    preferences: AssetViewPreferences,
+    preferences: dict,
     user_id: int = 1
 ):
     """Update user's asset view preferences"""

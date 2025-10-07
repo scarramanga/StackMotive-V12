@@ -12,7 +12,7 @@ async def get_user_strategy_assignments(user_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/strategy/edit/{strategy_id}")
-async def edit_strategy(strategy_id: int, edit_data: StrategyEdit):
+async def edit_strategy(strategy_id: int, edit_data: dict):
     """Edit a strategy assignment with new parameters"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
@@ -22,7 +22,7 @@ async def get_strategy_edit_history(strategy_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/strategy/validate")
-async def validate_strategy_parameters(edit_data: StrategyEdit):
+async def validate_strategy_parameters(edit_data: dict):
     """Validate strategy parameters before saving"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

@@ -12,7 +12,7 @@ async def get_macro_insights(user_id: int, limit: int = 10):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/macro/alert")
-async def create_macro_alert(alert: MacroAlert):
+async def create_macro_alert(alert: dict):
     """Create a macro alert for a user"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

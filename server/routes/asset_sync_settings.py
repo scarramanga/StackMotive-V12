@@ -12,12 +12,12 @@ async def get_sync_configurations(user_id: int):
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/sync/config")
-async def save_sync_configuration(config: SyncConfig):
+async def save_sync_configuration(config: dict):
     """Save or update sync configuration"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 
 @router.post("/sync/trigger")
-async def trigger_sync(trigger: SyncTrigger):
+async def trigger_sync(trigger: dict):
     """Trigger a manual sync for a specific source"""
     raise HTTPException(status_code=501, detail="Route pending PostgreSQL migration")
 

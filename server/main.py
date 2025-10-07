@@ -19,7 +19,7 @@ from slowapi.errors import RateLimitExceeded
 
 from server.database import Base, engine
 from server.routes.user import router as user_router, UserResponse, Token
-from server.routes.paper_trading import router as paper_trading_router, PaperTradingAccountResponse, HoldingResponse, EnhancedPaperTradingAccountResponse, DetailedHoldingResponse, AssetPerformanceResponse
+from server.routes.paper_trading import router as paper_trading_router
 from server.routes.market_data import router as market_data_router
 from server.routes.strategy import router as strategy_router
 from server.routes.tax import router as tax_router
@@ -55,8 +55,8 @@ from server.routes.strategy_ranking_system import router as strategy_ranking_sys
 from server.routes.strategy_comparison_engine import router as strategy_comparison_engine_router
 from server.routes.export import router as export_router
 from server.routes.rebalance_risk import router as rebalance_risk_router
-from routes.billing import router as billing_router
-from routes.stripe_webhook import router as stripe_router
+from server.routes.billing import router as billing_router
+from server.routes.stripe_webhook import router as stripe_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
 
@@ -76,7 +76,7 @@ Base.metadata.create_all(bind=engine)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
 app = FastAPI(
     title="StackMotive API",
@@ -134,12 +134,7 @@ def custom_openapi():
     openapi_schema["components"]["schemas"].update(
         {
             "Token": Token.schema(),
-            "UserResponse": UserResponse.schema(),
-            "PaperTradingAccountResponse": PaperTradingAccountResponse.schema(),
-            "HoldingResponse": HoldingResponse.schema(),
-            "EnhancedPaperTradingAccountResponse": EnhancedPaperTradingAccountResponse.schema(),
-            "DetailedHoldingResponse": DetailedHoldingResponse.schema(),
-            "AssetPerformanceResponse": AssetPerformanceResponse.schema()
+            "UserResponse": UserResponse.schema()
         }
     )
 
