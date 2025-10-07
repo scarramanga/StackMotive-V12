@@ -50,7 +50,7 @@ def upgrade() -> None:
     op.execute("CREATE INDEX IF NOT EXISTS idx_sync_runs_status ON sync_runs(status)")
     
     op.execute("""
-        CREATE TABLE IF NOT EXISTS import_digests (
+        CREATE TABLE IF NOT EXISTS federation_import_digests (
             id SERIAL PRIMARY KEY,
             sync_run_id UUID NOT NULL,
             user_id INTEGER NOT NULL,
@@ -62,8 +62,8 @@ def upgrade() -> None:
             UNIQUE(user_id, source_id, content_hash, entity_scope)
         )
     """)
-    op.execute("CREATE INDEX IF NOT EXISTS idx_import_digests_user_id ON import_digests(user_id)")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_import_digests_sync_run_id ON import_digests(sync_run_id)")
+    op.execute("CREATE INDEX IF NOT EXISTS idx_federation_import_digests_user_id ON federation_import_digests(user_id)")
+    op.execute("CREATE INDEX IF NOT EXISTS idx_federation_import_digests_sync_run_id ON federation_import_digests(sync_run_id)")
     
     op.execute("""
         CREATE TABLE IF NOT EXISTS positions_staging (
@@ -106,6 +106,6 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute("DROP TABLE IF EXISTS cash_events_staging")
     op.execute("DROP TABLE IF EXISTS positions_staging")
-    op.execute("DROP TABLE IF EXISTS import_digests")
+    op.execute("DROP TABLE IF EXISTS federation_import_digests")
     op.execute("DROP TABLE IF EXISTS sync_runs")
     op.execute("DROP TABLE IF EXISTS data_sources")

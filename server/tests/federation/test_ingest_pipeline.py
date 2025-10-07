@@ -37,7 +37,7 @@ def test_db():
         """))
         
         conn.execute(text("""
-            CREATE TABLE import_digests (
+            CREATE TABLE federation_import_digests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sync_run_id TEXT NOT NULL,
                 user_id INTEGER NOT NULL,

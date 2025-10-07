@@ -1,6 +1,6 @@
 """
 Ingest Pipeline Service
-Orchestrates data source adapters → staging tables with idempotency via import_digests
+Orchestrates data source adapters → staging tables with idempotency via federation_import_digests
 """
 
 import os
@@ -37,7 +37,7 @@ async def check_duplicate_digest(
     """Check if this digest was already imported within dedup window"""
     result = db.execute(
         text("""
-            SELECT id FROM import_digests
+            SELECT id FROM federation_import_digests
             WHERE user_id = :user_id
               AND source_id = :source_id
               AND content_hash = :content_hash
@@ -120,7 +120,7 @@ async def ingest_ibkr_source(
         
         db.execute(
             text("""
-                INSERT INTO import_digests (sync_run_id, user_id, source_id, content_hash, entity_scope)
+                INSERT INTO federation_import_digests (sync_run_id, user_id, source_id, content_hash, entity_scope)
                 VALUES (:sync_run_id, :user_id, :source_id, :content_hash, 'positions')
             """),
             {
@@ -192,7 +192,7 @@ async def ingest_kucoin_source(
         
         db.execute(
             text("""
-                INSERT INTO import_digests (sync_run_id, user_id, source_id, content_hash, entity_scope)
+                INSERT INTO federation_import_digests (sync_run_id, user_id, source_id, content_hash, entity_scope)
                 VALUES (:sync_run_id, :user_id, :source_id, :content_hash, 'positions')
             """),
             {
