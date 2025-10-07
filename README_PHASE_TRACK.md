@@ -214,57 +214,76 @@ Tag: v12-data-sources
 
 ---
 
-## 🚀 Phase 7 — Portfolio & Analytics Integration (Planned)
+## ✅ Phase 7 — Portfolio & Analytics Integration (Complete)
 
-**Goal:** Wire real adapter data into Portfolio and Performance panels.
+Branch: feat/integration-portfolio-analytics → merged to main
+CI: ✅ grep-gates, ✅ backend-db, ✅ auth-smoke, ✅ rate-limit-tests, ✅ Data Source Tests, ✅ Integration Tests
+Tag: v12-integration-portfolio-analytics
+PR: #14
 
-**Scope:**
-- Normalize tables (trades, positions, cash_events).
-- Build ingest orchestrator (ingest_ibkr, ingest_csv, ingest_kucoin).
-- Replace mocks in portfolio.py and performance_analytics_panel.py.
-- Add Redis-based caching layer.
-- Add integration tests for end-to-end data flow.
+**Summary:**
+- Replaced all mock data with live, database-driven analytics.
+- Integrated IBKR Flex, KuCoin, and CSV adapters into unified ingestion orchestrator.
+- Implemented caching layer and full end-to-end integration tests.
+- Added cash_events table, Redis support, and Alembic migration chain continuity.
+- All six CI jobs passing (including new integration-tests).
 
-**Tag:** v12-integration-portfolio-analytics
+**Key Deliverables:**
+- server/services/ingest_orchestrator.py — unified import + idempotency digest
+- server/services/cache.py — Redis cache + no-op fallback
+- server/routes/portfolio.py & performance_analytics_panel.py — real-data analytics
+- server/tests/integration/test_portfolio_pipeline.py — import → analytics pipeline tests
+- server/migrations/versions/def789abc123_add_cash_events_table.py — cash movements tracking
+- .github/workflows/ci.yml — added Postgres-based integration job
+- server/requirements.txt — added redis>=5.0.0
+
+**Acceptance:**
+- ✅ Unified ingest orchestrator consolidates IBKR/KuCoin/CSV imports
+- ✅ Portfolio endpoints return live data from portfolio_positions table
+- ✅ Performance analytics calculates from actual trades table
+- ✅ Redis caching with 60s TTL and graceful fallback when unavailable
+- ✅ Integration tests cover full import → query → analytics pipeline
+- ✅ Idempotency via SHA256 digest prevents duplicate imports
+- ✅ All 6 CI jobs green (grep-gates, backend-db, auth-smoke, rate-limit-tests, Data Source Tests, Integration Tests)
 
 ---
 
-## ⚙️ Phase 8 — Strategy & AI Overlay Activation (Planned)
+## 🔮 Phase 8 — Strategy & AI Overlay Activation (Planned)
 
-**Goal:** Reconnect AI-generated signals and overlay logic.
+**Goal:** Reconnect AI-driven strategy generation and overlay logic to real analytics.
 
 **Scope:**
-- Restore Stack AI orchestration endpoints.
-- Integrate strategy allocation, macro monitor, and sentiment tracker.
-- Wire Tier-based access gating.
-- Add overlay-simulation tests.
+- Re-enable Stack AI orchestration endpoints.
+- Integrate Strategy Allocation, Macro Monitor, Sentiment Tracker modules.
+- Reinstate tier-based gating logic.
+- Add overlay simulation tests.
 
 **Tag:** v12-ai-overlay-integration
 
 ---
 
-## 🧩 Phase 9 — Vault & Macro Modules (Planned)
+## 🏦 Phase 9 — Vault & Macro Modules (Planned)
 
-**Goal:** Integrate vault (Obsidian) connector and macro monitor agent.
+**Goal:** Integrate Obsidian Vault connector and Macro Monitor Agent.
 
 **Scope:**
-- Sync vault data and macro feeds via agents.
-- Build dashboards for vault, macro trends, and AI summaries.
-- Add macro snapshot tests and data validation.
+- Sync vault & macro feeds through agent layer.
+- Build vault/macro dashboards with AI summaries.
+- Add macro snapshot tests + data validation.
 
 **Tag:** v12-vault-macro-modules
 
 ---
 
-## 🛡️ Phase 10 — Final Harden & Production Prep (Planned)
+## 🧱 Phase 10 — Production Hardening & Ops (Planned)
 
-**Goal:** Production-ready deployment on DigitalOcean.
+**Goal:** Finalize production deployment and reliability ops.
 
 **Scope:**
-- Add ops-level cron jobs (token cleanup, backups, alerts).
-- Add end-to-end CI/CD release pipeline.
+- Add DigitalOcean cron jobs (backups, cleanup, monitoring).
+- Harden CI/CD for release flow.
 - Security audit + penetration test.
-- Tag release: v12-production-ready.
+- Tag final release: v12-production-ready.
 
 **Tag:** v12-production-ready
 
@@ -272,4 +291,4 @@ Tag: v12-data-sources
 
 Notes:
 - Every PR must include CI passes before merge.
-- Phases 1-6 complete; Phases 7-10 planned for future implementation.
+- Phases 1-7 complete; Phases 8-10 planned for future implementation.
