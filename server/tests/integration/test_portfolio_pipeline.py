@@ -2,13 +2,13 @@
 Integration tests for portfolio data pipeline
 Tests full flow: IBKR/CSV/KuCoin import → portfolio query → analytics calculation
 """
+import os
+import sys
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, repo_root)
+
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-import sys
-import os
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
-
 from server.services import ingest_orchestrator
 from server.db.qmark import qmark
 
@@ -102,14 +102,14 @@ async def test_ibkr_ingest_to_positions(mock_ibkr_payload, test_db):
         assert result["cashEvents"] == 2
         assert test_db.committed is True
         
-        executed_inserts = [stmt for stmt, _ in test_db.executed_statements if "INSERT INTO portfolio_positions" in stmt]
+        executed_inserts = [stmt for stmt, _ in test_db.executed_statements if "INSERT INTO portfolio_positions" in str(stmt)]
         assert len(executed_inserts) >= 1
 
 
 @pytest.mark.asyncio
 async def test_kucoin_ingest_to_positions(mock_kucoin_payload, test_db):
     """Test KuCoin data flows to portfolio_positions table"""
-    with patch('server.services.kucoin_service.KuCoinService') as MockService:
+    with patch('server.services.ingest_orchestrator.KuCoinService') as MockService:
         mock_service = MockService.return_value
         mock_service.get_accounts = AsyncMock(return_value=mock_kucoin_payload)
         
@@ -141,7 +141,7 @@ async def test_idempotency_check():
                 def mappings(self):
                     return self
                 def first(self):
-                    return {"importId": "existing_import"} if "import_digests" in stmt else None
+                    return {"importId": "existing_import"} if "import_digests" in str(stmt) else None
             return Result()
         
         def commit(self):
