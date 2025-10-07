@@ -73,6 +73,26 @@ Acceptance:
 - ✅ All CI jobs green.
 
 ---
+## ✅ Phase 4 — Rate-Limit & Session-Control Hardening (Complete)
+Branch: feat/rate-limit-session-control → merged to main
+CI: ✅ grep-gates, ✅ backend-db, ✅ auth-smoke, ✅ rate-limit-tests
+Tag: v12-session-hardened
+
+Features:
+- Tier-based limits (observer 30/min, navigator 60/min, operator 120/min, sovereign 240/min); default 60/min.
+- Token revocation via PostgreSQL `revoked_tokens` with JTI, logout route, refresh rotation.
+- Access token 30m, refresh 14d. 
+- CI job `rate-limit-tests` spins up Postgres, runs Alembic, verifies 429 behavior.
+
+Acceptance:
+- No hardcoded limits in routes.
+- 429 enforced when limits exceeded.
+- Expired tokens rejected (401).
+- Logout blacklists refresh tokens.
+- All CI jobs green.
+
+---
+
 Notes:
 - Every PR must include CI passes before merge.
 - Future phases: Data-source de-mock, panel enablement, feature harvests (whale/institutional/darkpools/tax), and optional monorepo consolidation.
