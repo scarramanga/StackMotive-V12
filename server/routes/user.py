@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional
+from jose import jwt, JWTError
 
 from server.database import get_db
 from server.models.user import User
@@ -14,7 +15,10 @@ from server.auth import (
     get_current_user,
     set_refresh_token_cookie,
     verify_refresh_token,
-    create_access_token
+    create_access_token,
+    revoke_token,
+    REFRESH_SECRET_KEY,
+    ALGORITHM
 )
 
 router = APIRouter()
@@ -109,14 +113,20 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse.from_orm(current_user)
 
 
+@router.get("/ping")
+async def ping():
+    """Simple ping endpoint for rate limit testing"""
+    return {"status": "ok"}
+
+
 @router.post("/refresh-token", response_model=Token)
 async def refresh_token(
     response: Response,
     refresh_token: str,
     db: Session = Depends(get_db)
 ):
-    """Refresh access token using refresh token"""
-    email = verify_refresh_token(refresh_token)
+    """Refresh access token using refresh token with rotation"""
+    email = verify_refresh_token(refresh_token, db)
     if not email:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -130,8 +140,50 @@ async def refresh_token(
             detail="User not found"
         )
     
+    try:
+        old_payload = jwt.decode(refresh_token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+        old_jti = old_payload.get("jti")
+        old_exp = old_payload.get("exp")
+        
+        if old_jti and old_exp:
+            revoke_token(
+                jti=old_jti,
+                token_type="refresh",
+                user_id=user.id,
+                expires_at=datetime.fromtimestamp(old_exp),
+                db=db
+            )
+    except JWTError:
+        pass
+    
     access_token, new_refresh_token = create_tokens(email)
     
     set_refresh_token_cookie(response, new_refresh_token)
     
     return Token(access_token=access_token, token_type="bearer")
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    refresh_token: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Logout by revoking the refresh token"""
+    try:
+        payload = jwt.decode(refresh_token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+        jti = payload.get("jti")
+        exp = payload.get("exp")
+        
+        if jti and exp:
+            revoke_token(
+                jti=jti,
+                token_type="refresh",
+                user_id=current_user.id,
+                expires_at=datetime.fromtimestamp(exp),
+                db=db
+            )
+    except JWTError:
+        pass
+    
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

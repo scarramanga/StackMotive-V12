@@ -8,6 +8,7 @@ from passlib.context import CryptContext
 from server.database import get_db
 from server.models.user import User
 import logging
+import uuid
 
 from server.config.production_auth import (
     get_jwt_secret,
@@ -45,7 +46,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create JWT access token."""
+    """Create JWT access token with JTI."""
     to_encode = data.copy()
     
     if expires_delta:
@@ -53,15 +54,23 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode.update({"exp": expire})
+    to_encode.update({
+        "exp": expire,
+        "jti": str(uuid.uuid4()),
+        "type": "access"
+    })
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 def create_refresh_token(data: dict) -> str:
-    """Create JWT refresh token."""
+    """Create JWT refresh token with JTI."""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode.update({"exp": expire, "type": "refresh"})
+    to_encode.update({
+        "exp": expire,
+        "type": "refresh",
+        "jti": str(uuid.uuid4())
+    })
     encoded_jwt = jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -75,14 +84,43 @@ def create_tokens(email: str) -> Tuple[str, str]:
     refresh_token = create_refresh_token({"sub": email})
     return access_token, refresh_token
 
-def verify_refresh_token(token: str) -> Optional[str]:
+def is_token_revoked(jti: str, db: Session) -> bool:
+    """Check if a token JTI is in the revoked tokens table."""
+    from server.models.revoked_token import RevokedToken
+    
+    revoked = db.query(RevokedToken).filter(RevokedToken.jti == jti).first()
+    return revoked is not None
+
+
+def revoke_token(jti: str, token_type: str, user_id: int, expires_at: datetime, db: Session) -> None:
+    """Add a token to the revoked tokens table."""
+    from server.models.revoked_token import RevokedToken
+    
+    if is_token_revoked(jti, db):
+        return
+    
+    revoked_token = RevokedToken(
+        jti=jti,
+        token_type=token_type,
+        user_id=user_id,
+        expires_at=expires_at
+    )
+    db.add(revoked_token)
+    db.commit()
+
+
+def verify_refresh_token(token: str, db: Optional[Session] = None) -> Optional[str]:
     """Verify refresh token and return email if valid."""
     try:
         payload = jwt.decode(token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        token_type: str = payload.get("type")
+        email = payload.get("sub")
+        token_type = payload.get("type")
+        jti = payload.get("jti")
         
         if email is None or token_type != "refresh":
+            return None
+        
+        if db and jti and is_token_revoked(jti, db):
             return None
             
         return email
