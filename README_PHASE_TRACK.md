@@ -248,17 +248,16 @@ PR: #14
 
 ---
 
-## 🔮 Phase 8 — Strategy & AI Overlay Activation (Planned)
+## ✅ Phase 8 — Strategy & AI Overlay Activation (Complete)
 
-**Goal:** Reconnect AI-driven strategy generation and overlay logic to real analytics.
+PR: #16 → merged
+Tag: v12-ai-overlay-integration
+CI: ✅ grep-gates, ✅ backend-db, ✅ auth-smoke, ✅ rate-limit-tests, ✅ data-source-tests, ✅ integration-tests, ✅ ai-overlay-tests
 
-**Scope:**
-- Re-enable Stack AI orchestration endpoints.
-- Integrate Strategy Allocation, Macro Monitor, Sentiment Tracker modules.
-- Reinstate tier-based gating logic.
-- Add overlay simulation tests.
-
-**Tag:** v12-ai-overlay-integration
+- Strategy engine (pure, deterministic): momentum, volatility, concentration, drawdown.
+- AI orchestrator (OpenAI/Anthropic) with template fallback + Redis cache.
+- New routes: /api/strategy/overlays (operator+), /api/ai/summary (navigator+), /api/ai/explain (operator+).
+- Rate-limited 10/min; no advice/execution language.
 
 ---
 
@@ -291,4 +290,4 @@ PR: #14
 
 Notes:
 - Every PR must include CI passes before merge.
-- Phases 1-7 complete; Phases 8-10 planned for future implementation.
+- Phases 1-8 complete; Phases 9-10 planned for future implementation.
