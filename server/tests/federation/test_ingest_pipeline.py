@@ -4,13 +4,17 @@ Tests for ingest_pipeline service with fixtures
 
 import os
 import sys
+
+os.environ.setdefault("STACKMOTIVE_JWT_SECRET", "test-secret")
+os.environ.setdefault("STACKMOTIVE_DEV_MODE", "true")
+
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.insert(0, repo_root)
 
 import pytest
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 
+from server.database import get_db
 from server.services.ingest_pipeline import (
     start_sync,
     compute_content_hash,
@@ -18,82 +22,50 @@ from server.services.ingest_pipeline import (
 )
 
 
-@pytest.fixture
-def test_db():
-    """Create in-memory test database with federation tables"""
-    engine = create_engine("sqlite:///:memory:")
+@pytest.fixture(autouse=True)
+def cleanup_test_data():
+    """Clean up test data before and after each test"""
+    db = next(get_db())
     
-    with engine.begin() as conn:
-        conn.execute(text("""
-            CREATE TABLE sync_runs (
-                id TEXT PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                trigger TEXT NOT NULL,
-                status TEXT NOT NULL,
-                started_at TIMESTAMP,
-                finished_at TIMESTAMP,
-                stats TEXT DEFAULT '{}'
-            )
-        """))
-        
-        conn.execute(text("""
-            CREATE TABLE federation_import_digests (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sync_run_id TEXT NOT NULL,
-                user_id INTEGER NOT NULL,
-                source_id INTEGER NOT NULL,
-                content_hash TEXT NOT NULL,
-                entity_scope TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """))
-        
-        conn.execute(text("""
-            CREATE TABLE positions_staging (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sync_run_id TEXT NOT NULL,
-                user_id INTEGER NOT NULL,
-                source_id INTEGER NOT NULL,
-                account TEXT,
-                symbol TEXT NOT NULL,
-                quantity REAL NOT NULL,
-                avg_cost REAL,
-                currency TEXT,
-                as_of TIMESTAMP,
-                meta TEXT DEFAULT '{}'
-            )
-        """))
-        
-        conn.execute(text("""
-            CREATE TABLE data_sources (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                source_type TEXT NOT NULL,
-                enabled INTEGER DEFAULT 1
-            )
-        """))
+    try:
+        db.execute(text("DELETE FROM sync_runs WHERE user_id = 1"))
+        db.execute(text("DELETE FROM federation_import_digests WHERE user_id = 1"))
+        db.execute(text("DELETE FROM positions_staging WHERE user_id = 1"))
+        db.commit()
+    except:
+        db.rollback()
     
-    TestingSessionLocal = sessionmaker(bind=engine)
-    db = TestingSessionLocal()
+    yield
     
-    yield db
-    
-    db.close()
+    try:
+        db.execute(text("DELETE FROM sync_runs WHERE user_id = 1"))
+        db.execute(text("DELETE FROM federation_import_digests WHERE user_id = 1"))
+        db.execute(text("DELETE FROM positions_staging WHERE user_id = 1"))
+        db.commit()
+    except:
+        db.rollback()
+    finally:
+        db.close()
 
 
 @pytest.mark.asyncio
-async def test_start_sync(test_db):
+async def test_start_sync():
     """Test starting a sync run"""
-    sync_run_id = await start_sync(test_db, user_id=1, trigger="api")
+    db = next(get_db())
     
-    assert sync_run_id is not None
-    
-    result = test_db.execute(
-        text("SELECT status FROM sync_runs WHERE id = :id"),
-        {"id": sync_run_id}
-    ).fetchone()
-    
-    assert result.status == "running"
+    try:
+        sync_run_id = await start_sync(db, user_id=1, trigger="api")
+        
+        assert sync_run_id is not None
+        
+        result = db.execute(
+            text("SELECT status FROM sync_runs WHERE id = :id"),
+            {"id": sync_run_id}
+        ).fetchone()
+        
+        assert result.status == "running"
+    finally:
+        db.close()
 
 
 def test_compute_content_hash():
