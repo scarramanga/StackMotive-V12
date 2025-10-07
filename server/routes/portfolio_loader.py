@@ -1,9 +1,17 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel
 from datetime import datetime
 from server.deps import db_session
 from server.db.qmark import qmark, qmark_many
+from server.services.csv_import_service import (
+    parse_csv_with_mapping,
+    parse_standard_csv,
+    validate_csv_file
+)
+from server.utils.observability import log_import_operation
+import uuid
+import json
 
 router = APIRouter()
 
@@ -11,21 +19,6 @@ router = APIRouter()
 @router.get("/portfolio/loader/{user_id}")
 async def get_user_portfolio(user_id: int, db=Depends(db_session)):
     """Get user's portfolio positions"""
-    stmt, params = qmark("""
-        CREATE TABLE IF NOT EXISTS portfolio_positions (
-            id INTEGER PRIMARY KEY,
-            userId INTEGER NOT NULL,
-            symbol TEXT NOT NULL,
-            quantity REAL NOT NULL,
-            avgCost REAL,
-            currentPrice REAL,
-            lastUpdated TEXT DEFAULT CURRENT_TIMESTAMP,
-            source TEXT DEFAULT 'manual'
-        )
-    """, ())
-    db.execute(stmt, params)
-    db.commit()
-    
     stmt, params = qmark("SELECT * FROM portfolio_positions WHERE userId = ?", (user_id,))
     result = db.execute(stmt, params)
     positions = result.mappings().all()
@@ -33,42 +26,106 @@ async def get_user_portfolio(user_id: int, db=Depends(db_session)):
     return {"positions": [dict(p) for p in positions]}
 
 @router.post("/portfolio/loader/csv")
-async def import_csv_portfolio(request: dict, db=Depends(db_session)):
-    """Handle CSV portfolio import"""
-    stmt, params = qmark("""
-        CREATE TABLE IF NOT EXISTS portfolio_sync_history (
-            id INTEGER PRIMARY KEY,
-            userId INTEGER NOT NULL,
-            syncType TEXT NOT NULL,
-            status TEXT NOT NULL,
-            itemsImported INTEGER DEFAULT 0,
-            syncedAt TEXT DEFAULT CURRENT_TIMESTAMP,
-            errorMessage TEXT
-        )
-    """, ())
-    db.execute(stmt, params)
-    db.commit()
+async def import_csv_portfolio(
+    file: UploadFile = File(...),
+    field_mapping: Optional[str] = None,
+    user_id: int = 1,
+    db=Depends(db_session)
+):
+    """
+    Handle CSV portfolio import with pandas parsing and field mapping
     
-    user_id = request.get("userId")
-    csv_data = request.get("csvData", [])
+    Args:
+        file: CSV file upload (max 20MB)
+        field_mapping: Optional JSON string mapping our fields to CSV columns
+        user_id: User ID
     
-    imported = 0
-    for row in csv_data:
-        stmt, params = qmark("""
-            INSERT INTO portfolio_positions (userId, symbol, quantity, avgCost, source)
-            VALUES (?, ?, ?, ?, 'csv')
-        """, (user_id, row.get("symbol"), row.get("quantity"), row.get("avgCost")))
-        db.execute(stmt, params)
-        imported += 1
+    Returns:
+        {imported, rejected, sampleErrors, importId}
     
-    stmt, params = qmark("""
-        INSERT INTO portfolio_sync_history (userId, syncType, status, itemsImported)
-        VALUES (?, 'csv', 'success', ?)
-    """, (user_id, imported))
-    db.execute(stmt, params)
-    db.commit()
-    
-    return {"success": True, "itemsImported": imported}
+    Rate limit: 10 requests/minute per user
+    """
+    with log_import_operation("csv", user_id) as log_ctx:
+        try:
+            csv_data = await validate_csv_file(file)
+            
+            mapping = json.loads(field_mapping) if field_mapping else {}
+            
+            if mapping:
+                positions, errors = parse_csv_with_mapping(csv_data, mapping, user_id)
+            else:
+                positions, errors = parse_standard_csv(csv_data, user_id)
+            
+            if not positions:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "No valid positions found in CSV",
+                        "sampleErrors": errors[:5]  # First 5 errors only
+                    }
+                )
+            
+            import_id = str(uuid.uuid4())
+            import_timestamp = datetime.now().isoformat()
+            
+            imported = 0
+            rejected = 0
+            
+            for position in positions:
+                try:
+                    stmt, params = qmark("""
+                        INSERT INTO portfolio_positions 
+                        (userId, symbol, quantity, avgCost, currentPrice, source, asOf)
+                        VALUES (?, ?, ?, ?, ?, 'csv', ?::timestamp)
+                        ON CONFLICT (userId, symbol, asOf) 
+                        DO UPDATE SET 
+                            quantity = EXCLUDED.quantity,
+                            avgCost = EXCLUDED.avgCost,
+                            currentPrice = EXCLUDED.currentPrice,
+                            lastUpdated = CURRENT_TIMESTAMP
+                    """, (
+                        user_id,
+                        position.symbol,
+                        position.quantity,
+                        position.avgPrice,
+                        position.currentPrice,
+                        import_timestamp
+                    ))
+                    db.execute(stmt, params)
+                    imported += 1
+                except Exception as e:
+                    errors.append(f"DB error for {position.symbol}: {str(e)}")
+                    rejected += 1
+            
+            status = "success" if rejected == 0 else ("partial" if imported > 0 else "error")
+            error_message = f"{rejected} positions failed" if rejected > 0 else None
+            
+            stmt, params = qmark("""
+                INSERT INTO portfolio_sync_history 
+                (importId, userId, syncType, status, itemsImported, errorMessage)
+                VALUES (?, ?, 'csv', ?, ?, ?)
+            """, (import_id, user_id, status, imported, error_message))
+            db.execute(stmt, params)
+            
+            db.commit()
+            
+            log_ctx["itemsImported"] = imported
+            log_ctx["importId"] = import_id
+            log_ctx["status"] = status
+            
+            return {
+                "success": True,
+                "imported": imported,
+                "rejected": rejected,
+                "sampleErrors": errors[:10] if errors else None,  # First 10 errors
+                "importId": import_id
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            log_ctx["status"] = "error"
+            raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/portfolio/loader/manual")
 async def add_manual_position(request: dict, db=Depends(db_session)):

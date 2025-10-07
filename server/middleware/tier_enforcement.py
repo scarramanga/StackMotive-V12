@@ -47,6 +47,7 @@ ROUTE_TIER_REQUIREMENTS: Dict[str, str] = {
     "/api/signals": "participant",
     "/api/kucoin/accounts": "premium",
     "/api/kucoin/fills": "premium",
+    "/api/portfolio/loader/csv": "builder",
 }
 
 PUBLIC_ROUTES: Set[str] = {
