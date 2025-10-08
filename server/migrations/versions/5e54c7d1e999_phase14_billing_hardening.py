@@ -1,14 +1,14 @@
 """Phase 14: Billing hardening - subscriptions and audit tables
 
 Revision ID: 5e54c7d1e999
-Revises: 7f16dd3d760f
+Revises: 4e21f1a1fedc
 Create Date: 2025-10-08 12:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
 
 revision = '5e54c7d1e999'
-down_revision = '7f16dd3d760f'
+down_revision = '4e21f1a1fedc'
 branch_labels = None
 depends_on = None
 
