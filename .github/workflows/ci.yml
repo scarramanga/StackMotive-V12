@@ -283,3 +283,44 @@ jobs:
       - name: Run user tests
         working-directory: server
         run: pytest -q --disable-warnings --maxfail=1 tests/user/
+
+  federation-tests:
+    name: Federation Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: stackmotive
+          POSTGRES_PASSWORD: stackmotive
+          POSTGRES_DB: stackmotive_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U stackmotive"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DATABASE_URL: postgresql+psycopg://stackmotive:stackmotive@localhost:5432/stackmotive_ci
+      FEDERATION_DEFAULT_PRIORITY: 100
+      SYNC_MAX_CONCURRENCY: 1
+      SYNC_DEDUP_WINDOW_SEC: 86400
+      STACKMOTIVE_JWT_SECRET: testsecret
+      STACKMOTIVE_DEV_MODE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        working-directory: server
+        run: |
+          python -m pip install -U pip
+          if [ -f pyproject.toml ]; then pip install -e .; else pip install -r requirements.txt; fi
+          pip install alembic pytest pytest-asyncio
+      - name: Run Alembic migrations
+        working-directory: server
+        run: alembic upgrade head
+      - name: Run federation tests
+        working-directory: server
+        run: pytest tests/federation -v --maxfail=1
