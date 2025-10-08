@@ -531,9 +531,9 @@ pytest server/tests/telemetry -v
 - Generic password/secret/token fields in JSON
 
 **Deliverables:**
-- PR #25 (all CI passing) ✅
+- PR #25 merged ✅
 - CI job `telemetry-tests` added and passing ✅
-- Tag: `v12-telemetry-observability` (to create after merge)
+- Tag: `v12-telemetry-observability` pushed ✅
 
 **Tag Command:**
 ```bash
