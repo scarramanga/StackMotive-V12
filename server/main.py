@@ -68,18 +68,25 @@ from server.routes.macro_summary import router as macro_summary_router
 from server.routes.user_preferences import router as user_preferences_router
 from server.routes.notifications import router as notifications_router
 from server.routes.data_federation import router as federation_router
+from server.routes.health import router as health_router
 
 from server.middleware.tier_enforcement import TierEnforcementMiddleware
+from server.middleware.request_context import RequestContextMiddleware
+from server.middleware.logging_middleware import LoggingMiddleware
+from server.services.metrics import MetricsMiddleware
 from server.websocket_server import socket_app, initialize_websocket_services, cleanup_websocket_services
 
 from server.models.user import User
 from server.models.paper_trading import PaperTradingAccount
 from server.models.signal_models import TradingSignal, RebalanceAction
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+from server.services.logging import setup_logging
+import os
+
+setup_logging(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    log_format=os.getenv("LOG_FORMAT", "json"),
+    sampling_rate=float(os.getenv("LOG_SAMPLING_RATE", "1.0"))
 )
 logger = logging.getLogger(__name__)
 
@@ -101,6 +108,12 @@ app.state.limiter = limiter
 
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(TierEnforcementMiddleware)
+
+app.add_middleware(RequestContextMiddleware)
+app.add_middleware(LoggingMiddleware)
+
+if os.getenv("METRICS_ENABLED", "true").lower() == "true":
+    app.add_middleware(MetricsMiddleware)
 
 # Override the default OpenAPI schema to use Bearer auth
 def custom_openapi():
@@ -198,6 +211,11 @@ async def health_check():
     }
 
 # Mount routers with tags
+app.include_router(
+    health_router,
+    prefix="/api"
+)
+
 app.include_router(
     user_router,
     prefix="/api",

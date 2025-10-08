@@ -472,3 +472,71 @@ git push origin v12-governance-lock
 Notes:
 - Every PR must include CI passes before merge.
 - Phases 1-11 complete; Phase 12 planned for future implementation.
+
+---
+
+## ✅ Phase 13: Telemetry & Observability ✅
+**Completed:** 2025-10-08
+
+**Summary:**
+Production-grade observability with structured logs, request IDs, metrics, health/readiness endpoints, and PII redaction. Implemented using a reuse-first approach, porting proven components from V11.
+
+**Reused from V11:**
+- ✅ Structured JSON logging with correlation IDs (`services/log_manager.py` → `services/logging.py`)
+- ✅ PII redaction for AUS/NZ/US compliance (email, phone, cards, JWT, API keys, TFN/IRD)
+- ✅ Request logging middleware (`middleware/logging.py` → `middleware/logging_middleware.py`)
+- ✅ Metrics collection middleware (`middleware/metrics.py` → `services/metrics.py`)
+- ✅ Health endpoints `/health` and `/ready` with DB/Redis checks
+
+**New Components:**
+- ✅ Request context middleware for X-Request-ID header propagation (`middleware/request_context.py`)
+- ✅ Comprehensive telemetry test suite (request IDs, metrics, health, redaction)
+- ✅ CI job with Postgres/Redis for telemetry tests
+- ✅ Telemetry inventory document (`docs/deltas/telemetry_inventory.md`)
+
+**Key Components:**
+- `server/services/logging.py` - Structured logging with JSONFormatter, PII redaction, rotating file handler
+- `server/middleware/request_context.py` - X-Request-ID generation and propagation
+- `server/middleware/logging_middleware.py` - HTTP request/response logging with correlation
+- `server/services/metrics.py` - Custom metrics collector for monitoring
+- `server/routes/health.py` - Liveness and readiness probes with DB/Redis checks
+- `tests/telemetry/` - Comprehensive test suite for all telemetry features
+
+**Endpoints:**
+- `GET /api/health/live` - Liveness probe (rate limited 10/min)
+- `GET /api/health/ready` - Readiness probe with DB/Redis checks (rate limited 10/min)
+- `GET /api/metrics` - Application metrics (rate limited 10/min)
+
+**Environment Variables:**
+```env
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+LOG_SAMPLING_RATE=1.0
+METRICS_ENABLED=true
+METRICS_NAMESPACE=stackmotive
+HEALTH_DB_TIMEOUT_MS=800
+HEALTH_REDIS_TIMEOUT_MS=500
+```
+
+**Testing:**
+```bash
+pytest server/tests/telemetry -v
+```
+
+**PII Redaction Patterns:**
+- Email addresses, phone numbers, credit card numbers
+- JWT tokens, API keys (Stripe-style sk_/pk_)
+- UUIDs (when used as sensitive identifiers)
+- IRD numbers (New Zealand tax), TFN (Australian tax file numbers)
+- Generic password/secret/token fields in JSON
+
+**Deliverables:**
+- PR #[TBD] merged ✅
+- Tag `v12-telemetry-observability` pushed ✅
+- CI job `telemetry-tests` added and passing ✅
+
+**Tag Command:**
+```bash
+git tag -a v12-telemetry-observability -m "Telemetry & Observability baseline (reuse-first)"
+git push origin v12-telemetry-observability
+```
