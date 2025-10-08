@@ -20,5 +20,9 @@ class User(Base):
     onboarding_step = Column(Integer, default=1)  # Track current onboarding step
     preferred_currency = Column(String, default='USD')
     
+    subscription_tier = Column(String, default='observer')
+    stripe_customer_id = Column(String, nullable=True)
+    stripe_subscription_id = Column(String, nullable=True)
+    
     # Relationships
     paper_trading_accounts = relationship("PaperTradingAccount", back_populates="user", cascade="all, delete-orphan")

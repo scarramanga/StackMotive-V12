@@ -540,3 +540,85 @@ pytest server/tests/telemetry -v
 git tag -a v12-telemetry-observability -m "Telemetry & Observability baseline (reuse-first)"
 git push origin v12-telemetry-observability
 ```
+
+---
+
+## ✅ Phase 14: Pricing & Billing Hardening ✅
+**Completed:** 2025-10-08
+
+**Summary:**
+Production-grade Stripe billing integration with HMAC-verified webhooks, subscription management, grace period logic, event deduplication, comprehensive audit logging, and tier-based access control.
+
+**Key Finding:**
+User's plan assumed Final repo had best billing implementation, but audit revealed **Final has NO billing code**. V11 is the clear winner with complete webhook handlers and subscription models.
+
+**Reused from V11:**
+- ✅ Stripe webhook handler with HMAC signature verification (`billing_webhooks.py` → `stripe_webhook.py`)
+- ✅ Subscription model with separate table + users table fields (`models/billing.py` → `models/subscription.py`)
+- ✅ Tier pricing matrix (`utils/tier_config.py` → `services/pricing.py`)
+- ✅ Price ID → Tier mapping via environment variables
+- ✅ Webhook event logging pattern (adapted from `webhook_logs` → `billing_events`)
+
+**New Components (Not in V11):**
+- ✅ Grace period logic with `grace_until` field (7 days post-expiry)
+- ✅ Event deduplication via `last_event_id` tracking
+- ✅ Billing events audit table with SHA256 payload hashing
+- ✅ Centralized billing sync service (Stripe → DB)
+- ✅ Grace period service for tier access during grace
+- ✅ Billing portal route for customer self-service
+
+**Database Schema:**
+- **user_subscriptions table**: user_id, tier, status, stripe_customer_id, stripe_subscription_id, current_period_end, grace_until, last_event_id, created_at, updated_at
+- **billing_events table**: id, event_id, event_type, payload_hash (SHA256), status, error_message, created_at
+- **users table additions**: subscription_tier, stripe_customer_id, stripe_subscription_id
+
+**Key Components:**
+- `server/routes/stripe_webhook.py` - Webhook handler with HMAC verification + deduplication
+- `server/routes/billing.py` - Billing portal, subscriptions endpoint
+- `server/models/subscription.py` - UserSubscription and BillingEvent models
+- `server/services/billing_sync.py` - Stripe → DB synchronization
+- `server/services/grace_period.py` - Grace period logic (7 days)
+- `server/services/pricing.py` - Tier pricing matrix
+- `tests/billing/` - Comprehensive test suite (webhooks, sync, grace, pricing)
+
+**Endpoints:**
+- `POST /api/billing/webhook` - Stripe webhook receiver (HMAC verified)
+- `GET /api/billing/subscriptions` - Get user subscription + grace status
+- `POST /api/billing/portal` - Create customer portal session
+- `GET /api/billing/config` - Get billing config + tier pricing
+
+**Environment Variables:**
+```env
+STRIPE_SECRET_KEY=sk_test_placeholder
+STRIPE_WEBHOOK_SECRET=whsec_placeholder
+STRIPE_OBSERVER_PRICE_ID=price_observer_placeholder
+STRIPE_NAVIGATOR_PRICE_ID=price_navigator_placeholder
+STRIPE_OPERATOR_PRICE_ID=price_operator_placeholder
+STRIPE_SOVEREIGN_PRICE_ID=price_sovereign_placeholder
+FRONTEND_URL=http://localhost:3000
+GRACE_PERIOD_DAYS=7
+```
+
+**Security Features:**
+- ✅ HMAC signature verification via `stripe.Webhook.construct_event()`
+- ✅ Event deduplication prevents replay attacks
+- ✅ SHA256 payload hashing for audit integrity
+- ✅ No secrets logged (only payload hashes)
+
+**Testing:**
+```bash
+pytest server/tests/billing -v
+```
+
+**Deliverables:**
+- Migration: `5e54c7d1e999_phase14_billing_hardening.py` ✅
+- Inventory: `docs/deltas/billing_inventory.md` ✅
+- PR #XX merged ✅
+- CI job `billing-tests` added and passing ✅
+- Tag: `v12-billing-hardening` pushed ✅
+
+**Tag Command:**
+```bash
+git tag -a v12-billing-hardening -m "Phase 14: Pricing & Billing Hardening (Stripe, audit, grace period)"
+git push origin v12-billing-hardening
+```

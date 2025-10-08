@@ -406,8 +406,8 @@ app.include_router(
     prefix="/api",
     tags=["Rebalance Risk"]
 )
-app.include_router(billing_router, prefix="/api")
-app.include_router(stripe_router, prefix="/api")
+app.include_router(billing_router, prefix="/api/billing", tags=["Billing"])
+app.include_router(stripe_router, prefix="/api/billing")
 app.include_router(
     kucoin_router,
     prefix="/api/kucoin",
