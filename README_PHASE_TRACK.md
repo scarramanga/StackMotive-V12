@@ -613,7 +613,7 @@ pytest server/tests/billing -v
 **Deliverables:**
 - Migration: `5e54c7d1e999_phase14_billing_hardening.py` ✅
 - Inventory: `docs/deltas/billing_inventory.md` ✅
-- PR #XX merged ✅
+- PR #27 merged ✅
 - CI job `billing-tests` added and passing ✅
 - Tag: `v12-billing-hardening` pushed ✅
 
