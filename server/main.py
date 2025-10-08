@@ -18,6 +18,9 @@ from slowapi.errors import RateLimitExceeded
 from server.database import Base, engine
 from server.services.rate_limiter import limiter
 from server.routes.user import router as user_router, UserResponse, Token
+from server.routes.auth import router as auth_router
+from server.routes.onboarding import router as onboarding_router_new
+from server.routes.preferences import router as preferences_router_new
 from server.routes.paper_trading import router as paper_trading_router
 from server.routes.market_data import router as market_data_router
 from server.routes.strategy import router as strategy_router
@@ -81,6 +84,7 @@ from server.models.paper_trading import PaperTradingAccount
 from server.models.signal_models import TradingSignal, RebalanceAction
 
 from server.services.logging import setup_logging
+from server.config.settings import settings
 import os
 
 setup_logging(
@@ -169,18 +173,10 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-# Enable CORS for frontend (adjust if deployed)
+# Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174", 
-        "http://localhost:5175",
-        "http://localhost:5176",
-        "http://localhost:5177",
-        "http://localhost:5178",
-        "http://localhost:3000"
-    ],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -197,23 +193,28 @@ async def root():
         "status": "running"
     }
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "services": {
-            "billing": "active",
-            "stripe": "active",
-            "database": "connected"
-        }
-    }
-
 # Mount routers with tags
 app.include_router(
     health_router,
     prefix="/api"
+)
+
+app.include_router(
+    auth_router,
+    prefix="/api/auth",
+    tags=["Authentication"]
+)
+
+app.include_router(
+    onboarding_router_new,
+    prefix="/api/onboarding",
+    tags=["Onboarding"]
+)
+
+app.include_router(
+    preferences_router_new,
+    prefix="/api",
+    tags=["Preferences"]
 )
 
 app.include_router(
