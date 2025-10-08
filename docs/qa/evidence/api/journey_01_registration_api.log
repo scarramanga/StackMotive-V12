@@ -1,0 +1,25 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+*   Trying 127.0.0.1:8000...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to localhost (127.0.0.1) port 8000 (#0)
+> POST /api/auth/register HTTP/1.1
+> Host: localhost:8000
+> User-Agent: curl/7.81.0
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 85
+> 
+} [85 bytes data]
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 404 Not Found
+< date: Wed, 08 Oct 2025 22:31:15 GMT
+< server: uvicorn
+< content-length: 22
+< content-type: application/json
+< x-request-id: f0707759-330a-4879-bc89-7619397d4718
+< 
+{ [22 bytes data]
+100   107  100    22  100    85   4663  18019 --:--:-- --:--:-- --:--:-- 26750
+* Connection #0 to host localhost left intact
+{"detail":"Not Found"}
