@@ -44,7 +44,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const adapter = useBrokerAdapter(brokerMode);
   const [activeVaultId, setActiveVaultId] = useState<string | null>(typeof window === 'undefined' ? null : null);
   const [vaultList, setVaultList] = useState<Vault[]>([]);
-  const { getVaultsForSession } = useVaultAPI();
+  
+  const userId = '';
+  const { vaults, refreshVaults } = useVaultAPI(userId);
 
   // Block 14 Implementation: Calculate total equity (mock, USD only)
   const totalEquity = useMemo(() => {
@@ -75,30 +77,23 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Block 77 Implementation: SSR-safe vault switching and persistence
   useEffect(() => {
-    let ignore = false;
-    async function loadVaults() {
-      const vaults = await getVaultsForSession();
-      if (ignore) return;
+    if (vaults.length > 0 && vaultList !== vaults) {
       setVaultList(vaults);
-      if (vaults.length > 0) {
-        let initialVaultId: string | null = null;
-        if (typeof window !== 'undefined') {
-          initialVaultId = window.localStorage.getItem('activeVaultId');
-        }
-        if (!initialVaultId || !vaults.some(v => v.id === initialVaultId)) {
-          initialVaultId = vaults[0].id;
-        }
-        setActiveVaultId(initialVaultId);
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem('activeVaultId', initialVaultId!);
-        }
-      } else {
-        setActiveVaultId(null);
+      let initialVaultId: string | null = null;
+      if (typeof window !== 'undefined') {
+        initialVaultId = window.localStorage.getItem('activeVaultId');
       }
+      if (!initialVaultId || !vaults.some((v: Vault) => v.vault_id === initialVaultId)) {
+        initialVaultId = vaults[0].vault_id;
+      }
+      setActiveVaultId(initialVaultId);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('activeVaultId', initialVaultId!);
+      }
+    } else if (vaults.length === 0) {
+      setActiveVaultId(null);
     }
-    loadVaults();
-    return () => { ignore = true; };
-  }, [getVaultsForSession]);
+  }, [vaults]);
 
   // Block 77 Implementation: Persist vault switch to localStorage (SSR-safe)
   useEffect(() => {
@@ -108,7 +103,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [activeVaultId]);
 
   const fetchVaultsForSession = async () => {
-    const vaults = await getVaultsForSession();
+    await refreshVaults();
     setVaultList(vaults);
   };
 
@@ -140,4 +135,4 @@ export function usePortfolio() {
 }
 
 // Block 66 Implementation: Export PortfolioContext for use in hooks
-export { PortfolioContext }; 
+export { PortfolioContext };  
