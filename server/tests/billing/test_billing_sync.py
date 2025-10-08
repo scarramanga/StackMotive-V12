@@ -4,9 +4,9 @@ import sys
 import pytest
 from datetime import datetime, timedelta
 
-os.environ.setdefault("STACKMOTIVE_JWT_SECRET", "test-secret")
-os.environ.setdefault("DATABASE_URL", "postgresql://test:test@localhost:5432/test_db")
-os.environ.setdefault("STRIPE_NAVIGATOR_PRICE_ID", "price_nav_test")
+os.environ["STACKMOTIVE_JWT_SECRET"] = "test-secret"
+os.environ["DATABASE_URL"] = "postgresql://test:test@localhost:5432/test_db"
+os.environ["STRIPE_NAVIGATOR_PRICE_ID"] = "price_nav_test"
 
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.insert(0, repo_root)
