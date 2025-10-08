@@ -18,7 +18,7 @@ def get_user_id(token: str):
 
 @router.post("/start")
 def start_onboarding(token=Depends(auth), db: Session = Depends(get_db)):
-    uid = get_user_id(token.credentials)
+    uid = int(get_user_id(token.credentials))
     user = db.query(User).filter(User.id == uid).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -26,7 +26,7 @@ def start_onboarding(token=Depends(auth), db: Session = Depends(get_db)):
 
 @router.post("/complete")
 def complete_onboarding(token=Depends(auth), db: Session = Depends(get_db)):
-    uid = get_user_id(token.credentials)
+    uid = int(get_user_id(token.credentials))
     user = db.query(User).filter(User.id == uid).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

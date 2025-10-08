@@ -21,7 +21,7 @@ class Prefs(BaseModel):
 @router.get("/user-preferences", response_model=Prefs)
 def get_prefs(token=Depends(auth), db: Session = Depends(get_db)):
     try:
-        uid = uid_from(token.credentials)
+        uid = int(uid_from(token.credentials))
     except:
         return Prefs()
     return Prefs()
@@ -29,7 +29,7 @@ def get_prefs(token=Depends(auth), db: Session = Depends(get_db)):
 @router.put("/user-preferences", response_model=Prefs)
 def set_prefs(data: Prefs, token=Depends(auth), db: Session = Depends(get_db)):
     try:
-        uid = uid_from(token.credentials)
+        uid = int(uid_from(token.credentials))
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
     return data
