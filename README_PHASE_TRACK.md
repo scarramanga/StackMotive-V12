@@ -374,6 +374,74 @@ git push origin v12-user-preferences-notifications
 
 ---
 
+## ✅ Phase 11 Complete: Data Source Federation Integration
+
+**Summary:**
+Successfully implemented Phase 11 of the StackMotive project, adding a complete data source federation layer with source registry, staging tables, reconciliation engine, and on-demand sync orchestration.
+
+**Deliverables:**
+- server/services/federation_registry.py - Source registration and configuration management
+- server/services/ingest_pipeline.py - Idempotent data ingestion with content hashing
+- server/services/reconciliation_engine.py - Priority-based conflict resolution
+- server/services/scheduler.py - Sync orchestration helpers
+- server/routes/data_federation.py - Federation API endpoints (operator+)
+- server/migrations/versions/4e21f1a1fedc_phase11_federation_core.py - Federation schema
+- server/tests/federation/test_registry.py - Source registration tests
+- server/tests/federation/test_ingest_pipeline.py - Ingest and digest tests
+- server/tests/federation/test_reconciliation_engine.py - Reconciliation logic tests
+- server/tests/federation/test_federation_routes.py - API integration tests
+- server/tests/federation/test_ts_normalize.py - Timestamp normalization tests
+- .github/workflows/ci.yml - Added federation-tests job
+- server/.env.example - Federation environment variables
+
+**CI Status:**
+✅ All 10 jobs passing (includes `federation-tests`)
+
+**Git Status:**
+- PR #22 closed (superseded by PR #23)
+- PR #23 merged ✅  
+- Tag `v12-data-federation` pushed ✅  
+- Branch `fix/federation-ts-normalize` can be deleted
+
+**Code Changes:**
++1,840 lines added, 0 removed  
+
+**Key Technical Achievements:**
+- Multi-source data registry with priority-based authority (IBKR > KuCoin > CSV > Manual)
+- Idempotent staging layer with SHA256 content digests to prevent duplicate imports
+- Reconciliation engine with freshness-based conflict resolution (newest `as_of` wins)
+- PostgreSQL-only testing strategy with proper boolean handling
+- Robust timestamp normalization (`_iso8601` helper) for cross-driver compatibility
+- Tier-based access controls (operator+ for sync operations, navigator+ for viewing)
+- On-demand sync API with status tracking and conflict reporting
+- All tests use real PostgreSQL database via `get_db()` for production parity
+
+**Reconciliation Rules:**
+1. Priority wins (lower number = higher authority)
+2. If equal priority: freshest `as_of` timestamp wins
+3. If equal freshness: highest confidence source (IBKR > KuCoin > CSV > Manual)
+4. All conflicts logged to sync_runs.stats.conflicts[] for audit trail
+
+**Acceptance Criteria:**
+- ✅ CRUD operations on data_sources work with default priority applied
+- ✅ Idempotent ingest via federation_import_digests (same payload skipped)
+- ✅ Reconciliation produces deterministic canonical table updates
+- ✅ End-to-end: register sources → trigger sync → view status with counts & conflicts
+- ✅ All 10 CI jobs passing including federation-tests
+- ✅ PostgreSQL boolean handling (True/False, not 1/0)
+- ✅ Timestamp normalization handles datetime objects and string formats
+
+**What Changed for Users:**
+Users can now register multiple data sources (IBKR, KuCoin, CSV, Manual), trigger on-demand synchronization, and rely on the federation layer to automatically reconcile conflicts based on source priority, data freshness, and confidence levels. All imports are idempotent and fully auditable.
+
+**Tag Command:**
+```bash
+git tag -a v12-data-federation -m "Phase 11: Data Source Federation (registry, staging, reconciliation, sync API, CI)"
+git push origin v12-data-federation
+```
+
+---
+
 ## 🛡️ Phase 12 Plan: Governance & Branch Protection
 
 **Summary:**
@@ -403,4 +471,4 @@ git push origin v12-governance-lock
 
 Notes:
 - Every PR must include CI passes before merge.
-- Phases 1-10 complete; Phase 12 planned for future implementation.
+- Phases 1-11 complete; Phase 12 planned for future implementation.
