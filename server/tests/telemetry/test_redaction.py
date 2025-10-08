@@ -1,4 +1,13 @@
 """Test PII redaction in logs"""
+import os
+import sys
+
+os.environ.setdefault("STACKMOTIVE_JWT_SECRET", "test-secret")
+os.environ.setdefault("STACKMOTIVE_DEV_MODE", "true")
+
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, repo_root)
+
 import pytest
 from server.services.logging import redact_pii
 

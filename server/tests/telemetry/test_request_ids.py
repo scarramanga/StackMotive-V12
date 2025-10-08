@@ -1,4 +1,14 @@
 """Test request ID generation and propagation"""
+import os
+import sys
+
+os.environ.setdefault("STACKMOTIVE_JWT_SECRET", "test-secret")
+os.environ.setdefault("STACKMOTIVE_DEV_MODE", "true")
+os.environ.setdefault("DATABASE_URL", "postgresql://test:test@localhost:5432/test_db")
+
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, repo_root)
+
 import pytest
 from fastapi.testclient import TestClient
 from server.main import app

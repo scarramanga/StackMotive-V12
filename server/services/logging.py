@@ -43,30 +43,26 @@ class NoiseFilter(logging.Filter):
 
 
 PII_PATTERNS = [
+    # JWT tokens (check first - most specific)
+    (r"eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*", "[JWT_REDACTED]"),
+    # API keys (Stripe-style and similar - allow underscores, 16+ chars)
+    (r"sk_[a-zA-Z0-9_]{16,}", "[API_KEY_REDACTED]"),
+    (r"pk_[a-zA-Z0-9_]{16,}", "[API_KEY_REDACTED]"),
+    # Credit card numbers (16 digits with optional separators)
+    (r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b", "[CARD_REDACTED]"),
+    # Tax identifiers (exact format - before phone numbers)
+    (r"\b\d{3}[-\s]\d{3}[-\s]\d{3}\b", "[TFN_REDACTED]"),
+    (r"\b\d{2,3}-\d{3}-\d{3}\b", "[IRD_REDACTED]"),
     # Email addresses
     (r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "[EMAIL_REDACTED]"),
-    # Phone numbers (international format)
-    (r"\+?[1-9]\d{1,14}", "[PHONE_REDACTED]"),
-    # Credit card numbers (basic pattern)
-    (r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b", "[CARD_REDACTED]"),
-    # JWT tokens (basic pattern)
-    (r"eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*", "[JWT_REDACTED]"),
-    # API keys (common patterns)
-    (r"sk_[a-zA-Z0-9]{24,}", "[API_KEY_REDACTED]"),
-    (r"pk_[a-zA-Z0-9]{24,}", "[API_KEY_REDACTED]"),
+    # Phone numbers (international format - must start with +)
+    (r"\+\d{1,3}[\s-]?\d{3,14}", "[PHONE_REDACTED]"),
     # UUIDs (when used as sensitive identifiers)
-    (
-        r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b",
-        "[UUID_REDACTED]",
-    ),
-    # IRD numbers (New Zealand tax numbers)
-    (r"\b\d{2,3}-?\d{3}-?\d{3}\b", "[IRD_REDACTED]"),
-    # Australian TFN (Tax File Numbers)
-    (r"\b\d{3}[-\s]?\d{3}[-\s]?\d{3}\b", "[TFN_REDACTED]"),
-    # Generic sensitive data patterns
-    (r'password["\s]*[:=]["\s]*[^"\s,}]+', 'password": "[REDACTED]'),
-    (r'secret["\s]*[:=]["\s]*[^"\s,}]+', 'secret": "[REDACTED]'),
-    (r'token["\s]*[:=]["\s]*[^"\s,}]+', 'token": "[REDACTED]'),
+    (r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", "[UUID_REDACTED]"),
+    # JSON field patterns (must be quoted fields - after specific patterns)
+    (r'"password"\s*:\s*"[^"]*"', '"password": "[REDACTED]"'),
+    (r'"secret"\s*:\s*"[^"]*"', '"secret": "[REDACTED]"'),
+    (r'"token"\s*:\s*"[^"]*"', '"token": "[REDACTED]"'),
 ]
 
 
