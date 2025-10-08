@@ -5,7 +5,7 @@ import pytest
 from datetime import datetime, timedelta
 
 os.environ["STACKMOTIVE_JWT_SECRET"] = "test-secret"
-os.environ["DATABASE_URL"] = "postgresql://test:test@localhost:5432/test_db"
+os.environ["DATABASE_URL"] = "postgresql+psycopg://stackmotive:stackmotive@localhost:5432/stackmotive_ci"
 os.environ["STRIPE_NAVIGATOR_PRICE_ID"] = "price_nav_test"
 
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
