@@ -262,6 +262,9 @@ jobs:
         working-directory: client
         run: npm ci
       
+      - name: Install root dependencies (for Cypress)
+        run: npm ci
+      
       - name: Run server-side journey tests
         working-directory: server
         env:
