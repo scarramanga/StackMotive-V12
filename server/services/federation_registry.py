@@ -7,13 +7,40 @@ import os
 import logging
 import json
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
 FEDERATION_DEFAULT_PRIORITY = int(os.getenv("FEDERATION_DEFAULT_PRIORITY", "100"))
+
+
+def _iso8601(ts):
+    """
+    Normalize timestamp-like values to ISO 8601 string.
+    Accepts datetime (naive or aware), ISO string, or None.
+    Returns None if input is falsy.
+    """
+    if not ts:
+        return None
+    if isinstance(ts, datetime):
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        return ts.isoformat()
+    if isinstance(ts, str):
+        s = ts.strip()
+        s = s.replace(' ', 'T')
+        if s.endswith('Z'):
+            s = s[:-1] + '+00:00'
+        try:
+            dt = datetime.fromisoformat(s)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.isoformat()
+        except Exception:
+            return s
+    return str(ts)
 
 REQUIRED_CONFIG_KEYS = {
     "ibkr_flex": ["flex_token", "flex_query_id"],
@@ -58,8 +85,8 @@ def list_sources(db: Session, user_id: int) -> List[Dict[str, Any]]:
             "priority": row.priority,
             "enabled": row.enabled,
             "config": config,
-            "created_at": row.created_at.isoformat() if row.created_at else None,
-            "updated_at": row.updated_at.isoformat() if row.updated_at else None
+            "created_at": _iso8601(row.created_at),
+            "updated_at": _iso8601(row.updated_at)
         })
     
     return sources
@@ -134,8 +161,8 @@ def register_source(
             "priority": row.priority,
             "enabled": row.enabled,
             "config": returned_config,
-            "created_at": row.created_at.isoformat() if row.created_at else None,
-            "updated_at": row.updated_at.isoformat() if row.updated_at else None
+            "created_at": _iso8601(row.created_at),
+            "updated_at": _iso8601(row.updated_at)
         }
         
     except Exception as e:
@@ -233,6 +260,6 @@ def update_source_config(
         "priority": row.priority,
         "enabled": row.enabled,
         "config": returned_config,
-        "created_at": row.created_at.isoformat() if row.created_at else None,
-        "updated_at": row.updated_at.isoformat() if row.updated_at else None
+        "created_at": _iso8601(row.created_at),
+        "updated_at": _iso8601(row.updated_at)
     }
