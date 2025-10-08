@@ -273,10 +273,9 @@ jobs:
         run: pytest tests/e2e/ -v --maxfail=1
       
       - name: Run client-side journey tests
-        working-directory: client
         run: |
-          npm run build
-          npm run cypress:run -- --spec "cypress/e2e/journey_*.cy.ts" --browser chrome --headless
+          cd client && npm run build && cd ..
+          npm run cypress:run -- --spec "client/cypress/e2e/journey_*.cy.ts" --browser chrome --headless
       
       - name: Upload journey test results
         if: always()
