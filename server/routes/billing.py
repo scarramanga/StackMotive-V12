@@ -12,7 +12,7 @@ from server.services.grace_period import check_grace_period
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/billing", tags=["Billing"])
+router = APIRouter(tags=["Billing"])
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 

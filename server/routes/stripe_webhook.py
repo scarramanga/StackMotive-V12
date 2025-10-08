@@ -13,7 +13,7 @@ from server.services.billing_sync import sync_subscription_to_db
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["Billing"], prefix="/api/billing")
+router = APIRouter(tags=["Billing"])
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
