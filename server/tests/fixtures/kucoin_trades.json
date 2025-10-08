@@ -1,0 +1,188 @@
+{
+  "account_name": "KuCoin Trading",
+  "broker": "KuCoin",
+  "currency": "USDT",
+  "trades": [
+    {
+      "trade_id": "kc_001",
+      "symbol": "BTC/USDT",
+      "side": "buy",
+      "quantity": 0.5,
+      "price": 42000.00,
+      "total": 21000.00,
+      "fee": 21.00,
+      "timestamp": "2024-01-15T10:30:00Z",
+      "order_type": "market"
+    },
+    {
+      "trade_id": "kc_002",
+      "symbol": "BTC/USDT",
+      "side": "sell",
+      "quantity": 0.5,
+      "price": 45500.00,
+      "total": 22750.00,
+      "fee": 22.75,
+      "timestamp": "2024-02-20T14:15:00Z",
+      "order_type": "limit",
+      "realized_pnl": 1706.25
+    },
+    {
+      "trade_id": "kc_003",
+      "symbol": "ETH/USDT",
+      "side": "buy",
+      "quantity": 10,
+      "price": 2200.00,
+      "total": 22000.00,
+      "fee": 22.00,
+      "timestamp": "2024-01-20T09:00:00Z",
+      "order_type": "market"
+    },
+    {
+      "trade_id": "kc_004",
+      "symbol": "ETH/USDT",
+      "side": "sell",
+      "quantity": 10,
+      "price": 2450.00,
+      "total": 24500.00,
+      "fee": 24.50,
+      "timestamp": "2024-03-10T16:45:00Z",
+      "order_type": "limit",
+      "realized_pnl": 2453.50
+    },
+    {
+      "trade_id": "kc_005",
+      "symbol": "SOL/USDT",
+      "side": "buy",
+      "quantity": 100,
+      "price": 95.00,
+      "total": 9500.00,
+      "fee": 9.50,
+      "timestamp": "2024-02-01T11:20:00Z",
+      "order_type": "market"
+    },
+    {
+      "trade_id": "kc_006",
+      "symbol": "SOL/USDT",
+      "side": "sell",
+      "quantity": 50,
+      "price": 108.00,
+      "total": 5400.00,
+      "fee": 5.40,
+      "timestamp": "2024-03-15T13:30:00Z",
+      "order_type": "limit",
+      "realized_pnl": 644.10
+    },
+    {
+      "trade_id": "kc_007",
+      "symbol": "MATIC/USDT",
+      "side": "buy",
+      "quantity": 500,
+      "price": 0.85,
+      "total": 425.00,
+      "fee": 0.43,
+      "timestamp": "2024-01-25T08:00:00Z",
+      "order_type": "market"
+    },
+    {
+      "trade_id": "kc_008",
+      "symbol": "MATIC/USDT",
+      "side": "sell",
+      "quantity": 500,
+      "price": 0.92,
+      "total": 460.00,
+      "fee": 0.46,
+      "timestamp": "2024-02-28T17:00:00Z",
+      "order_type": "limit",
+      "realized_pnl": 34.11
+    },
+    {
+      "trade_id": "kc_009",
+      "symbol": "AVAX/USDT",
+      "side": "buy",
+      "quantity": 50,
+      "price": 36.00,
+      "total": 1800.00,
+      "fee": 1.80,
+      "timestamp": "2024-02-10T12:00:00Z",
+      "order_type": "market"
+    },
+    {
+      "trade_id": "kc_010",
+      "symbol": "AVAX/USDT",
+      "side": "sell",
+      "quantity": 50,
+      "price": 42.50,
+      "total": 2125.00,
+      "fee": 2.13,
+      "timestamp": "2024-03-20T10:30:00Z",
+      "order_type": "limit",
+      "realized_pnl": 321.07
+    },
+    {
+      "trade_id": "kc_011",
+      "symbol": "LINK/USDT",
+      "side": "buy",
+      "quantity": 200,
+      "price": 15.50,
+      "total": 3100.00,
+      "fee": 3.10,
+      "timestamp": "2024-01-30T14:45:00Z",
+      "order_type": "market"
+    },
+    {
+      "trade_id": "kc_012",
+      "symbol": "LINK/USDT",
+      "side": "sell",
+      "quantity": 100,
+      "price": 17.80,
+      "total": 1780.00,
+      "fee": 1.78,
+      "timestamp": "2024-03-05T09:15:00Z",
+      "order_type": "limit",
+      "realized_pnl": 223.12
+    },
+    {
+      "trade_id": "kc_013",
+      "symbol": "DOT/USDT",
+      "side": "buy",
+      "quantity": 150,
+      "price": 7.20,
+      "total": 1080.00,
+      "fee": 1.08,
+      "timestamp": "2024-02-05T10:00:00Z",
+      "order_type": "market"
+    },
+    {
+      "trade_id": "kc_014",
+      "symbol": "DOT/USDT",
+      "side": "sell",
+      "quantity": 150,
+      "price": 8.10,
+      "total": 1215.00,
+      "fee": 1.22,
+      "timestamp": "2024-03-12T15:20:00Z",
+      "order_type": "limit",
+      "realized_pnl": 132.70
+    },
+    {
+      "trade_id": "kc_015",
+      "symbol": "UNI/USDT",
+      "side": "buy",
+      "quantity": 80,
+      "price": 6.50,
+      "total": 520.00,
+      "fee": 0.52,
+      "timestamp": "2024-02-15T11:30:00Z",
+      "order_type": "market"
+    }
+  ],
+  "summary": {
+    "total_trades": 15,
+    "total_volume": 91435.00,
+    "total_fees": 116.17,
+    "realized_pnl": 5514.85,
+    "win_rate": 0.857,
+    "average_trade_size": 6095.67
+  },
+  "import_timestamp": "2024-10-08T05:00:00Z"
+}

@@ -1,0 +1,115 @@
+{
+  "portfolio_name": "IBKR Main Account",
+  "account_number": "U123456",
+  "broker": "IBKR",
+  "currency": "USD",
+  "total_value": 127550.00,
+  "cash_balance": 12500.00,
+  "positions": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "quantity": 50,
+      "average_cost": 175.50,
+      "current_price": 195.25,
+      "market_value": 9762.50,
+      "unrealized_pnl": 987.50,
+      "unrealized_pnl_pct": 11.23,
+      "asset_class": "stocks",
+      "sector": "Technology"
+    },
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft Corporation",
+      "quantity": 40,
+      "average_cost": 325.00,
+      "current_price": 378.50,
+      "market_value": 15140.00,
+      "unrealized_pnl": 2140.00,
+      "unrealized_pnl_pct": 16.46,
+      "asset_class": "stocks",
+      "sector": "Technology"
+    },
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA Corporation",
+      "quantity": 30,
+      "average_cost": 450.00,
+      "current_price": 485.75,
+      "market_value": 14572.50,
+      "unrealized_pnl": 1072.50,
+      "unrealized_pnl_pct": 7.94,
+      "asset_class": "stocks",
+      "sector": "Technology"
+    },
+    {
+      "symbol": "TSLA",
+      "name": "Tesla Inc.",
+      "quantity": 25,
+      "average_cost": 240.00,
+      "current_price": 265.80,
+      "market_value": 6645.00,
+      "unrealized_pnl": 645.00,
+      "unrealized_pnl_pct": 10.75,
+      "asset_class": "stocks",
+      "sector": "Consumer Cyclical"
+    },
+    {
+      "symbol": "SPY",
+      "name": "SPDR S&P 500 ETF Trust",
+      "quantity": 100,
+      "average_cost": 450.00,
+      "current_price": 475.50,
+      "market_value": 47550.00,
+      "unrealized_pnl": 2550.00,
+      "unrealized_pnl_pct": 5.67,
+      "asset_class": "etf",
+      "sector": "Broad Market"
+    },
+    {
+      "symbol": "TLT",
+      "name": "iShares 20+ Year Treasury Bond ETF",
+      "quantity": 75,
+      "average_cost": 95.00,
+      "current_price": 92.40,
+      "market_value": 6930.00,
+      "unrealized_pnl": -195.00,
+      "unrealized_pnl_pct": -2.74,
+      "asset_class": "bonds",
+      "sector": "Government Bonds"
+    },
+    {
+      "symbol": "GLD",
+      "name": "SPDR Gold Shares",
+      "quantity": 50,
+      "average_cost": 185.00,
+      "current_price": 195.00,
+      "market_value": 9750.00,
+      "unrealized_pnl": 500.00,
+      "unrealized_pnl_pct": 5.41,
+      "asset_class": "commodities",
+      "sector": "Precious Metals"
+    },
+    {
+      "symbol": "VNQ",
+      "name": "Vanguard Real Estate ETF",
+      "quantity": 60,
+      "average_cost": 80.00,
+      "current_price": 85.00,
+      "market_value": 5100.00,
+      "unrealized_pnl": 300.00,
+      "unrealized_pnl_pct": 6.25,
+      "asset_class": "real_estate",
+      "sector": "Real Estate"
+    }
+  ],
+  "performance_metrics": {
+    "total_return": 7995.00,
+    "total_return_pct": 6.69,
+    "day_change": 425.50,
+    "day_change_pct": 0.33,
+    "ytd_return": 8250.00,
+    "ytd_return_pct": 6.90
+  },
+  "import_timestamp": "2024-10-08T05:00:00Z"
+}

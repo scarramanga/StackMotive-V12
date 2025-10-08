@@ -1,0 +1,16 @@
+Symbol,Quantity,Average Cost,Current Price,Asset Class,Sector
+AAPL,50,175.50,195.25,stocks,Technology
+MSFT,40,325.00,378.50,stocks,Technology
+GOOGL,25,140.00,148.75,stocks,Technology
+AMZN,30,145.00,155.20,stocks,Consumer Cyclical
+TSLA,25,240.00,265.80,stocks,Consumer Cyclical
+JPM,60,150.00,165.40,stocks,Financial
+BRK.B,35,380.00,395.50,stocks,Financial
+JNJ,45,165.00,158.90,stocks,Healthcare
+PFE,80,35.00,28.50,stocks,Healthcare
+XOM,70,105.00,112.30,stocks,Energy
+CVX,55,155.00,162.80,stocks,Energy
+SPY,100,450.00,475.50,etf,Broad Market
+QQQ,75,385.00,412.75,etf,Technology
+TLT,75,95.00,92.40,bonds,Government Bonds
+GLD,50,185.00,195.00,commodities,Precious Metals
