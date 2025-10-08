@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { getSupabaseClient } from '../lib/initSupabase';
 import { getAccessToken, setAccessToken, clearAccessToken } from '../lib/auth';
 
@@ -25,13 +25,26 @@ export function useSession(): SessionState {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = getSupabaseClient();
+  const supabase = useMemo(() => getSupabaseClient(), []);
 
   // Restore session on mount
   useEffect(() => {
     let ignore = false;
     async function restore() {
       setLoading(true);
+      
+      const url = import.meta.env.VITE_SUPABASE_URL || '';
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+      if (!url || !key || url === '' || key === '') {
+        console.info('[useSession] No Supabase credentials - skipping auth check');
+        if (!ignore) {
+          setUser(null);
+          setError(null);
+          setLoading(false);
+        }
+        return;
+      }
+      
       try {
         const { data, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) throw sessionError;
@@ -42,7 +55,7 @@ export function useSession(): SessionState {
           const role = (supaUser.user_metadata?.role || supaUser.app_metadata?.role || 'observer') as UserRole;
           const userObj: SessionUser = {
             id: supaUser.id,
-            email: supaUser.email,
+            email: supaUser.email || '',
             role,
             metadata: supaUser.user_metadata,
           };
@@ -71,7 +84,7 @@ export function useSession(): SessionState {
         setAccessToken(data.session.access_token);
         const { user: supaUser } = data.session;
         const role = (supaUser.user_metadata?.role || supaUser.app_metadata?.role || 'observer') as UserRole;
-        setUser({ id: supaUser.id, email: supaUser.email, role, metadata: supaUser.user_metadata });
+        setUser({ id: supaUser.id, email: supaUser.email || '', role, metadata: supaUser.user_metadata });
       } else {
         setUser(null);
       }
@@ -101,7 +114,7 @@ export function useSession(): SessionState {
         setAccessToken(data.session.access_token);
         const { user: supaUser } = data.session;
         const role = (supaUser.user_metadata?.role || supaUser.app_metadata?.role || 'observer') as UserRole;
-        setUser({ id: supaUser.id, email: supaUser.email, role, metadata: supaUser.user_metadata });
+        setUser({ id: supaUser.id, email: supaUser.email || '', role, metadata: supaUser.user_metadata });
       }
       setError(null);
     } catch (e: any) {
@@ -113,4 +126,4 @@ export function useSession(): SessionState {
   }, [supabase]);
 
   return { user, loading, error, login, logout, refresh };
-} 
+}        

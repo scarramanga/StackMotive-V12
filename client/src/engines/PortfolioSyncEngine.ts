@@ -20,6 +20,41 @@ import {
   SyncIssue
 } from '../types/portfolioSyncEngine';
 
+export function parseCSV(csv: string, mapping: any): any[] {
+  const lines = csv.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const values = line.split(',').map(v => v.trim());
+    const row: any = {};
+    headers.forEach((header, i) => {
+      row[header] = values[i] || '';
+    });
+    return row;
+  });
+}
+
+export function validatePortfolio(data: any[]): string[] {
+  const errors: string[] = [];
+  if (!data || data.length === 0) {
+    errors.push('Portfolio data is empty');
+  }
+  return errors;
+}
+
+export function normalizePortfolio(data: any[], source: string, syncJobId: string): any {
+  return {
+    holdings: data,
+    source,
+    syncJobId,
+    timestamp: new Date().toISOString()
+  };
+}
+
+export function logSyncJob(job: any): void {
+  console.log('[Portfolio Sync]', job);
+}
+
 export class PortfolioSyncEngineManager {
   private static instance: PortfolioSyncEngineManager;
   private engines: Map<string, PortfolioSyncEngine> = new Map();
@@ -982,4 +1017,4 @@ interface SyncStep {
   type: 'connect_broker' | 'sync_data' | 'validate';
   brokerId: string | null;
   dataType: SyncDataType | null;
-} 
+}  

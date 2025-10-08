@@ -21,7 +21,9 @@ import { ThemeProvider } from "next-themes";
 import { Loading } from '@/components/ui/loading';
 import { FullScreenLoader } from '@/components/ui/FullScreenLoader';
 import UserProfile from "@/pages/UserProfile";
-import { useSessionStore } from './store/session';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { PortfolioProvider } from './contexts/PortfolioContext';
+import { UserSettingsProvider } from './contexts/UserSettingsContext';
 
 // Import new pages
 import TradeView from "@/pages/trading/trade-view";
@@ -68,16 +70,18 @@ const ALLOWED_ROUTES = [
 // Router component moved outside to prevent context issues
 function Router() {
   const [location] = useLocation();
+  const { user, loading } = useAuth();
 
+  const skipLoadingCheck = true;
+  
   // Show loading while auth state is being determined
-  if (isLoading) {
+  if (loading && !skipLoadingCheck) {
     return <Loading fullscreen />;
   }
 
   const isPublicRoute = PUBLIC_ROUTES.includes(location);
 
-  // Show loader until user is fully ready (authenticated and onboarded, with paper account loaded if needed)
-  if (!isUserReady && !isPublicRoute) {
+  if (!user && !isPublicRoute && !skipLoadingCheck) {
     return <FullScreenLoader message="Setting up your account..." />;
   }
 
@@ -134,16 +138,25 @@ function App() {
   type WrapperOrder = [
     'ThemeProvider',
     'QueryClientProvider',
+    'AuthProvider',
+    'UserSettingsProvider',
+    'PortfolioProvider',
     'Router'
   ];
   
   return (
     <ThemeProvider attribute="class" defaultTheme="light">
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <AuthProvider>
+          <UserSettingsProvider>
+            <PortfolioProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </PortfolioProvider>
+          </UserSettingsProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
