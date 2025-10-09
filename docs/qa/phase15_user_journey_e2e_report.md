@@ -17,7 +17,7 @@ This report documents the E2E evidence collection for all 11 user journeys in St
 - **Database:** PostgreSQL 16 on port 5433
 - **Cache:** Redis 7 on port 6380
 - **Backend:** FastAPI on port 8001 (Python 3.11-slim)
-- **Frontend:** Vite preview mode on port 5174 (Node 20-alpine)
+- **Frontend:** Vite preview mode on port 5174 (Node 20-slim with Playwright system dependencies)
 
 **Key Infrastructure Changes:**
 - Replit plugin made dev-only to enable production builds
@@ -178,23 +178,25 @@ docs/qa/evidence/phase15/journeys/
 - ✅ Playwright script created
 - ✅ Evidence directory structure created
 
-### Evidence Capture (Pending Execution)
-- ⏳ Journey 7 screenshots to be captured on next run
-- ⏳ Journey 8 screenshots to be captured on next run
-- ⏳ Journey 9 screenshots to be captured on next run
+### Evidence Capture (Completed)
+- ✅ Journey 7 screenshots captured successfully
+- ✅ Journey 8 screenshots captured successfully
+- ✅ Journey 9 screenshots captured successfully
 
 ### Documentation
 - ✅ E2E report created
 - ✅ Implementation report updated
 - ✅ README with E2E runtime guide
 
-## Next Steps
+## Completion Status
 
-1. Bring up E2E stack: `docker compose -f docker-compose.e2e.yml up -d`
-2. Run Playwright: `docker compose -f docker-compose.e2e.yml exec frontend npm run e2e:snap`
-3. Verify evidence artifacts are generated
-4. Commit evidence screenshots to repository
-5. Update meta issue #81 with evidence links
+All evidence has been successfully captured and committed to the repository:
+
+1. ✅ E2E stack brought up with node:20-slim base image
+2. ✅ Playwright system dependencies installed automatically
+3. ✅ Evidence screenshots captured at 1440×900 resolution
+4. ✅ Evidence artifacts committed to repository
+5. ⏳ Meta issue #81 to be updated with evidence links
 
 ## Conclusion
 
