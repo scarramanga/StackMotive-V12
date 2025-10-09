@@ -7,7 +7,8 @@
     "dev": "vite --port 5173 --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --port 3000 --host 0.0.0.0",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "e2e:snap": "node scripts/evidence-screens.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -86,10 +87,11 @@
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.2.0",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
-    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.3",
     "@types/node": "20.16.11",
     "@types/react": "^18.3.11",
-    "@types/react-dom": "^18.3.1"
+    "@types/react-dom": "^18.3.1",
+    "playwright": "^1.40.0"
   }
 }

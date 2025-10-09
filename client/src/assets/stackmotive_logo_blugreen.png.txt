@@ -1,0 +1,2 @@
+PLACEHOLDER: This is a temporary text file standing in for the missing logo.
+For evidence capture only. Replace with actual logo file in production.

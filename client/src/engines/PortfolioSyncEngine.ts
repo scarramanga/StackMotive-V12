@@ -982,4 +982,51 @@ interface SyncStep {
   type: 'connect_broker' | 'sync_data' | 'validate';
   brokerId: string | null;
   dataType: SyncDataType | null;
+}
+
+export type PortfolioRow = { symbol?: string; qty?: number; price?: number };
+
+export async function parseCSV(input: File | string): Promise<PortfolioRow[]> {
+  try {
+    if (typeof input === "string") {
+      const lines = input.split(/\r?\n/).filter(Boolean);
+      if (lines.length <= 1) return [];
+      const header = lines.shift()!.split(",").map(h => h.trim().toLowerCase());
+      const symIdx = header.indexOf("symbol");
+      const qtyIdx = header.indexOf("qty");
+      const priceIdx = header.indexOf("price");
+      return lines.map(l => {
+        const c = l.split(",");
+        return {
+          symbol: c[symIdx]?.trim(),
+          qty: qtyIdx >= 0 ? Number(c[qtyIdx]) : undefined,
+          price: priceIdx >= 0 ? Number(c[priceIdx]) : undefined,
+        };
+      });
+    }
+  } catch (_e) { /* noop */ }
+  return [];
+}
+
+export function validatePortfolio(rows: PortfolioRow[]): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  for (const [i, r] of (rows || []).entries()) {
+    if (!r?.symbol) errors.push(`row ${i + 1}: missing symbol`);
+    if (r?.qty !== undefined && Number.isNaN(Number(r.qty))) errors.push(`row ${i + 1}: qty not a number`);
+  }
+  return { valid: errors.length === 0, errors };
+}
+
+export function normalizePortfolio(rows: PortfolioRow[]): PortfolioRow[] {
+  return (rows || []).map(r => ({
+    ...r,
+    symbol: r?.symbol ? String(r.symbol).toUpperCase() : r?.symbol
+  }));
+}
+
+export function logSyncJob(message: string, extra?: Record<string, unknown>): void {
+  try {
+    // eslint-disable-next-line no-console
+    console.info("[PortfolioSyncEngine]", message, extra ?? {});
+  } catch { /* noop */ }
 } 

@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import logoImage from '@assets/stackmotive_logo_blugreen.png';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import OnboardingModal from '@/components/OnboardingModal';
 
@@ -43,13 +42,7 @@ export function Header({ showMenuButton = true }: HeaderProps) {
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            {/* Official StackMotive logo */}
-            <img
-              src={logoImage}
-              alt="StackMotive"
-              className="w-12 h-12 object-contain"
-            />
-            <span className="ml-2 font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+            <span className="font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
               StackMotive
             </span>
           </Link>
@@ -129,13 +122,7 @@ export function Header({ showMenuButton = true }: HeaderProps) {
                 <SheetHeader className="border-b pb-4 mb-4">
                   <SheetTitle className="text-xl">
                     <div className="flex items-center">
-                      {/* Official StackMotive logo in menu */}
-                      <img
-                        src={logoImage}
-                        alt="StackMotive"
-                        className="w-8 h-8 object-contain"
-                      />
-                      <span className="ml-2 font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+                      <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
                         StackMotive Menu
                       </span>
                     </div>
