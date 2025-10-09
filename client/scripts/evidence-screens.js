@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 
 const EVIDENCE_DIR = join(__dirname, '../../docs/qa/evidence/phase15/journeys');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5174';
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8001';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:8000';
 
 mkdirSync(EVIDENCE_DIR, { recursive: true });
 
@@ -59,10 +59,16 @@ async function captureJourney7(page, token) {
   
   try {
     await page.waitForSelector('#root:has(div[data-testid="portfolio"])', { timeout: 15000 });
-    console.log('Portfolio content loaded');
-  } catch (e) {
-    console.log('Portfolio testid not found, using timeout fallback');
-    await page.waitForTimeout(5000);
+    console.log('Portfolio testid found');
+  } catch {
+    console.log('Portfolio testid not found, waiting for React content to render...');
+    try {
+      await page.waitForSelector('#root:has(div:not([class*="loading"]))', { timeout: 20000 });
+      console.log('React content rendered');
+    } catch {
+      console.log('Fallback: waiting 20s for page to fully load...');
+      await page.waitForTimeout(20000);
+    }
   }
   
   const apiResponse = await fetch(`${BACKEND_URL}/api/portfolio/holdings`, {
@@ -89,10 +95,16 @@ async function captureJourney8(page, token) {
   
   try {
     await page.waitForSelector('#root:has(div[data-testid="reports"])', { timeout: 15000 });
-    console.log('Reports content loaded');
-  } catch (e) {
-    console.log('Reports testid not found, using timeout fallback');
-    await page.waitForTimeout(5000);
+    console.log('Reports testid found');
+  } catch {
+    console.log('Reports testid not found, waiting for React content to render...');
+    try {
+      await page.waitForSelector('#root:has(div:not([class*="loading"]))', { timeout: 20000 });
+      console.log('React content rendered');
+    } catch {
+      console.log('Fallback: waiting 20s for page to fully load...');
+      await page.waitForTimeout(20000);
+    }
   }
   
   try {
@@ -155,10 +167,16 @@ async function captureJourney9(page, token) {
   
   try {
     await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
-    console.log('Dashboard content loaded');
-  } catch (e) {
-    console.log('Dashboard testid not found, using timeout fallback');
-    await page.waitForTimeout(5000);
+    console.log('Dashboard testid found');
+  } catch {
+    console.log('Dashboard testid not found, waiting for React content to render...');
+    try {
+      await page.waitForSelector('#root:has(div:not([class*="loading"]))', { timeout: 20000 });
+      console.log('React content rendered');
+    } catch {
+      console.log('Fallback: waiting 20s for page to fully load...');
+      await page.waitForTimeout(20000);
+    }
   }
   
   try {
