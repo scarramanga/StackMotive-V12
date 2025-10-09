@@ -86,12 +86,7 @@ const Login: React.FC = () => {
     }
   };
 
-  // Show loading only when checking initial auth state
-  if (!user && !isLoginPending && !isDemoLoginPending) {
-    return <Loading fullscreen message="Checking authentication..." />;
-  }
-
-  // Always show the login form if we're not loading and don't have a user
+  // Always show the login form on /login page
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">

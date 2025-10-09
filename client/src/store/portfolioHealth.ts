@@ -1,5 +1,5 @@
 // Block 31: Portfolio Health Score
-import * as create from 'zustand';
+import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { PortfolioHealthResult, PortfolioHealthBreakdown } from '../utils/diagnostics';
 import { calculatePortfolioHealth } from '../utils/diagnostics';
@@ -12,7 +12,7 @@ export interface PortfolioHealthState {
   recalculateHealthScore: (params: Parameters<typeof calculatePortfolioHealth>[0], onAutoRebalance?: () => void) => void;
 }
 
-export const usePortfolioHealthStore = (create as any)<PortfolioHealthState>()(
+export const usePortfolioHealthStore = create<PortfolioHealthState>()(
   persist(
     (set) => ({
       healthScore: 100,
@@ -30,4 +30,4 @@ export const usePortfolioHealthStore = (create as any)<PortfolioHealthState>()(
     }),
     { name: 'portfolio-health' }
   )
-); 
+);   

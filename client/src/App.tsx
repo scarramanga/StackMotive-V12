@@ -20,7 +20,9 @@ import Education from "@/pages/education";
 import { ThemeProvider } from "next-themes";
 import { Loading } from '@/components/ui/loading';
 import { FullScreenLoader } from '@/components/ui/FullScreenLoader';
+import { TierPreviewBanner } from '@/components/tier/TierPreviewBanner';
 import UserProfile from "@/pages/UserProfile";
+import MagicLinkVerify from "@/pages/MagicLinkVerify";
 import { useSessionStore } from './store/session';
 
 // Import new pages
@@ -68,24 +70,23 @@ const ALLOWED_ROUTES = [
 // Router component moved outside to prevent context issues
 function Router() {
   const [location] = useLocation();
-
-  // Show loading while auth state is being determined
-  if (isLoading) {
-    return <Loading fullscreen />;
-  }
+  const user = useSessionStore(s => s.user);
 
   const isPublicRoute = PUBLIC_ROUTES.includes(location);
 
-  // Show loader until user is fully ready (authenticated and onboarded, with paper account loaded if needed)
-  if (!isUserReady && !isPublicRoute) {
-    return <FullScreenLoader message="Setting up your account..." />;
+  // Show loader if user is not authenticated and trying to access protected route
+  if (!user && !isPublicRoute) {
+    return <FullScreenLoader message="Loading..." />;
   }
 
   // All redirection logic is now handled by the AuthProvider
   // Router just renders the routes
   return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
+    <>
+      <TierPreviewBanner />
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/login/magic" component={MagicLinkVerify} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
@@ -125,7 +126,8 @@ function Router() {
       <Route path="/test-routes" component={TestRoutesPage} />
       <Route path="/debug-navigation" component={DebugNavigationPage} />
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </>
   );
 }
 

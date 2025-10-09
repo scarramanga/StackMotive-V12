@@ -8,6 +8,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
+    username = Column(String(64), nullable=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)  # Admin flag
@@ -21,6 +22,8 @@ class User(Base):
     preferred_currency = Column(String, default='USD')
     
     subscription_tier = Column(String, default='observer')
+    preview_tier = Column(String, nullable=True)
+    preview_expires_at = Column(DateTime(timezone=True), nullable=True)
     stripe_customer_id = Column(String, nullable=True)
     stripe_subscription_id = Column(String, nullable=True)
     

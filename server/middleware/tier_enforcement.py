@@ -86,11 +86,24 @@ def get_required_tier(route: str) -> str:
 async def get_effective_tier(user_id: str, db: Session) -> str:
     """
     Get the effective tier for a user.
-    Simplified version without Redis tourism sessions.
+    Checks preview tier first, then regular subscription tier.
     """
     try:
         user = db.query(User).filter(User.id == user_id).first()
-        if user and user.subscription_tier:
+        if not user:
+            return "observer"
+        
+        if user.preview_tier and user.preview_expires_at:
+            from datetime import datetime
+            if datetime.utcnow() < user.preview_expires_at:
+                logger.info(f"User {user_id} using preview tier: {user.preview_tier}")
+                return user.preview_tier.lower()
+            else:
+                user.preview_tier = None
+                user.preview_expires_at = None
+                db.commit()
+        
+        if user.subscription_tier:
             return user.subscription_tier.lower()
         
         return "observer"

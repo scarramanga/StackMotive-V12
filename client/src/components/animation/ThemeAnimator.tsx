@@ -1,6 +1,6 @@
 // Block 111 Implementation
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 interface ThemeAnimatorProps {
@@ -8,7 +8,13 @@ interface ThemeAnimatorProps {
 }
 
 export const ThemeAnimator: React.FC<ThemeAnimatorProps> = ({ children }) => {
-  const location = useLocation();
+  const location = (() => {
+    try {
+      return useLocation();
+    } catch {
+      return ['/', () => {}] as ReturnType<typeof useLocation>;
+    }
+  })();
   const [mounted, setMounted] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
@@ -36,7 +42,7 @@ export const ThemeAnimator: React.FC<ThemeAnimatorProps> = ({ children }) => {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
-        key={location.pathname}
+        key={location[0] || 'fallback'}
         initial="initial"
         animate="animate"
         exit="exit"
@@ -49,4 +55,4 @@ export const ThemeAnimator: React.FC<ThemeAnimatorProps> = ({ children }) => {
     </AnimatePresence>
   );
 };
-// Block 111 Implementation 
+// Block 111 Implementation    
