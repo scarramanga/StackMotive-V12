@@ -22,6 +22,8 @@ class User(Base):
     preferred_currency = Column(String, default='USD')
     
     subscription_tier = Column(String, default='observer')
+    preview_tier = Column(String, nullable=True)
+    preview_expires_at = Column(DateTime(timezone=True), nullable=True)
     stripe_customer_id = Column(String, nullable=True)
     stripe_subscription_id = Column(String, nullable=True)
     

@@ -20,7 +20,9 @@ import Education from "@/pages/education";
 import { ThemeProvider } from "next-themes";
 import { Loading } from '@/components/ui/loading';
 import { FullScreenLoader } from '@/components/ui/FullScreenLoader';
+import { TierPreviewBanner } from '@/components/tier/TierPreviewBanner';
 import UserProfile from "@/pages/UserProfile";
+import MagicLinkVerify from "@/pages/MagicLinkVerify";
 import { useSessionStore } from './store/session';
 
 // Import new pages
@@ -80,8 +82,11 @@ function Router() {
   // All redirection logic is now handled by the AuthProvider
   // Router just renders the routes
   return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
+    <>
+      <TierPreviewBanner />
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/login/magic" component={MagicLinkVerify} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
@@ -121,7 +126,8 @@ function Router() {
       <Route path="/test-routes" component={TestRoutesPage} />
       <Route path="/debug-navigation" component={DebugNavigationPage} />
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </>
   );
 }
 

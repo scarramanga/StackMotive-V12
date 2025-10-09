@@ -65,6 +65,8 @@ from server.routes.kucoin import router as kucoin_router
 from server.routes.ibkr_import import router as ibkr_import_router
 from server.routes.strategy_panel import router as strategy_panel_router
 from server.routes.ai_summaries import router as ai_summaries_router
+from server.routes.ai_commands import router as ai_commands_router
+from server.routes.tier_preview import router as tier_preview_router
 from server.routes.export_snapshot import router as export_snapshot_router
 from server.routes.vault_push import router as vault_push_router
 from server.routes.macro_summary import router as macro_summary_router
@@ -435,6 +437,16 @@ app.include_router(
     ai_summaries_router,
     prefix="/api",
     tags=["AI Summaries"]
+)
+app.include_router(
+    ai_commands_router,
+    prefix="/api",
+    tags=["AI Commands"]
+)
+app.include_router(
+    tier_preview_router,
+    prefix="/api",
+    tags=["Tier Preview"]
 )
 app.include_router(
     export_snapshot_router,
