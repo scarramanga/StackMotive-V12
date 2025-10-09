@@ -59,9 +59,16 @@ async function captureJourney7(page, token) {
   
   try {
     await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
+    console.log('Dashboard testid found');
   } catch {
-    console.log('Dashboard testid not found, waiting 5s for page to render...');
-    await page.waitForTimeout(5000);
+    console.log('Dashboard testid not found, waiting for React content to render...');
+    try {
+      await page.waitForSelector('#root:has(div:not([class*="loading"]))', { timeout: 20000 });
+      console.log('React content rendered');
+    } catch {
+      console.log('Fallback: waiting 20s for page to fully load...');
+      await page.waitForTimeout(20000);
+    }
   }
   
   const apiResponse = await fetch(`${BACKEND_URL}/api/portfolio/holdings`, {
@@ -88,9 +95,16 @@ async function captureJourney8(page, token) {
   
   try {
     await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
+    console.log('Dashboard testid found');
   } catch {
-    console.log('Dashboard testid not found, waiting 5s for page to render...');
-    await page.waitForTimeout(5000);
+    console.log('Dashboard testid not found, waiting for React content to render...');
+    try {
+      await page.waitForSelector('#root:has(div:not([class*="loading"]))', { timeout: 20000 });
+      console.log('React content rendered');
+    } catch {
+      console.log('Fallback: waiting 20s for page to fully load...');
+      await page.waitForTimeout(20000);
+    }
   }
   
   try {
@@ -153,9 +167,16 @@ async function captureJourney9(page, token) {
   
   try {
     await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
+    console.log('Dashboard testid found');
   } catch {
-    console.log('Dashboard testid not found, waiting 5s for page to render...');
-    await page.waitForTimeout(5000);
+    console.log('Dashboard testid not found, waiting for React content to render...');
+    try {
+      await page.waitForSelector('#root:has(div:not([class*="loading"]))', { timeout: 20000 });
+      console.log('React content rendered');
+    } catch {
+      console.log('Fallback: waiting 20s for page to fully load...');
+      await page.waitForTimeout(20000);
+    }
   }
   
   try {
