@@ -79,6 +79,9 @@ See `docs/audit/phase15_feature_implementation_report.md` for details.
 - ✓ API returns valid JSON response
 - ✓ UI renders asset details with proper styling
 
+**Backend Issues Discovered:**
+- [#84](https://github.com/scarramanga/StackMotive-V12/issues/84) - Portfolio API schema mismatch requiring database migration or query fix
+
 ### Journey 8: Reports/Tax/Exports
 
 **Objective:** Trigger "Export → Generate Tax Report" to verify functional modules for reports and exports.
@@ -104,6 +107,9 @@ See `docs/audit/phase15_feature_implementation_report.md` for details.
 - ✓ API responds with export status
 - ✓ Backend logs show export processing
 
+**Backend Issues Discovered:**
+- [#85](https://github.com/scarramanga/StackMotive-V12/issues/85) - Reports export endpoint missing, requires implementation
+
 ### Journey 9: Proactive Notifications
 
 **Objective:** Trigger price-alert or tier-expiry notification to verify proactive notification system.
@@ -127,6 +133,9 @@ See `docs/audit/phase15_feature_implementation_report.md` for details.
 - ✓ Notification messages sent/received
 - ✓ Toast notification displays in UI
 - ✓ WebSocket trace captured
+
+**Backend Issues Discovered:**
+- [#86](https://github.com/scarramanga/StackMotive-V12/issues/86) - WebSocket connection failure preventing real-time notifications
 
 ## Journeys 10-11 Evidence
 

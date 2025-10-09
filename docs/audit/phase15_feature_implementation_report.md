@@ -190,6 +190,8 @@ To capture evidence for Journeys 7-9, the following infrastructure improvements 
 **Description:**
 User navigates to the portfolio page and views detailed holdings information including asset allocation, performance metrics, and individual asset details. The screenshot captures the full portfolio interface at 1440×900 resolution.
 
+**Note:** Evidence captures backend API error. See [#84](https://github.com/scarramanga/StackMotive-V12/issues/84) for resolution tracking.
+
 ### Journey 8: Reports/Tax/Exports Evidence
 
 **Evidence Location:** `docs/qa/evidence/phase15/journeys/`
@@ -202,6 +204,8 @@ User navigates to the portfolio page and views detailed holdings information inc
 **Description:**
 User triggers tax report or portfolio export functionality. The system generates the requested export format (CSV) and provides download capability. Evidence includes both the UI state during export and the API transaction logs.
 
+**Note:** Evidence captures missing endpoint. See [#85](https://github.com/scarramanga/StackMotive-V12/issues/85) for implementation tracking.
+
 ### Journey 9: Proactive Notifications Evidence
 
 **Evidence Location:** `docs/qa/evidence/phase15/journeys/`
@@ -212,6 +216,8 @@ User triggers tax report or portfolio export functionality. The system generates
 
 **Description:**
 System triggers a proactive notification (price alert or tier expiry) and displays it to the user via toast notification. WebSocket trace captures the real-time communication between backend and frontend for the notification delivery.
+
+**Note:** Evidence captures WebSocket connection failure. See [#86](https://github.com/scarramanga/StackMotive-V12/issues/86) for resolution tracking.
 
 ### E2E Runtime Instructions
 
