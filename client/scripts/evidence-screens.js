@@ -58,8 +58,10 @@ async function captureJourney7(page, token) {
   await page.goto(`${FRONTEND_URL}/portfolio`);
   
   try {
-    await page.waitForSelector('#root:has(div)', { timeout: 15000 });
-  } catch {
+    await page.waitForSelector('#root:has(div[data-testid="portfolio"])', { timeout: 15000 });
+    console.log('Portfolio content loaded');
+  } catch (e) {
+    console.log('Portfolio testid not found, using timeout fallback');
     await page.waitForTimeout(5000);
   }
   
@@ -86,8 +88,10 @@ async function captureJourney8(page, token) {
   await page.goto(`${FRONTEND_URL}/reports`);
   
   try {
-    await page.waitForSelector('#root:has(div)', { timeout: 15000 });
-  } catch {
+    await page.waitForSelector('#root:has(div[data-testid="reports"])', { timeout: 15000 });
+    console.log('Reports content loaded');
+  } catch (e) {
+    console.log('Reports testid not found, using timeout fallback');
     await page.waitForTimeout(5000);
   }
   
@@ -151,7 +155,9 @@ async function captureJourney9(page, token) {
   
   try {
     await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
-  } catch {
+    console.log('Dashboard content loaded');
+  } catch (e) {
+    console.log('Dashboard testid not found, using timeout fallback');
     await page.waitForTimeout(5000);
   }
   
