@@ -205,6 +205,13 @@ app.include_router(
     tags=["Authentication"]
 )
 
+from server.routes.auth import compat as auth_compat
+app.include_router(
+    auth_compat,
+    prefix="/api",
+    tags=["auth-compat"]
+)
+
 app.include_router(
     onboarding_router_new,
     prefix="/api/onboarding",
@@ -217,11 +224,11 @@ app.include_router(
     tags=["Preferences"]
 )
 
-app.include_router(
-    user_router,
-    prefix="/api",
-    tags=["Users", "Authentication"]
-)
+# app.include_router(
+#     user_router,
+#     prefix="/api",
+#     tags=["Users", "Authentication"]
+# )
 app.include_router(
     paper_trading_router,
     prefix="/api",

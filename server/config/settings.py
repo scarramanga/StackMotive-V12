@@ -35,6 +35,12 @@ class Settings:
     # CORS configuration
     CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
     
+    ALLOWED_EMAIL_DOMAINS: list = [d.strip().lower() for d in os.getenv(
+        "ALLOWED_EMAIL_DOMAINS", "stackmotive.test,*"
+    ).split(",")]
+    
+    EMAIL_VALIDATION_MODE: str = os.getenv("EMAIL_VALIDATION_MODE", "relaxed").lower()
+    
     # Production mode safeguards
     @property
     def is_production(self) -> bool:
@@ -79,4 +85,4 @@ settings = Settings()
 
 # Validate on import if in production
 if settings.is_production:
-    settings.validate_production_constraints()    
+    settings.validate_production_constraints()                
