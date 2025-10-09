@@ -19,7 +19,7 @@ def upgrade() -> None:
     op.execute("""
         ALTER TABLE portfolio_positions 
         ADD COLUMN IF NOT EXISTS name TEXT DEFAULT '',
-        ADD COLUMN IF NOT EXISTS "assetClass" TEXT DEFAULT 'equity',
+        ADD COLUMN IF NOT EXISTS assetclass TEXT DEFAULT 'equity',
         ADD COLUMN IF NOT EXISTS account TEXT DEFAULT 'default'
     """)
 
@@ -28,6 +28,6 @@ def downgrade() -> None:
     op.execute("""
         ALTER TABLE portfolio_positions 
         DROP COLUMN IF EXISTS name,
-        DROP COLUMN IF EXISTS "assetClass",
+        DROP COLUMN IF EXISTS assetclass,
         DROP COLUMN IF EXISTS account
     """)

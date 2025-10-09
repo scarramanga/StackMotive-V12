@@ -38,15 +38,15 @@ async def export_reports(
             SELECT 
                 symbol,
                 name as asset_name,
-                "assetClass" as asset_class,
+                assetclass as asset_class,
                 quantity,
-                "avgCost" as avg_cost,
-                "currentPrice" as current_price,
-                quantity * COALESCE("currentPrice", "avgCost") as market_value,
-                (quantity * COALESCE("currentPrice", "avgCost")) - (quantity * "avgCost") as unrealized_pnl,
+                avgcost as avg_cost,
+                currentprice as current_price,
+                quantity * COALESCE(currentprice, avgcost) as market_value,
+                (quantity * COALESCE(currentprice, avgcost)) - (quantity * avgcost) as unrealized_pnl,
                 account
             FROM portfolio_positions
-            WHERE "userId" = :user_id
+            WHERE userid = :user_id
             ORDER BY market_value DESC
         """)
         

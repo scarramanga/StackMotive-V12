@@ -212,17 +212,17 @@ async def get_portfolio_holdings(
             SELECT 
                 symbol,
                 name as asset_name,
-                assetClass as asset_class,
+                assetclass as asset_class,
                 quantity,
-                avgCost as average_cost,
-                currentPrice as current_price,
-                quantity * COALESCE(currentPrice, avgCost) as market_value,
-                quantity * avgCost as cost_basis,
+                avgcost as average_cost,
+                currentprice as current_price,
+                quantity * COALESCE(currentprice, avgcost) as market_value,
+                quantity * avgcost as cost_basis,
                 account as broker_account,
-                lastUpdated as last_updated
+                lastupdated as last_updated
             FROM portfolio_positions
-            WHERE userId = ?
-            ORDER BY (quantity * COALESCE(currentPrice, avgCost)) DESC
+            WHERE userid = ?
+            ORDER BY (quantity * COALESCE(currentprice, avgcost)) DESC
         """, (user_id,))
         
         results = db.execute(stmt, params).mappings().all()
@@ -535,4 +535,4 @@ async def get_rebalance_recommendations(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))            
+        raise HTTPException(status_code=500, detail=str(e))                        
