@@ -260,6 +260,14 @@ jobs:
         options: >-
           --health-cmd="pg_isready -U stackmotive"
           --health-interval=10s --health-timeout=5s --health-retries=10
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports: ['6379:6379']
     env:
       DATABASE_URL: postgresql+psycopg://stackmotive:stackmotive@localhost:5432/stackmotive_ci
       STACKMOTIVE_JWT_SECRET: testsecret
@@ -333,7 +341,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_USER: stackmotive
-          POSTGRES_PASSWORD: ${{ secrets.CI_DB_PASSWORD }}
+          POSTGRES_PASSWORD: stackmotive
           POSTGRES_DB: stackmotive_ci
         ports: ['5432:5432']
         options: >-
@@ -350,7 +358,7 @@ jobs:
           --health-retries=5
         ports: ['6379:6379']
     env:
-      DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+      DATABASE_URL: postgresql+psycopg://stackmotive:stackmotive@localhost:5432/stackmotive_ci
       REDIS_URL: redis://localhost:6379/0
       METRICS_ENABLED: true
       LOG_LEVEL: DEBUG
@@ -383,7 +391,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_USER: stackmotive
-          POSTGRES_PASSWORD: ${{ secrets.CI_DB_PASSWORD }}
+          POSTGRES_PASSWORD: stackmotive
           POSTGRES_DB: stackmotive_ci
         ports: ['5432:5432']
         options: >-
@@ -392,7 +400,7 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     env:
-      DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+      DATABASE_URL: postgresql+psycopg://stackmotive:stackmotive@localhost:5432/stackmotive_ci
       STACKMOTIVE_JWT_SECRET: testsecret
       STACKMOTIVE_DEV_MODE: "true"
       STRIPE_SECRET_KEY: sk_test_placeholder
