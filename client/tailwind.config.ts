@@ -1,5 +1,13 @@
 import type { Config } from "tailwindcss";
 
+let typographyPlugin: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  typographyPlugin = require('@tailwindcss/typography');
+} catch (e) {
+  console.info('[tailwind] @tailwindcss/typography not found; skipping.');
+}
+
 export default {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
@@ -86,5 +94,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
-} satisfies Config; 
+  plugins: [
+    require("tailwindcss-animate"),
+    ...(typographyPlugin ? [typographyPlugin] : []),
+  ],
+} satisfies Config;    
