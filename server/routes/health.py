@@ -19,6 +19,12 @@ router = APIRouter(tags=["Health"])
 limiter = Limiter(key_func=get_remote_address)
 
 
+@router.get("/health")
+def health():
+    """Simple health check endpoint"""
+    return {"status": "ok"}
+
+
 @router.get("/health/live")
 @limiter.limit("10/minute")
 async def health_live(request: Request):
