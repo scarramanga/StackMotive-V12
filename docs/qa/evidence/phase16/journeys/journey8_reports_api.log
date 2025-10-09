@@ -1,0 +1,10 @@
+Export API Response:
+Status: 200
+Response: {
+  "status": "success",
+  "format": "csv",
+  "report_type": "tax",
+  "content": "symbol,quantity,avg_price,current_price,market_value,unrealized_pnl,weight_pct\r\nMSFT,75,0,380.75,28556.25,6056.25,0\r\nAAPL,100,0,175.5,17550.0,2550.0,0\r\nGOOGL,50,0,140.25,7012.50,1012.50,0\r\n",
+  "checksum": "b2536f150a17a05e516f24b6ff12220fc83019563fd96bb50d0dbd3b1d2c0cd6",
+  "generated_at": "2025-10-09T21:38:59.588890"
+}
