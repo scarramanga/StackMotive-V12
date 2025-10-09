@@ -68,17 +68,13 @@ const ALLOWED_ROUTES = [
 // Router component moved outside to prevent context issues
 function Router() {
   const [location] = useLocation();
-
-  // Show loading while auth state is being determined
-  if (isLoading) {
-    return <Loading fullscreen />;
-  }
+  const user = useSessionStore(s => s.user);
 
   const isPublicRoute = PUBLIC_ROUTES.includes(location);
 
-  // Show loader until user is fully ready (authenticated and onboarded, with paper account loaded if needed)
-  if (!isUserReady && !isPublicRoute) {
-    return <FullScreenLoader message="Setting up your account..." />;
+  // Show loader if user is not authenticated and trying to access protected route
+  if (!user && !isPublicRoute) {
+    return <FullScreenLoader message="Loading..." />;
   }
 
   // All redirection logic is now handled by the AuthProvider
