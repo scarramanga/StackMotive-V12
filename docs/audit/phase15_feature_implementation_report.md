@@ -161,6 +161,77 @@ All three deferred features have been successfully implemented with clean separa
 
 ---
 
+## Journeys 7–9 Evidence Summary
+
+### Infrastructure Changes for E2E Evidence Collection
+
+To capture evidence for Journeys 7-9, the following infrastructure improvements were implemented:
+
+**Production Preview Mode:**
+- Modified `client/vite.config.ts` to make Replit plugin dev-only
+- Updated `docker-compose.e2e.yml` to serve frontend via `vite preview`
+- Eliminates ERR_INSUFFICIENT_RESOURCES errors by bundling assets
+
+**Playwright Integration:**
+- Added Playwright to `client/package.json` devDependencies
+- Created `client/scripts/evidence-screens.js` for automated screenshot capture
+- Configured viewport to 1440×900 per requirements
+
+**Note:** The PortfolioSyncEngine shim exports were added to satisfy legacy imports during evidence capture (see `client/src/engines/PortfolioSyncEngine.ts` lines 987-1032). A follow-up ticket should replace these with full implementation.
+
+### Journey 7: Portfolio Deep-Dive Evidence
+
+**Evidence Location:** `docs/qa/evidence/phase15/journeys/`
+
+**Artifacts:**
+- `journey7_portfolio.png` - Screenshot of Portfolio → Holdings → Asset Details view
+- `journey7_portfolio_api.json` - API response from `/api/portfolio/holdings`
+
+**Description:**
+User navigates to the portfolio page and views detailed holdings information including asset allocation, performance metrics, and individual asset details. The screenshot captures the full portfolio interface at 1440×900 resolution.
+
+### Journey 8: Reports/Tax/Exports Evidence
+
+**Evidence Location:** `docs/qa/evidence/phase15/journeys/`
+
+**Artifacts:**
+- `journey8_reports.png` - Screenshot of Reports/Export interface
+- `journey8_reports_api.log` - Backend logs from `/api/reports/export` endpoint
+- Export file artifact (if generated)
+
+**Description:**
+User triggers tax report or portfolio export functionality. The system generates the requested export format (CSV) and provides download capability. Evidence includes both the UI state during export and the API transaction logs.
+
+### Journey 9: Proactive Notifications Evidence
+
+**Evidence Location:** `docs/qa/evidence/phase15/journeys/`
+
+**Artifacts:**
+- `journey9_notifications.png` - Screenshot showing notification toast/alert
+- `journey9_notifications_ws.txt` - WebSocket trace from `/socket.io/` connection
+
+**Description:**
+System triggers a proactive notification (price alert or tier expiry) and displays it to the user via toast notification. WebSocket trace captures the real-time communication between backend and frontend for the notification delivery.
+
+### E2E Runtime Instructions
+
+For detailed instructions on running the E2E environment and capturing evidence, see `docs/qa/phase15_user_journey_e2e_report.md`.
+
+**Quick Start:**
+```bash
+# Start E2E stack
+docker compose -f docker-compose.e2e.yml up -d
+
+# Capture screenshots
+docker compose -f docker-compose.e2e.yml exec frontend npm run e2e:snap
+
+# Stop stack
+docker compose -f docker-compose.e2e.yml down
+```
+
+---
+
 **Report Generated:** October 9, 2025  
+**Updated:** October 9, 2025  
 **Session Link:** https://app.devin.ai/sessions/c485b79aeba54db4a56eb0a02cf79111  
 **Implemented By:** @scarramanga
