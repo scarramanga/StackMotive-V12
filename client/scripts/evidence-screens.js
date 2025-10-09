@@ -56,7 +56,12 @@ async function captureJourney7(page, token) {
   }, token);
   
   await page.goto(`${FRONTEND_URL}/portfolio`);
-  await page.waitForTimeout(2000);
+  
+  try {
+    await page.waitForSelector('#root:has(div)', { timeout: 15000 });
+  } catch {
+    await page.waitForTimeout(5000);
+  }
   
   const apiResponse = await fetch(`${BACKEND_URL}/api/portfolio/holdings`, {
     headers: { 'Authorization': `Bearer ${token}` }
@@ -79,7 +84,12 @@ async function captureJourney8(page, token) {
   console.log('\n=== Journey 8: Reports/Tax/Exports ===');
   
   await page.goto(`${FRONTEND_URL}/reports`);
-  await page.waitForTimeout(2000);
+  
+  try {
+    await page.waitForSelector('#root:has(div)', { timeout: 15000 });
+  } catch {
+    await page.waitForTimeout(5000);
+  }
   
   try {
     const exportButton = page.locator('button:has-text("Export"), button:has-text("Generate")').first();
@@ -138,7 +148,12 @@ async function captureJourney9(page, token) {
   });
   
   await page.goto(`${FRONTEND_URL}/dashboard`);
-  await page.waitForTimeout(2000);
+  
+  try {
+    await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
+  } catch {
+    await page.waitForTimeout(5000);
+  }
   
   try {
     const notifResponse = await fetch(`${BACKEND_URL}/api/notifications/test`, {
