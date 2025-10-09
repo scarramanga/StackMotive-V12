@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 
 const EVIDENCE_DIR = join(__dirname, '../../docs/qa/evidence/phase15/journeys');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5174';
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8001';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:8000';
 
 mkdirSync(EVIDENCE_DIR, { recursive: true });
 
@@ -58,8 +58,9 @@ async function captureJourney7(page, token) {
   await page.goto(`${FRONTEND_URL}/portfolio`);
   
   try {
-    await page.waitForSelector('#root:has(div)', { timeout: 15000 });
+    await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
   } catch {
+    console.log('Dashboard testid not found, waiting 5s for page to render...');
     await page.waitForTimeout(5000);
   }
   
@@ -86,8 +87,9 @@ async function captureJourney8(page, token) {
   await page.goto(`${FRONTEND_URL}/reports`);
   
   try {
-    await page.waitForSelector('#root:has(div)', { timeout: 15000 });
+    await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
   } catch {
+    console.log('Dashboard testid not found, waiting 5s for page to render...');
     await page.waitForTimeout(5000);
   }
   
@@ -152,6 +154,7 @@ async function captureJourney9(page, token) {
   try {
     await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
   } catch {
+    console.log('Dashboard testid not found, waiting 5s for page to render...');
     await page.waitForTimeout(5000);
   }
   
