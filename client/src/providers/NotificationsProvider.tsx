@@ -10,12 +10,18 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   const push = useNotifications((state) => state.push);
 
   useEffect(() => {
+    console.log("[NotificationsProvider] Component mounted");
     const token = getAccessToken();
+    console.log("[NotificationsProvider] Token:", token ? `${token.substring(0, 20)}...` : "NO TOKEN");
+    
     if (!token) {
+      console.error("[NotificationsProvider] No access token found, cannot connect Socket.IO");
       return;
     }
 
+    console.log("[NotificationsProvider] Attempting to connect Socket.IO...");
     const newSocket = connectSocket(token);
+    console.log("[NotificationsProvider] Socket.IO client created");
     
     newSocket.on("notification", (msg: NotificationMessage) => {
       console.log("[NotificationsProvider] Received notification:", msg);
