@@ -188,7 +188,7 @@ async function captureJourney9(page, token) {
   console.log('Waiting for Socket.IO connection...');
   try {
     await page.waitForFunction(() => {
-      return (window as any).__SM_SOCKET_CONNECTED__ === true;
+      return window.__SM_SOCKET_CONNECTED__ === true;
     }, { timeout: 15000 });
     console.log('Socket.IO connected successfully');
     wsTrace += '[Socket Connection] Established before notification trigger\n';
