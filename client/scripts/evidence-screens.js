@@ -155,6 +155,15 @@ async function captureJourney9(page, token) {
   wsTrace += `Protocol: Socket.IO (socket.io-client)\n\n`;
   
   let sawFrames = false;
+  let consoleErrors = [];
+  
+  // Capture console errors
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      consoleErrors.push(msg.text());
+    }
+  });
+  
   page.on('websocket', ws => {
     wsTrace += `[WebSocket URL] ${ws.url()}\n`;
     wsTrace += `[Expected] HTTP 101 Switching Protocols (handled by Socket.IO)\n\n`;
@@ -168,10 +177,14 @@ async function captureJourney9(page, token) {
     });
   });
   
-  // Step 1: Navigate to dashboard
-  console.log('Step 1: Navigating to dashboard...');
+  // Step 1: Set auth token and navigate to dashboard
+  console.log('Step 1: Setting auth token and navigating to dashboard...');
+  await page.goto(FRONTEND_URL);
+  await page.evaluate((token) => {
+    localStorage.setItem('stackmotive_access_token', token);
+  }, token);
   await page.goto(`${FRONTEND_URL}/dashboard`);
-  wsTrace += '[Navigation] Loaded /dashboard\n';
+  wsTrace += '[Navigation] Loaded /dashboard with auth token\n';
   
   // Step 2: Wait for app-ready flag (providers mounted, theme hydrated)
   console.log('Step 2: Waiting for app-ready flag...');
@@ -204,15 +217,37 @@ async function captureJourney9(page, token) {
   
   // Step 4: Wait for Socket.IO connection
   console.log('Step 4: Waiting for Socket.IO connection...');
+  
+  // Check if socket is trying to connect
+  const socketStatus = await page.evaluate(() => {
+    return {
+      flagExists: typeof window.__SM_SOCKET_CONNECTED__ !== 'undefined',
+      flagValue: window.__SM_SOCKET_CONNECTED__,
+      hasAuth: !!localStorage.getItem('stackmotive_access_token'),
+      url: window.location.href
+    };
+  });
+  console.log('Socket status check:', socketStatus);
+  wsTrace += `[Socket Pre-check] Flag exists: ${socketStatus.flagExists}, Value: ${socketStatus.flagValue}, Has auth: ${socketStatus.hasAuth}\n`;
+  
   try {
     await page.waitForFunction(() => {
       return window.__SM_SOCKET_CONNECTED__ === true;
-    }, { timeout: 15000 });
+    }, { timeout: 20000 });
     console.log('Socket.IO connected successfully');
     wsTrace += '[Socket Connection] ✓ Established\n';
   } catch (e) {
-    console.log('Warning: Socket.IO connection flag not detected within 15s');
-    wsTrace += '[Socket Connection] ✗ Timeout (15s)\n';
+    console.log('Warning: Socket.IO connection flag not detected within 20s');
+    wsTrace += '[Socket Connection] ✗ Timeout (20s)\n';
+    
+    // Final check
+    const finalStatus = await page.evaluate(() => {
+      return {
+        flag: window.__SM_SOCKET_CONNECTED__,
+        appReady: window.__SM_APP_READY__
+      };
+    });
+    wsTrace += `[Socket Final State] Connected: ${finalStatus.flag}, App ready: ${finalStatus.appReady}\n`;
   }
   
   // Step 5: Trigger notification via backend endpoint (may fail if user lacks operator tier)
@@ -267,6 +302,14 @@ async function captureJourney9(page, token) {
     console.log('Root element visible');
   } catch (e) {
     console.log('Root element check failed');
+  }
+  
+  // Add console errors if any
+  if (consoleErrors.length > 0) {
+    wsTrace += '\n[Console Errors]\n';
+    consoleErrors.slice(0, 10).forEach(err => {
+      wsTrace += `  - ${err.substring(0, 200)}\n`;
+    });
   }
   
   // Summary
