@@ -91,6 +91,15 @@ def _unmount_router(app, router):
     # Filter out routes introduced by this router
     added_paths = {r.path for r in router.routes}
     app.router.routes = [r for r in app.router.routes if getattr(r, "path", None) not in added_paths]
+    # Clear any rate limit tracking for these routes
+    if hasattr(app.state.limiter, '_route_limits'):
+        for route_path in added_paths:
+            app.state.limiter._route_limits.pop(route_path, None)
+    if hasattr(app.state.limiter, '__marked_for_limiting'):
+        # Clear marked functions for these routes
+        keys_to_remove = [k for k in app.state.limiter.__marked_for_limiting.keys() if '/api/ping' in k]
+        for key in keys_to_remove:
+            app.state.limiter.__marked_for_limiting.pop(key, None)
 
 
 def test_rate_limit_enforced():
