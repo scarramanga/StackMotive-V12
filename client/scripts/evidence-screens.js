@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const EVIDENCE_DIR = join(__dirname, '../../docs/qa/evidence/phase15/journeys');
+const EVIDENCE_DIR = join(__dirname, '../../docs/qa/evidence/phase16/journeys');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5174';
 const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:8000';
 
@@ -148,18 +148,23 @@ async function captureJourney8(page, token) {
 }
 
 async function captureJourney9(page, token) {
-  console.log('\n=== Journey 9: Proactive Notifications ===');
+  console.log('\n=== Journey 9: Proactive Notifications (Socket.IO) ===');
   
-  let wsTrace = 'WebSocket Trace:\n';
-  wsTrace += `Timestamp: ${new Date().toISOString()}\n\n`;
+  let wsTrace = 'Journey 9 - Socket.IO WebSocket Trace\n';
+  wsTrace += `Timestamp: ${new Date().toISOString()}\n`;
+  wsTrace += `Protocol: Socket.IO (socket.io-client)\n\n`;
   
+  let sawFrames = false;
   page.on('websocket', ws => {
-    wsTrace += `[WS Connected] ${ws.url()}\n`;
+    wsTrace += `[WebSocket URL] ${ws.url()}\n`;
+    wsTrace += `[Expected] HTTP 101 Switching Protocols (handled by Socket.IO)\n\n`;
     ws.on('framesent', frame => {
-      wsTrace += `[SENT] ${frame.payload}\n`;
+      sawFrames = true;
+      wsTrace += `[SENT] ${frame.payload.substring(0, 100)}...\n`;
     });
     ws.on('framereceived', frame => {
-      wsTrace += `[RECV] ${frame.payload}\n`;
+      sawFrames = true;
+      wsTrace += `[RECV] ${frame.payload.substring(0, 100)}...\n`;
     });
   });
   
@@ -199,6 +204,9 @@ async function captureJourney9(page, token) {
   } catch (e) {
     wsTrace += `\n[Note: Could not trigger test notification - ${e.message}]\n`;
   }
+  
+  wsTrace += `\n[Frames Exchanged] ${sawFrames ? 'YES' : 'NO'}\n`;
+  wsTrace += `[Status] Socket.IO connection ${sawFrames ? 'active' : 'not detected'}\n`;
   
   writeFileSync(
     join(EVIDENCE_DIR, 'journey9_notifications_ws.txt'),
