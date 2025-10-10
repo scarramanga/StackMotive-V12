@@ -146,46 +146,68 @@ message_deduplicator = MessageDeduplicator(window_seconds=120)
 
 def verify_jwt(token: str) -> tuple[Optional[dict], Optional[str]]:
     """Verify JWT token and return payload and tier"""
-    logger.info(f"[WebSocket][DIAGNOSTIC] verify_jwt() called with token: {token[:20] + '...' if token and len(token) > 20 else token}")
+    import os
+    is_dev = os.getenv("STACKMOTIVE_DEV_MODE", "").lower() in ("true", "1", "yes")
+    
+    if is_dev:
+        logger.info(f"[WebSocket][DEV] verify_jwt() called with token: {token[:20] + '...' if token and len(token) > 20 else token}")
     
     if not token:
-        logger.warning("[WebSocket][DIAGNOSTIC] verify_jwt() -> Token is None/empty")
+        if is_dev:
+            logger.warning("[WebSocket][DEV] verify_jwt() -> Token is None/empty")
         return None, None
     
     try:
-        from server.config.production_auth import get_jwt_secret
+        from server.config.production_auth import (
+            get_jwt_secret,
+            get_jwt_algorithm,
+            get_jwt_issuer,
+            get_jwt_audience
+        )
         
         jwt_secret = get_jwt_secret()
-        logger.info(f"[WebSocket][DIAGNOSTIC] JWT secret retrieved, length: {len(jwt_secret)}")
+        jwt_algorithm = get_jwt_algorithm()
+        jwt_issuer = get_jwt_issuer()
+        jwt_audience = get_jwt_audience()
+        
+        if is_dev:
+            logger.info(f"[WebSocket][DEV] Config: secret_len={len(jwt_secret)}, alg={jwt_algorithm}, iss={jwt_issuer}, aud={jwt_audience}")
         
         payload = jwt.decode(
             token,
             jwt_secret,
-            algorithms=["HS256"],
-            audience="stackmotive-app",
-            issuer="stackmotive.com",
+            algorithms=[jwt_algorithm],
+            audience=jwt_audience,
+            issuer=jwt_issuer,
         )
         
-        logger.info(f"[WebSocket][DIAGNOSTIC] JWT decoded successfully: {payload}")
+        if is_dev:
+            logger.info(f"[WebSocket][DEV] JWT decoded successfully: {payload}")
         
         user_id = payload.get("user_id") or payload.get("sub")
         user_tier = payload.get("tier", "navigator")
         
-        logger.info(f"[WebSocket][DIAGNOSTIC] Extracted user_id: {user_id}, tier: {user_tier}")
+        if is_dev:
+            logger.info(f"[WebSocket][DEV] Extracted user_id: {user_id}, tier: {user_tier}")
         
         if not user_id:
-            logger.warning("[WebSocket][DIAGNOSTIC] verify_jwt() -> No user_id in payload")
+            if is_dev:
+                logger.warning("[WebSocket][DEV] verify_jwt() -> No user_id in payload")
             return None, None
         
-        logger.info(f"[WebSocket][DIAGNOSTIC] verify_jwt() -> SUCCESS (user_id={user_id}, tier={user_tier})")
+        if is_dev:
+            logger.info(f"[WebSocket][DEV] verify_jwt() -> SUCCESS (user_id={user_id}, tier={user_tier})")
         return {"user_id": user_id}, user_tier
     
     except JWTError as e:
-        logger.warning(f"[WebSocket][DIAGNOSTIC] JWT validation failed: {e}")
+        if is_dev:
+            logger.warning(f"[WebSocket][DEV] JWT validation failed: {e}")
+            logger.warning(f"[WebSocket][DEV] Token claims missing or invalid. Expected: iss={get_jwt_issuer()}, aud={get_jwt_audience()}")
         logger.warning(f"JWT validation failed: {e}")
         return None, None
     except Exception as e:
-        logger.error(f"[WebSocket][DIAGNOSTIC] Error verifying JWT: {e}")
+        if is_dev:
+            logger.error(f"[WebSocket][DEV] Error verifying JWT: {e}")
         logger.error(f"Error verifying JWT: {e}")
         return None, None
 

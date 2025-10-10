@@ -75,3 +75,13 @@ def get_access_token_expire_minutes() -> int:
 def get_refresh_token_expire_days() -> int:
     """Get refresh token expiration in days"""
     return int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "14"))
+
+
+def get_jwt_issuer() -> str:
+    """Get JWT issuer claim"""
+    return os.getenv("STACKMOTIVE_JWT_ISSUER", "stackmotive.com")
+
+
+def get_jwt_audience() -> str:
+    """Get JWT audience claim"""
+    return os.getenv("STACKMOTIVE_JWT_AUDIENCE", "stackmotive-app")

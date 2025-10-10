@@ -17,6 +17,11 @@ from server.config.env import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_DAYS
 )
+from server.config.production_auth import (
+    get_jwt_secret,
+    get_jwt_issuer,
+    get_jwt_audience
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -24,6 +29,8 @@ logger.setLevel(logging.DEBUG)
 SECRET_KEY = AUTH_SECRET_KEY
 REFRESH_SECRET_KEY = AUTH_REFRESH_SECRET
 ALGORITHM = AUTH_ALGO
+JWT_ISSUER = get_jwt_issuer()
+JWT_AUDIENCE = get_jwt_audience()
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -44,7 +51,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create JWT access token with JTI."""
+    """Create JWT access token with JTI, issuer, and audience claims."""
     to_encode = data.copy()
     
     if expires_delta:
@@ -55,9 +62,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode.update({
         "exp": expire,
         "jti": str(uuid.uuid4()),
-        "type": "access"
+        "type": "access",
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
     })
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    
+    # Use get_jwt_secret() for consistency with WebSocket verification
+    jwt_secret = get_jwt_secret()
+    encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=ALGORITHM)
     return encoded_jwt
 
 def create_refresh_token(data: dict) -> str:
@@ -139,8 +151,15 @@ async def get_current_user(
     logger.debug(f"🔑 Validating token: {token[:10]}...")
     
     try:
-        # Decode JWT token
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # Decode JWT token with issuer and audience validation
+        jwt_secret = get_jwt_secret()
+        payload = jwt.decode(
+            token, 
+            jwt_secret, 
+            algorithms=[ALGORITHM],
+            audience=JWT_AUDIENCE,
+            issuer=JWT_ISSUER,
+        )
         email: str = payload.get("sub")
         if email is None:
             logger.warning("❌ No email in token payload")
