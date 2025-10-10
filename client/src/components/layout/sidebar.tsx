@@ -148,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
       icon: <BarChart size={collapsed ? 20 : 16} />,
       items: [
         { label: "Technical Analysis", icon: <BarChart size={collapsed ? 20 : 16} />, path: "/analysis/technical" },
-        { label: "Portfolio Analytics", icon: <PieChart size={collapsed ? 20 : 16} />, path: "/analysis/portfolio" },
+        { label: "Portfolio Analytics", icon: <PieChart size={collapsed ? 20 : 16} />, path: "/analytics" },
         { label: "Market Sentiment", icon: <TrendingUp size={collapsed ? 20 : 16} />, path: "/analysis/sentiment" },
         { label: "Whale Tracking", icon: <Eye size={collapsed ? 20 : 16} />, path: "/whale-tracking" },
       ]
