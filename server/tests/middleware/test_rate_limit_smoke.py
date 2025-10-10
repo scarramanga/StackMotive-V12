@@ -16,6 +16,7 @@ repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 
 sys.path.insert(0, repo_root)
 
 import time
+from fastapi import APIRouter
 from fastapi.testclient import TestClient
 from server.main import app
 from slowapi import Limiter
@@ -71,6 +72,27 @@ test_limiter = Limiter(
 test_limiter._storage = fake_storage
 
 
+def _mount_test_ping(app):
+    """Mount a test-only /api/ping endpoint limited by the test limiter."""
+    router = APIRouter()
+
+    @router.get("/api/ping")
+    @app.state.limiter.limit("60/minute")
+    async def _test_ping():
+        return {"ok": True}
+
+    # include router and return a handle so we can clean up later
+    app.include_router(router, prefix="")
+    return router
+
+
+def _unmount_router(app, router):
+    """Remove routes added by router (best-effort cleanup)."""
+    # Filter out routes introduced by this router
+    added_paths = {r.path for r in router.routes}
+    app.router.routes = [r for r in app.router.routes if getattr(r, "path", None) not in added_paths]
+
+
 def test_rate_limit_enforced():
     """
     Test that rate limiting returns 429 after exceeding limits.
@@ -82,6 +104,8 @@ def test_rate_limit_enforced():
     original_limiter = app.state.limiter
     app.state.limiter = test_limiter
     fake_storage.reset()
+    
+    test_router = _mount_test_ping(app)
     
     try:
         client = TestClient(app)
@@ -106,6 +130,8 @@ def test_rate_limit_enforced():
         assert 429 in status_codes, f"Expected 429 in responses, got {set(status_codes)}"
         
     finally:
+        # Unmount test router
+        _unmount_router(app, test_router)
         # Restore original limiter
         app.state.limiter = original_limiter
         fake_storage.reset()
@@ -120,6 +146,8 @@ def test_rate_limit_window_independence():
     original_limiter = app.state.limiter
     app.state.limiter = test_limiter
     fake_storage.reset()
+    
+    test_router = _mount_test_ping(app)
     
     try:
         client = TestClient(app)
@@ -137,6 +165,8 @@ def test_rate_limit_window_independence():
         assert all(r.status_code == 200 for r in batch2)
         
     finally:
+        # Unmount test router
+        _unmount_router(app, test_router)
         # Restore original limiter
         app.state.limiter = original_limiter
         fake_storage.reset()
