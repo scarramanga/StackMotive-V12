@@ -29,6 +29,11 @@ sio = socketio.AsyncServer(
 
 socket_app = socketio.ASGIApp(socketio_server=sio, socketio_path="/socket.io/")
 
+logger.info("[WebSocket][DIAGNOSTIC] Socket.IO server initialized")
+logger.info(f"[WebSocket][DIAGNOSTIC] Socket.IO path: /socket.io/")
+logger.info(f"[WebSocket][DIAGNOSTIC] AsyncRedisManager enabled: {mgr is not None}")
+
+
 
 class CircuitBreaker:
     """Simple circuit breaker for fault tolerance"""
@@ -141,32 +146,46 @@ message_deduplicator = MessageDeduplicator(window_seconds=120)
 
 def verify_jwt(token: str) -> tuple[Optional[dict], Optional[str]]:
     """Verify JWT token and return payload and tier"""
+    logger.info(f"[WebSocket][DIAGNOSTIC] verify_jwt() called with token: {token[:20] + '...' if token and len(token) > 20 else token}")
+    
     if not token:
+        logger.warning("[WebSocket][DIAGNOSTIC] verify_jwt() -> Token is None/empty")
         return None, None
     
     try:
         from server.config.production_auth import get_jwt_secret
         
+        jwt_secret = get_jwt_secret()
+        logger.info(f"[WebSocket][DIAGNOSTIC] JWT secret retrieved, length: {len(jwt_secret)}")
+        
         payload = jwt.decode(
             token,
-            get_jwt_secret(),
+            jwt_secret,
             algorithms=["HS256"],
             audience="stackmotive-app",
             issuer="stackmotive.com",
         )
         
+        logger.info(f"[WebSocket][DIAGNOSTIC] JWT decoded successfully: {payload}")
+        
         user_id = payload.get("user_id") or payload.get("sub")
         user_tier = payload.get("tier", "navigator")
         
+        logger.info(f"[WebSocket][DIAGNOSTIC] Extracted user_id: {user_id}, tier: {user_tier}")
+        
         if not user_id:
+            logger.warning("[WebSocket][DIAGNOSTIC] verify_jwt() -> No user_id in payload")
             return None, None
         
+        logger.info(f"[WebSocket][DIAGNOSTIC] verify_jwt() -> SUCCESS (user_id={user_id}, tier={user_tier})")
         return {"user_id": user_id}, user_tier
     
     except JWTError as e:
+        logger.warning(f"[WebSocket][DIAGNOSTIC] JWT validation failed: {e}")
         logger.warning(f"JWT validation failed: {e}")
         return None, None
     except Exception as e:
+        logger.error(f"[WebSocket][DIAGNOSTIC] Error verifying JWT: {e}")
         logger.error(f"Error verifying JWT: {e}")
         return None, None
 
@@ -174,25 +193,35 @@ def verify_jwt(token: str) -> tuple[Optional[dict], Optional[str]]:
 @sio.event
 async def connect(sid, environ, auth):
     """Handle client connection with strict JWT authentication"""
+    logger.info(f"[WebSocket][DIAGNOSTIC] ===== CONNECT EVENT FIRED ===== sid={sid}")
+    logger.info(f"[WebSocket][DIAGNOSTIC] environ keys: {list(environ.keys())[:10]}")
+    logger.info(f"[WebSocket][DIAGNOSTIC] auth type: {type(auth)}, auth: {auth}")
+    
     try:
         token = None
         
         if auth and isinstance(auth, dict):
             token = auth.get("token")
+            logger.info(f"[WebSocket][DIAGNOSTIC] Token from auth dict: {token[:20] + '...' if token and len(token) > 20 else 'None'}")
         
         if not token:
             query_string = environ.get("QUERY_STRING", "")
+            logger.info(f"[WebSocket][DIAGNOSTIC] Checking QUERY_STRING: {query_string[:100] if query_string else 'empty'}")
             for param in query_string.split("&"):
                 if param.startswith("token="):
                     token = param.split("=", 1)[1]
+                    logger.info(f"[WebSocket][DIAGNOSTIC] Token from query string: {token[:20] + '...' if len(token) > 20 else token}")
                     break
         
         if not token:
+            logger.warning(f"[WebSocket][DIAGNOSTIC] Connection REJECTED - no token provided: {sid}")
             logger.warning(f"[WebSocket] Connection rejected - no token provided: {sid}")
             return False
         
+        logger.info(f"[WebSocket][DIAGNOSTIC] About to call verify_jwt()...")
         user, tier = verify_jwt(token)
         if not user or not tier:
+            logger.warning(f"[WebSocket][DIAGNOSTIC] Connection REJECTED - invalid token: {sid}")
             logger.warning(f"[WebSocket] Connection rejected - invalid token: {sid}")
             return False
         
@@ -205,6 +234,7 @@ async def connect(sid, environ, auth):
             "connected_at": datetime.now().isoformat(),
         }
         
+        logger.info(f"[WebSocket][DIAGNOSTIC] Client CONNECTED SUCCESSFULLY: {sid} (user: {user_id}, tier: {tier})")
         logger.info(f"[WebSocket] Client connected: {sid} (user: {user_id}, tier: {tier})")
         
         await sio.emit(
@@ -217,9 +247,12 @@ async def connect(sid, environ, auth):
             to=sid,
         )
         
+        logger.info(f"[WebSocket][DIAGNOSTIC] Emitted 'connected' event to {sid}")
+        
         return True
     
     except Exception as e:
+        logger.error(f"[WebSocket][DIAGNOSTIC] Connection ERROR for {sid}: {e}", exc_info=True)
         logger.error(f"[WebSocket] Connection error for {sid}: {e}")
         return False
 
