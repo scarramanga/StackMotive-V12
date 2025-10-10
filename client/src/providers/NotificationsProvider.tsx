@@ -33,7 +33,14 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   }, [toast]);
 
   // Connect to notifications socket
-  useNotificationsSocket(handleNotification);
+  const { isConnected } = useNotificationsSocket(handleNotification);
+
+  // Expose socket connection state for E2E testing
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__SM_SOCKET_CONNECTED__ = isConnected;
+    }
+  }, [isConnected]);
 
   return (
     <NotificationsContext.Provider value={{ notifications }}>
