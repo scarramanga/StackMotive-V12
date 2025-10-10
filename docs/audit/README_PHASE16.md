@@ -119,11 +119,102 @@ All diagnostic logs prefixed with `[WebSocket][DIAGNOSTIC]` for easy filtering.
 
 ---
 
+## Phase 16.3 — Frontend Socket.IO Client Integration
+
+**Date**: October 10, 2025  
+**Branch**: `phase16/frontend-sio-client`  
+**Status**: ✅ Complete
+
+### Changes Made
+
+**Frontend Socket.IO Integration:**
+
+1. **Added Dependency**
+   - `socket.io-client`: ^4.7.5 in `client/package.json`
+
+2. **Created Socket.IO Wrapper**
+   - File: `client/src/lib/socket.ts`
+   - Exports: `connectSocket()`, `getSocket()`, `disconnectSocket()`
+   - Configuration:
+     - Path: `/socket.io` (matches Vite proxy from Phase 17)
+     - Transport: WebSocket only
+     - Authentication: JWT token via `auth: { token }`
+     - Reconnection: Enabled
+
+3. **Replaced Native WebSocket Hook**
+   - File: `client/src/hooks/use-websocket.ts`
+   - New: `useNotificationsSocket(onNotification)` hook
+   - Uses `getAccessToken()` from `client/src/lib/auth.ts`
+   - Connects via `connectSocket(token)` on mount
+   - Registers `socket.on("notification", handler)`
+   - Backward compatible: `useWebSocket()` still exported
+
+4. **Created NotificationsProvider**
+   - File: `client/src/providers/NotificationsProvider.tsx`
+   - Integrates `useNotificationsSocket()` hook
+   - Shows toast via `useToast()` when notification received
+   - Includes `data-testid="notification-toast"` div for E2E
+
+5. **Wired into App**
+   - Modified: `client/src/App.tsx`
+   - Wrapped `<NotificationsProvider>` around TooltipProvider
+   - Order: ThemeProvider → QueryClientProvider → NotificationsProvider → TooltipProvider → Router
+
+### Testing
+
+**How to Test Toast:**
+
+1. Start dev server: `npm run dev` (client directory)
+2. Login to application
+3. Trigger notification via backend dev endpoint:
+   ```bash
+   curl -X POST http://localhost:8000/api/notifications/test \
+     -H "Authorization: Bearer <your_jwt_token>" \
+     -H "Content-Type: application/json" \
+     -d '{"title": "Test", "message": "Hello from Socket.IO!"}'
+   ```
+4. Toast should appear in UI with the message
+
+**Socket.IO Verification:**
+- Browser DevTools → Network → WS tab
+- Should show `101 Switching Protocols` for `/socket.io/`
+- Connection should upgrade to WebSocket successfully
+
+**Data Flow:**
+```
+Backend Socket.IO Server
+  ↓ emit("notification", data)
+Socket.IO Protocol (WebSocket transport)
+  ↓ /socket.io path
+Vite Proxy (from Phase 17)
+  ↓ ws: true
+Frontend socket.io-client
+  ↓ socket.on("notification")
+NotificationsProvider
+  ↓ useToast()
+Toast UI Component
+```
+
+### Production Impact
+
+✅ **Client-only changes**:
+- No backend code modified
+- No database changes
+- No environment variables added
+- Uses existing `/socket.io` proxy from Phase 17
+
+✅ **Protocol Fix**:
+- Replaced native WebSocket with Socket.IO client
+- Matches backend Socket.IO server protocol
+- Enables real-time notifications
+
+---
+
 ## References
 
 - Original task: Phase 16.2 issue #86
 - Related docs: `docs/deltas/realtime_inventory.md`
 - Test evidence: `docs/qa/evidence/phase15/journeys/journey9_*`
-- Git branch: `phase16.2/backend-ws-diagnostics`
-- Link to Devin run: https://app.devin.ai/sessions/3fa19bf531154f7a904af47fb9817493
+- Phase 16.3 evidence: `docs/qa/evidence/phase16/journeys/journey9_*`
+- Git branch: `phase16/frontend-sio-client`
 - Requested by: @scarramanga
