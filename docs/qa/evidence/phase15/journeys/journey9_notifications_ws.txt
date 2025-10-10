@@ -1,3 +1,24 @@
-WebSocket Trace:
-Timestamp: 2025-10-09T20:01:48.579Z
+WebSocket Trace - Phase 16.2 Diagnostics:
+Timestamp: 2025-10-10T03:38:00.000Z
+
+DIAGNOSTIC FINDINGS:
+===================
+
+Issue: Protocol mismatch between client and server
+- Client: Native WebSocket (ws://) in client/src/hooks/use-websocket.ts
+- Server: Socket.IO protocol in server/websocket_server.py
+
+Test Results:
+- Socket.IO client → ✅ SUCCESS (connect handler fires, JWT validated, connection accepted)
+- Native WebSocket → ❌ FAIL (400 Bad Request, connect handler never invoked)
+
+Root Cause: Native WebSocket and Socket.IO are incompatible protocols
+
+Backend Validation: @sio.event("connect") handler IS properly registered and DOES execute
+when using Socket.IO protocol. JWT verification works correctly when called.
+
+Status: Diagnostic phase complete. Backend works as designed. Client needs to use
+socket.io-client library instead of native WebSocket API.
+
+See docs/audit/README_PHASE16.md for complete analysis.
 
