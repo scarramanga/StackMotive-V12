@@ -69,7 +69,6 @@ services:
     working_dir: /app/client
     environment:
       NODE_ENV: development
-      VITE_API_BASE: "http://backend:8000"
     volumes:
       - ./client:/app/client
       - /app/client/node_modules

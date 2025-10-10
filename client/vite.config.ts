@@ -33,18 +33,33 @@ export default defineConfig({
     sourcemap: process.env.NODE_ENV !== "production",
   },
   server: {
-    host: '0.0.0.0', // Enable external access - allows connections from any IP
+    host: '0.0.0.0',
     port: 5173,
     proxy: {
       "/api": {
-        target: process.env.VITE_API_URL || "http://localhost:8000",
+        target: "http://backend:8000",
         changeOrigin: true,
-        secure: false,
+      },
+      "/socket.io": {
+        target: "http://backend:8000",
+        ws: true,
+        changeOrigin: true,
       },
     },
   },
   preview: {
     host: '0.0.0.0',
     port: 5174,
+    proxy: {
+      "/api": {
+        target: "http://backend:8000",
+        changeOrigin: true,
+      },
+      "/socket.io": {
+        target: "http://backend:8000",
+        ws: true,
+        changeOrigin: true,
+      },
+    },
   },
-});    
+});        

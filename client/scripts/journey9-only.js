@@ -101,22 +101,28 @@ async function captureJourney9(page, token) {
   
   try {
     console.log('Triggering test notification...');
-    const notifResponse = await fetch(`${BACKEND_URL}/api/notify/test`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        title: 'Test Alert',
-        body: 'Phase16 evidence'
-      })
-    });
+    const notifResponse = await page.evaluate(async (token) => {
+      const response = await fetch('/api/notify/test', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: 'Test Alert',
+          body: 'Phase16 evidence'
+        })
+      });
+      return {
+        ok: response.ok,
+        status: response.status,
+        data: await response.json().catch(() => ({ error: 'Failed to parse JSON' }))
+      };
+    }, token);
     
     if (notifResponse.ok) {
-      const responseData = await notifResponse.json();
-      console.log('Test notification triggered:', responseData);
-      wsTrace += `\n[Test notification triggered: ${JSON.stringify(responseData)}]\n`;
+      console.log('Test notification triggered:', notifResponse.data);
+      wsTrace += `\n[Test notification triggered: ${JSON.stringify(notifResponse.data)}]\n`;
       
       console.log('Waiting for notification toast...');
       try {
@@ -130,9 +136,8 @@ async function captureJourney9(page, token) {
         wsTrace += `[Warning: Toast not detected - ${e.message}]\n`;
       }
     } else {
-      const errorText = await notifResponse.text();
-      console.error('Failed to trigger notification:', notifResponse.status, errorText);
-      wsTrace += `\n[Error triggering notification: ${notifResponse.status} - ${errorText}]\n`;
+      console.error('Failed to trigger notification:', notifResponse.status, notifResponse.data);
+      wsTrace += `\n[Error triggering notification: ${notifResponse.status} - ${JSON.stringify(notifResponse.data)}]\n`;
     }
   } catch (e) {
     console.error('Error triggering test notification:', e);
