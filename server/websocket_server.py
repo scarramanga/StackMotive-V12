@@ -215,35 +215,45 @@ def verify_jwt(token: str) -> tuple[Optional[dict], Optional[str]]:
 @sio.event
 async def connect(sid, environ, auth):
     """Handle client connection with strict JWT authentication"""
-    logger.info(f"[WebSocket][DIAGNOSTIC] ===== CONNECT EVENT FIRED ===== sid={sid}")
-    logger.info(f"[WebSocket][DIAGNOSTIC] environ keys: {list(environ.keys())[:10]}")
-    logger.info(f"[WebSocket][DIAGNOSTIC] auth type: {type(auth)}, auth: {auth}")
+    import os
+    is_dev = os.getenv("STACKMOTIVE_DEV_MODE", "").lower() in ("true", "1", "yes")
+    
+    if is_dev:
+        logger.info(f"[WebSocket][DEV] ===== CONNECT EVENT FIRED ===== sid={sid}")
+        logger.info(f"[WebSocket][DEV] environ keys: {list(environ.keys())[:10]}")
+        logger.info(f"[WebSocket][DEV] auth type: {type(auth)}, auth: {auth}")
     
     try:
         token = None
         
         if auth and isinstance(auth, dict):
             token = auth.get("token")
-            logger.info(f"[WebSocket][DIAGNOSTIC] Token from auth dict: {token[:20] + '...' if token and len(token) > 20 else 'None'}")
+            if is_dev:
+                logger.info(f"[WebSocket][DEV] Token from auth dict: {token[:20] + '...' if token and len(token) > 20 else 'None'}")
         
         if not token:
             query_string = environ.get("QUERY_STRING", "")
-            logger.info(f"[WebSocket][DIAGNOSTIC] Checking QUERY_STRING: {query_string[:100] if query_string else 'empty'}")
+            if is_dev:
+                logger.info(f"[WebSocket][DEV] Checking QUERY_STRING: {query_string[:100] if query_string else 'empty'}")
             for param in query_string.split("&"):
                 if param.startswith("token="):
                     token = param.split("=", 1)[1]
-                    logger.info(f"[WebSocket][DIAGNOSTIC] Token from query string: {token[:20] + '...' if len(token) > 20 else token}")
+                    if is_dev:
+                        logger.info(f"[WebSocket][DEV] Token from query string: {token[:20] + '...' if len(token) > 20 else token}")
                     break
         
         if not token:
-            logger.warning(f"[WebSocket][DIAGNOSTIC] Connection REJECTED - no token provided: {sid}")
+            if is_dev:
+                logger.warning(f"[WebSocket][DEV] Connection REJECTED - no token provided: {sid}")
             logger.warning(f"[WebSocket] Connection rejected - no token provided: {sid}")
             return False
         
-        logger.info(f"[WebSocket][DIAGNOSTIC] About to call verify_jwt()...")
+        if is_dev:
+            logger.info(f"[WebSocket][DEV] About to call verify_jwt()...")
         user, tier = verify_jwt(token)
         if not user or not tier:
-            logger.warning(f"[WebSocket][DIAGNOSTIC] Connection REJECTED - invalid token: {sid}")
+            if is_dev:
+                logger.warning(f"[WebSocket][DEV] Connection REJECTED - token validation failed: {sid}")
             logger.warning(f"[WebSocket] Connection rejected - invalid token: {sid}")
             return False
         
