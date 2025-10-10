@@ -28,11 +28,22 @@ jobs:
       - name: Start E2E stack
         run: docker compose -f docker-compose.e2e.yml up -d --build
 
-      - name: Install Playwright browsers
-        run: docker exec stackmotive-e2e-frontend npx playwright install --with-deps
+      - name: Install client deps
+        run: |
+          cd client
+          npm ci
 
-      - name: Run evidence snapshot
-        run: docker exec stackmotive-e2e-frontend npm run e2e:snap || true
+      - name: Install Playwright on runner
+        run: |
+          cd client
+          npx playwright install --with-deps
+
+      - name: Run evidence snapshot (host)
+        run: |
+          cd client
+          # The preview server is already running in the frontend container (port 5174).
+          # Run the existing snapshot script against http://localhost:5174
+          npm run e2e:snap || true
 
       - name: Archive evidence folder
         run: tar -czf e2e-evidence.tar.gz docs/qa/evidence || true
