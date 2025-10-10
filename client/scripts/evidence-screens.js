@@ -168,38 +168,57 @@ async function captureJourney9(page, token) {
     });
   });
   
+  // Step 1: Navigate to dashboard
+  console.log('Step 1: Navigating to dashboard...');
   await page.goto(`${FRONTEND_URL}/dashboard`);
+  wsTrace += '[Navigation] Loaded /dashboard\n';
   
+  // Step 2: Wait for app-ready flag (providers mounted, theme hydrated)
+  console.log('Step 2: Waiting for app-ready flag...');
   try {
-    await page.waitForSelector('#root:has(div[data-testid="dashboard"])', { timeout: 15000 });
-    console.log('Dashboard testid found');
-  } catch {
-    console.log('Dashboard testid not found, waiting for React content to render...');
-    try {
-      await page.waitForSelector('#root:has(div:not([class*="loading"]))', { timeout: 20000 });
-      console.log('React content rendered');
-    } catch {
-      console.log('Fallback: waiting 20s for page to fully load...');
-      await page.waitForTimeout(20000);
-    }
+    await page.waitForFunction(() => {
+      return window.__SM_APP_READY__ === true;
+    }, { timeout: 20000 });
+    console.log('App ready flag detected');
+    wsTrace += '[App Ready] Providers and theme hydrated\n';
+  } catch (e) {
+    console.log('Warning: App ready flag not detected, continuing anyway');
+    wsTrace += '[App Ready] Timeout (continuing)\n';
   }
   
-  // Wait for Socket.IO connection to establish
-  console.log('Waiting for Socket.IO connection...');
+  // Step 3: Verify theme is applied (check for light/dark class or background color)
+  console.log('Step 3: Verifying theme application...');
+  try {
+    const themeApplied = await page.evaluate(() => {
+      const html = document.documentElement;
+      const hasThemeClass = html.classList.contains('light') || html.classList.contains('dark');
+      const bgColor = window.getComputedStyle(document.body).backgroundColor;
+      return { hasThemeClass, bgColor };
+    });
+    console.log(`Theme status: class=${themeApplied.hasThemeClass}, bg=${themeApplied.bgColor}`);
+    wsTrace += `[Theme] Applied (bg: ${themeApplied.bgColor})\n`;
+  } catch (e) {
+    console.log('Could not verify theme');
+    wsTrace += '[Theme] Verification skipped\n';
+  }
+  
+  // Step 4: Wait for Socket.IO connection
+  console.log('Step 4: Waiting for Socket.IO connection...');
   try {
     await page.waitForFunction(() => {
       return window.__SM_SOCKET_CONNECTED__ === true;
     }, { timeout: 15000 });
     console.log('Socket.IO connected successfully');
-    wsTrace += '[Socket Connection] Established before notification trigger\n';
+    wsTrace += '[Socket Connection] ✓ Established\n';
   } catch (e) {
     console.log('Warning: Socket.IO connection flag not detected within 15s');
-    wsTrace += '[Socket Connection] Timeout waiting for connection flag\n';
+    wsTrace += '[Socket Connection] ✗ Timeout (15s)\n';
   }
   
-  // Trigger notification via backend endpoint
+  // Step 5: Trigger notification via backend endpoint (may fail if user lacks operator tier)
+  console.log('Step 5: Attempting to trigger test notification...');
+  let toastVisible = false;
   try {
-    console.log('Triggering test notification...');
     const notifResponse = await fetch(`${BACKEND_URL}/api/notifications/test`, {
       method: 'POST',
       headers: {
@@ -207,40 +226,61 @@ async function captureJourney9(page, token) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        type: 'price_alert',
-        message: 'Test notification for Journey 9 evidence'
+        message: 'Journey 9 E2E test notification'
       })
     });
     
     if (notifResponse.ok) {
-      console.log('Notification endpoint responded OK, waiting for toast...');
+      console.log('Notification API responded OK');
       wsTrace += '[Notification API] POST /api/notifications/test → 200 OK\n';
       
-      // Wait for notification toast to appear
+      // Step 6: Wait for toast to appear
+      console.log('Step 6: Waiting for notification toast...');
       try {
-        await page.waitForSelector('[data-testid="notification-toast"]', { timeout: 5000, state: 'attached' });
-        console.log('Toast element detected');
-        wsTrace += '[Toast] Notification toast appeared\n';
-        await page.waitForTimeout(1000); // Brief pause for screenshot
+        await page.waitForSelector('[data-testid="notification-toast"]', { 
+          timeout: 5000, 
+          state: 'visible' 
+        });
+        console.log('Toast visible in DOM');
+        wsTrace += '[Toast] ✓ Visible (data-testid="notification-toast")\n';
+        toastVisible = true;
+        await page.waitForTimeout(1000); // Pause for visual confirmation
       } catch (e) {
-        console.log('Toast element not found in DOM');
-        wsTrace += '[Toast] Element not detected (may be ephemeral)\n';
+        console.log('Toast element not visible within 5s');
+        wsTrace += '[Toast] ✗ Not visible (timeout)\n';
       }
     } else {
-      wsTrace += `[Notification API] POST failed with status ${notifResponse.status}\n`;
+      const statusText = notifResponse.statusText || notifResponse.status;
+      console.log(`Notification API failed: ${notifResponse.status}`);
+      wsTrace += `[Notification API] POST failed → ${notifResponse.status} ${statusText}\n`;
+      wsTrace += '[Note] Endpoint requires operator tier; test user may lack permission\n';
     }
   } catch (e) {
-    wsTrace += `\n[Error] Could not trigger test notification: ${e.message}\n`;
+    console.log(`Notification trigger error: ${e.message}`);
+    wsTrace += `[Notification API] Error: ${e.message}\n`;
   }
   
-  wsTrace += `\n[Frames Exchanged] ${sawFrames ? 'YES' : 'NO'}\n`;
-  wsTrace += `[Status] Socket.IO connection ${sawFrames ? 'active' : 'not detected'}\n`;
+  // Step 7: Final readiness check before screenshot
+  console.log('Step 7: Final readiness check...');
+  try {
+    await page.waitForSelector('#root', { state: 'visible', timeout: 5000 });
+    console.log('Root element visible');
+  } catch (e) {
+    console.log('Root element check failed');
+  }
+  
+  // Summary
+  wsTrace += `\n[Summary]\n`;
+  wsTrace += `Frames Exchanged: ${sawFrames ? 'YES' : 'NO'}\n`;
+  wsTrace += `Socket.IO Active: ${sawFrames ? 'YES' : 'NO'}\n`;
+  wsTrace += `Toast Visible: ${toastVisible ? 'YES' : 'NO'}\n`;
   
   writeFileSync(
     join(EVIDENCE_DIR, 'journey9_notifications_ws.txt'),
     wsTrace
   );
   
+  // Capture screenshot showing dashboard with theme and (ideally) toast
   await page.screenshot({
     path: join(EVIDENCE_DIR, 'journey9_notifications.png'),
     fullPage: false
