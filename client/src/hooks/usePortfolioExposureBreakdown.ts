@@ -498,9 +498,9 @@ export const usePortfolioExposureBreakdown = (): UsePortfolioExposureBreakdownRe
       setIsAnalyzing(true);
       setError(null);
       
-      const var = await engineRef.current.calculateVaR(breakdownId, confidence, horizon);
+      const varValue = await engineRef.current.calculateVaR(breakdownId, confidence, horizon);
       
-      return var;
+      return varValue;
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to calculate VaR';

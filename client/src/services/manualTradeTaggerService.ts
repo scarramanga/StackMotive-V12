@@ -492,35 +492,8 @@ export class ManualTradeTaggerService {
 
   // **EXTRACTED BUSINESS LOGIC FROM PANEL**
 
-  // Panel-specific interfaces
-  interface PanelTradeTag {
-    strategyMatch: string;
-    intent: string;
-    marketCondition: string;
-    confidenceLevel: string;
-  }
-
-  interface PanelManualTrade {
-    id: string;
-    asset: string;
-    assetType: 'stock' | 'crypto' | 'commodity' | 'forex';
-    action: 'buy' | 'sell';
-    amount: number;
-    price: number;
-    date: string;
-    totalValue: number;
-    tags: PanelTradeTag;
-    description?: string;
-    source: 'manual' | 'automatic';
-  }
-
-  interface PanelTradeTagUpdate {
-    tradeId: string;
-    tags: PanelTradeTag;
-  }
-
   // Tag options constants
-  readonly STRATEGY_MATCH_OPTIONS = [
+  STRATEGY_MATCH_OPTIONS = [
     { value: '', label: 'Select strategy...' },
     { value: 'momentum', label: 'Momentum Trading' },
     { value: 'mean-reversion', label: 'Mean Reversion' },
@@ -533,7 +506,7 @@ export class ManualTradeTaggerService {
     { value: 'other', label: 'Other' },
   ];
 
-  readonly INTENT_OPTIONS = [
+  INTENT_OPTIONS = [
     { value: '', label: 'Select intent...' },
     { value: 'profit-taking', label: 'Profit Taking' },
     { value: 'loss-cutting', label: 'Loss Cutting' },
@@ -545,7 +518,7 @@ export class ManualTradeTaggerService {
     { value: 'emergency', label: 'Emergency' },
   ];
 
-  readonly MARKET_CONDITION_OPTIONS = [
+  MARKET_CONDITION_OPTIONS = [
     { value: '', label: 'Select condition...' },
     { value: 'bullish', label: 'Bullish Market' },
     { value: 'bearish', label: 'Bearish Market' },
@@ -557,7 +530,7 @@ export class ManualTradeTaggerService {
     { value: 'recovery', label: 'Recovery' },
   ];
 
-  readonly CONFIDENCE_LEVEL_OPTIONS = [
+  CONFIDENCE_LEVEL_OPTIONS = [
     { value: '', label: 'Select confidence...' },
     { value: 'very-high', label: 'Very High (90%+)' },
     { value: 'high', label: 'High (75-89%)' },

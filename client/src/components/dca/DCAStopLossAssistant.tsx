@@ -169,6 +169,7 @@ export const DCAStopLossAssistant: React.FC<{ userId: string }> = ({ userId }) =
           {loading ? (
             <div className="text-center py-8">Loading rules...</div>
           ) : (
+            <>
             <Tabs defaultValue="dca" className="space-y-6">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="dca">DCA Rules</TabsTrigger>
@@ -415,6 +416,7 @@ export const DCAStopLossAssistant: React.FC<{ userId: string }> = ({ userId }) =
                 </Table>
               )}
             </Card>
+            </>
           )}
         </CardContent>
       </Card>

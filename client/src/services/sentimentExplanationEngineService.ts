@@ -619,36 +619,36 @@ export class SentimentExplanationEngineService {
       confidence
     };
   }
-}
 
-// Agent memory logging
-async logAgentMemory(
-  action: 'explanation_generated' | 'explanation_viewed' | 'explanation_exported' | 'sentiment_analyzed' | 'explanation_customized' | 'filter_changed' | 'chart_type_changed' | 'comparison_toggled' | 'data_refreshed' | 'point_selected',
-  explanationData: {
-    userId?: string;
-    vaultId?: string;
-    metadata?: Record<string, any>;
-  }
-): Promise<void> {
-  try {
-    const logData = {
-      action,
-      blockId: 'block-28-sentiment-explanation-engine',
-      timestamp: new Date().toISOString(),
-      userId: explanationData.userId,
-      vaultId: explanationData.vaultId,
-      data: {
-        ...explanationData.metadata
-      }
-    };
+  // Agent memory logging
+  async logAgentMemory(
+    action: 'explanation_generated' | 'explanation_viewed' | 'explanation_exported' | 'sentiment_analyzed' | 'explanation_customized' | 'filter_changed' | 'chart_type_changed' | 'comparison_toggled' | 'data_refreshed' | 'point_selected',
+    explanationData: {
+      userId?: string;
+      vaultId?: string;
+      metadata?: Record<string, any>;
+    }
+  ): Promise<void> {
+    try {
+      const logData = {
+        action,
+        blockId: 'block-28-sentiment-explanation-engine',
+        timestamp: new Date().toISOString(),
+        userId: explanationData.userId,
+        vaultId: explanationData.vaultId,
+        data: {
+          ...explanationData.metadata
+        }
+      };
 
-    await fetch('/api/agent/log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(logData)
-    });
-  } catch (error) {
-    console.warn('Failed to log agent memory:', error);
+      await fetch('/api/agent/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(logData)
+      });
+    } catch (error) {
+      console.warn('Failed to log agent memory:', error);
+    }
   }
 }
 
