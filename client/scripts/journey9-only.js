@@ -55,6 +55,13 @@ async function captureJourney9(page, token) {
   let wsTrace = 'WebSocket Trace:\n';
   wsTrace += `Timestamp: ${new Date().toISOString()}\n\n`;
   
+  page.on('console', msg => {
+    const text = msg.text();
+    if (text.includes('Notifications') || text.includes('Socket') || text.includes('socket')) {
+      wsTrace += `[Console ${msg.type()}] ${text}\n`;
+    }
+  });
+  
   page.on('websocket', ws => {
     wsTrace += `[WS Connected] ${ws.url()}\n`;
     ws.on('framesent', frame => {
