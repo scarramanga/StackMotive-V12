@@ -16,7 +16,7 @@ repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 
 sys.path.insert(0, repo_root)
 
 import time
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.testclient import TestClient
 from server.main import app
 from slowapi import Limiter
@@ -78,7 +78,7 @@ def _mount_test_ping(app):
 
     @router.get("/api/ping")
     @app.state.limiter.limit("60/minute")
-    async def _test_ping():
+    async def _test_ping(request: Request):
         return {"ok": True}
 
     # include router and return a handle so we can clean up later
