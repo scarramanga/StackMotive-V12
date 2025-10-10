@@ -139,29 +139,34 @@ websocket_rate_limiter = WebSocketRateLimiter()
 message_deduplicator = MessageDeduplicator(window_seconds=120)
 
 
-def verify_jwt(token: str) -> tuple[Optional[dict], Optional[str]]:
-    """Verify JWT token and return payload and tier"""
+def verify_jwt(token: str, db) -> tuple[Optional[dict], Optional[str]]:
+    """Verify JWT token and return user_id and tier (V12-compatible)"""
     if not token:
         return None, None
     
     try:
-        from server.config.production_auth import get_jwt_secret
+        from server.config.settings import settings
+        from server.models.user import User
         
         payload = jwt.decode(
             token,
-            get_jwt_secret(),
-            algorithms=["HS256"],
-            audience="stackmotive-app",
-            issuer="stackmotive.com",
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM]
         )
         
-        user_id = payload.get("user_id") or payload.get("sub")
-        user_tier = payload.get("tier", "navigator")
-        
-        if not user_id:
+        email = payload.get("sub")
+        if not email:
+            logger.warning("JWT token missing 'sub' field")
             return None, None
         
-        return {"user_id": user_id}, user_tier
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            logger.warning(f"User not found for email: {email}")
+            return None, None
+        
+        user_tier = payload.get("tier") or getattr(user, "tier", "navigator")
+        
+        return {"user_id": user.id}, user_tier
     
     except JWTError as e:
         logger.warning(f"JWT validation failed: {e}")
@@ -174,6 +179,9 @@ def verify_jwt(token: str) -> tuple[Optional[dict], Optional[str]]:
 @sio.event
 async def connect(sid, environ, auth):
     """Handle client connection with strict JWT authentication"""
+    from server.database import SessionLocal
+    
+    db = SessionLocal()
     try:
         token = None
         
@@ -191,7 +199,7 @@ async def connect(sid, environ, auth):
             logger.warning(f"[WebSocket] Connection rejected - no token provided: {sid}")
             return False
         
-        user, tier = verify_jwt(token)
+        user, tier = verify_jwt(token, db)
         if not user or not tier:
             logger.warning(f"[WebSocket] Connection rejected - invalid token: {sid}")
             return False
@@ -222,6 +230,8 @@ async def connect(sid, environ, auth):
     except Exception as e:
         logger.error(f"[WebSocket] Connection error for {sid}: {e}")
         return False
+    finally:
+        db.close()
 
 
 @sio.event

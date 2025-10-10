@@ -36,8 +36,10 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://stackmotive:stackmotive@db:5432/stackmotive_local
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: e2e-test-secret-key-do-not-use-in-production
+      JWT_SECRET_KEY: e2e-test-secret-key-do-not-use-in-production
+      AUTH_SECRET_KEY: e2e-test-secret-key-do-not-use-in-production
       ENVIRONMENT: development
+      STACKMOTIVE_DEV_MODE: "true"
       PYTHONPATH: /app
       PYTHONUNBUFFERED: 1
       CORS_ORIGINS: http://localhost:5174

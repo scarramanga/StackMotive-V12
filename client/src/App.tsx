@@ -24,6 +24,7 @@ import { TierPreviewBanner } from '@/components/tier/TierPreviewBanner';
 import UserProfile from "@/pages/UserProfile";
 import MagicLinkVerify from "@/pages/MagicLinkVerify";
 import { useSessionStore } from './store/session';
+import { NotificationsProvider } from '@/providers/NotificationsProvider';
 
 // Import new pages
 import TradeView from "@/pages/trading/trade-view";
@@ -142,10 +143,12 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light">
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <NotificationsProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </NotificationsProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

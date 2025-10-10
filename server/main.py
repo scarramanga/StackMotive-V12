@@ -99,6 +99,10 @@ logger = logging.getLogger(__name__)
 # Create all database tables
 Base.metadata.create_all(bind=engine)
 
+if os.getenv("STACKMOTIVE_DEV_MODE", "").lower() == "true":
+    from server.routes.dev_notify import router as dev_notify_router
+    logger.info("🧪 Dev mode enabled - mounting dev-only routes")
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 
 app = FastAPI(
@@ -477,6 +481,13 @@ app.include_router(
     federation_router,
     tags=["Data Federation"]
 )
+
+if os.getenv("STACKMOTIVE_DEV_MODE", "").lower() == "true":
+    app.include_router(
+        dev_notify_router,
+        tags=["Dev Notifications (E2E only)"]
+    )
+    logger.info("🧪 Dev notification endpoint mounted at /api/notify/test")
 
 app.mount("/socket.io", socket_app)
 
