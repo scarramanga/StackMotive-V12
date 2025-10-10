@@ -22,7 +22,7 @@ class CustomAssetCategoriesEngine {
   private apiUrl: string;
 
   private constructor() {
-    this.apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    this.apiUrl = '';
   }
 
   public static getInstance(): CustomAssetCategoriesEngine {
@@ -697,4 +697,4 @@ class CustomAssetCategoriesEngine {
   }
 }
 
-export default CustomAssetCategoriesEngine; 
+export default CustomAssetCategoriesEngine;  

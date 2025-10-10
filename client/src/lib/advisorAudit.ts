@@ -26,8 +26,7 @@ export async function exportSignalLogCSV(filters: SignalLogFilters): Promise<{ c
   if (filters.triggers.length) params.append('trigger', filters.triggers.join(','));
   if (filters.dateRange.from) params.append('from', filters.dateRange.from.toISOString());
   if (filters.dateRange.to) params.append('to', filters.dateRange.to.toISOString());
-  const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  const url = `${baseURL}/api/signal-log/export?${params.toString()}`;
+  const url = `/api/signal-log/export?${params.toString()}`;
   const token = localStorage.getItem('access_token');
   const response = await fetch(url, {
     method: 'GET',
@@ -40,4 +39,4 @@ export async function exportSignalLogCSV(filters: SignalLogFilters): Promise<{ c
   const csv = await response.text();
   const auditFooter = `Exported: ${new Date().toISOString()} | Filters: ${JSON.stringify(filters)}`;
   return { csv, auditFooter };
-} 
+}  

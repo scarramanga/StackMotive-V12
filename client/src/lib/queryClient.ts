@@ -17,9 +17,9 @@ let refreshPromise: Promise<string | undefined> | null = null;
 // Function to refresh the token
 async function refreshToken(): Promise<string | undefined> {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/refresh-token`, {
+    const response = await fetch('/api/refresh-token', {
       method: 'POST',
-      credentials: 'include', // Important for sending the refresh token cookie
+      credentials: 'include',
     });
     
     if (!response.ok) {
@@ -84,8 +84,7 @@ export async function apiRequest(
     throw new Error('Invalid apiRequest usage: endpoint URL is required');
   }
 
-  const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  const url = `${baseURL}${endpoint}`;
+  const url = endpoint;
   
   // Function to make the actual API call
   const makeRequest = async (token?: string) => {
