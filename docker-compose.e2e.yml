@@ -69,6 +69,7 @@ services:
     environment:
       NODE_ENV: development
       VITE_API_URL: http://localhost:8001
+      VITE_API_TARGET: http://backend:8000
     volumes:
       - ./client:/app/client
       - /app/client/node_modules
