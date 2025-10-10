@@ -184,7 +184,22 @@ async function captureJourney9(page, token) {
     }
   }
   
+  // Wait for Socket.IO connection to establish
+  console.log('Waiting for Socket.IO connection...');
   try {
+    await page.waitForFunction(() => {
+      return (window as any).__SM_SOCKET_CONNECTED__ === true;
+    }, { timeout: 15000 });
+    console.log('Socket.IO connected successfully');
+    wsTrace += '[Socket Connection] Established before notification trigger\n';
+  } catch (e) {
+    console.log('Warning: Socket.IO connection flag not detected within 15s');
+    wsTrace += '[Socket Connection] Timeout waiting for connection flag\n';
+  }
+  
+  // Trigger notification via backend endpoint
+  try {
+    console.log('Triggering test notification...');
     const notifResponse = await fetch(`${BACKEND_URL}/api/notifications/test`, {
       method: 'POST',
       headers: {
@@ -193,16 +208,29 @@ async function captureJourney9(page, token) {
       },
       body: JSON.stringify({
         type: 'price_alert',
-        message: 'Test notification for evidence capture'
+        message: 'Test notification for Journey 9 evidence'
       })
     });
     
     if (notifResponse.ok) {
-      await page.waitForTimeout(2000);
-      wsTrace += '\n[Test notification triggered successfully]\n';
+      console.log('Notification endpoint responded OK, waiting for toast...');
+      wsTrace += '[Notification API] POST /api/notifications/test → 200 OK\n';
+      
+      // Wait for notification toast to appear
+      try {
+        await page.waitForSelector('[data-testid="notification-toast"]', { timeout: 5000, state: 'attached' });
+        console.log('Toast element detected');
+        wsTrace += '[Toast] Notification toast appeared\n';
+        await page.waitForTimeout(1000); // Brief pause for screenshot
+      } catch (e) {
+        console.log('Toast element not found in DOM');
+        wsTrace += '[Toast] Element not detected (may be ephemeral)\n';
+      }
+    } else {
+      wsTrace += `[Notification API] POST failed with status ${notifResponse.status}\n`;
     }
   } catch (e) {
-    wsTrace += `\n[Note: Could not trigger test notification - ${e.message}]\n`;
+    wsTrace += `\n[Error] Could not trigger test notification: ${e.message}\n`;
   }
   
   wsTrace += `\n[Frames Exchanged] ${sawFrames ? 'YES' : 'NO'}\n`;
