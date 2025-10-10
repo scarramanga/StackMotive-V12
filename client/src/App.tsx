@@ -50,6 +50,7 @@ import AdminTestersPage from "@/pages/admin-testers";
 import ScheduledTradesPage from "@/pages/scheduled-trades";
 // TEMPORARILY COMMENTED OUT - tax.tsx has syntax errors blocking build (not part of Blocks 1-10)
 // import TaxReportsPage from "@/pages/reports/tax";
+import PortfolioAnalytics from "@/pages/analytics/PortfolioAnalytics";
 import AdvancedAnalyticsPage from "@/pages/advanced-analytics";
 import TradingJournalPage from "@/pages/journal";
 import NavigationTestPage from "@/pages/navigation-test";
@@ -103,7 +104,7 @@ function Router() {
       <Route path="/paper-trading/strategy" component={StrategySelector} />
       <Route path="/trading/ai-strategy-builder" component={AIStrategyBuilder} />
       <Route path="/news" component={NewsPage} />
-      <Route path="/analytics" component={Analytics} />
+      <Route path="/analytics" component={PortfolioAnalytics} />
       <Route path="/education" component={Education} />
       <Route path="/whale-tracking" component={WhaleTrackingPage} />
       <Route path="/reports" component={ReportsPage} />
