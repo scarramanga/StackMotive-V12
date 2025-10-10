@@ -141,6 +141,17 @@ function App() {
     'Router'
   ];
   
+  // Set app-ready flag for E2E testing after providers mounted
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        (window as any).__SM_APP_READY__ = true;
+      }
+    }, 500); // Brief delay to ensure theme hydration
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
   return (
     <ThemeProvider attribute="class" defaultTheme="light">
       <QueryClientProvider client={queryClient}>
