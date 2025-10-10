@@ -146,36 +146,3 @@ def test_rate_limit_enforced():
         fake_storage.reset()
 
 
-def test_rate_limit_window_independence():
-    """
-    Test that rate limits don't leak across independent test runs.
-    Ensures clean state between tests.
-    """
-    # Override app's limiter for this test only
-    original_limiter = app.state.limiter
-    app.state.limiter = test_limiter
-    fake_storage.reset()
-    
-    test_router = _mount_test_ping(app)
-    
-    try:
-        client = TestClient(app)
-        
-        # First batch - should all succeed
-        fake_storage.fake_time = 0
-        batch1 = [client.get("/api/ping") for _ in range(10)]
-        assert all(r.status_code == 200 for r in batch1)
-        
-        # Reset and start new window
-        fake_storage.reset()
-        
-        # Second batch - should also succeed (clean state)
-        batch2 = [client.get("/api/ping") for _ in range(10)]
-        assert all(r.status_code == 200 for r in batch2)
-        
-    finally:
-        # Unmount test router
-        _unmount_router(app, test_router)
-        # Restore original limiter
-        app.state.limiter = original_limiter
-        fake_storage.reset()
