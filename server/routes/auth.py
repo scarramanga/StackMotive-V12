@@ -52,10 +52,25 @@ class TokenOut(BaseModel):
     token_type: str = "bearer"
 
 def create_access_token(sub: str, minutes: Optional[int] = None):
+    """Create JWT access token with issuer and audience claims"""
+    from server.config.production_auth import get_jwt_secret, get_jwt_issuer, get_jwt_audience
+    import uuid
+    
     if minutes is None:
         minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES
     exp = datetime.utcnow() + timedelta(minutes=minutes)
-    return jwt.encode({"sub": sub, "exp": exp}, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    
+    payload = {
+        "sub": sub,
+        "exp": exp,
+        "iss": get_jwt_issuer(),
+        "aud": get_jwt_audience(),
+        "jti": str(uuid.uuid4()),
+        "type": "access"
+    }
+    
+    jwt_secret = get_jwt_secret()
+    return jwt.encode(payload, jwt_secret, algorithm=settings.JWT_ALGORITHM)
 
 @router.post("/register", response_model=TokenOut)
 def register(data: RegisterIn, db: Session = Depends(get_db)):
