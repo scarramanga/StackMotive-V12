@@ -264,7 +264,7 @@ const TaxReportsPage: React.FC = () => {
     doc.save(`tax_report_${taxReport.taxYear}_${taxReport.country}.pdf`);
     toast({
       title: "PDF Report Exported",
-      description: `Tax report for ${taxReport.taxYear} has been downloaded as PDF.",
+      description: `Tax report for ${taxReport.taxYear} has been downloaded as PDF.`,
     });
   };
 
