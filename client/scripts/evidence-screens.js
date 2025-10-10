@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 
 const EVIDENCE_DIR = join(__dirname, '../../docs/qa/evidence/phase16/journeys');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5174';
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8001';
 
 mkdirSync(EVIDENCE_DIR, { recursive: true });
 
